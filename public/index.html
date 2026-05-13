@@ -690,17 +690,36 @@ function handleFile(file) {
   const reader = new FileReader();
   reader.onload = e => {
     const result = e.target.result;
-    uploadedImageBase64 = result.split(',')[1];
-    uploadedMediaType = file.type || 'image/jpeg';
+
+    // Show preview immediately
     const existing = uploadZone.querySelector('img.preview');
     if (existing) existing.remove();
-    const img = document.createElement('img');
-    img.className = 'preview';
-    img.src = result;
-    uploadZone.insertBefore(img, uploadZone.firstChild);
+    const previewImg = document.createElement('img');
+    previewImg.className = 'preview';
+    previewImg.src = result;
+    uploadZone.insertBefore(previewImg, uploadZone.firstChild);
     uploadZone.classList.add('has-image');
     document.getElementById('uploadText').textContent = 'Click to change photo';
-    updateGenerateBtn();
+
+    // Compress image to max 1200px and quality 0.85 to stay under 4MB
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 1200;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL('image/jpeg', 0.85);
+      uploadedImageBase64 = compressed.split(',')[1];
+      uploadedMediaType = 'image/jpeg';
+      console.log(`Image compressed to ~${Math.round(uploadedImageBase64.length * 0.75 / 1024)}KB`);
+      updateGenerateBtn();
+    };
+    img.src = result;
   };
   reader.readAsDataURL(file);
 }
@@ -888,7 +907,10 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
       body: JSON.stringify({
         prompt: document.getElementById('promptBox').value || generatedPrompt,
         imageBase64: uploadedImageBase64,
-        mediaType: uploadedMediaType
+        mediaType: uploadedMediaType,
+        strongMods: ['face tattoo','face paint','mohawk','shaved head','long beard','neck tattoo','crown'].some(t =>
+          (document.getElementById('promptBox').value || '').toLowerCase().includes(t)
+        )
       })
     });
 

@@ -10,11 +10,15 @@ export default async function handler(req, res) {
   if (!falKey) return res.status(500).json({ error: { message: 'Fal API key not configured' } });
 
   try {
-    const { prompt, imageBase64, mediaType } = req.body;
+    const { prompt, imageBase64, mediaType, strongMods } = req.body;
     const imageDataUrl = imageBase64 ? `data:${mediaType || 'image/jpeg'};base64,${imageBase64}` : null;
 
+    // Lower face lock strength when strong appearance mods are requested
+    // 0.3 = prompt wins, 0.6 = face wins
+    const faceStrength = strongMods ? 0.25 : 0.6;
+    console.log(`strongMods: ${strongMods}, faceStrength: ${faceStrength}`);
+
     if (imageDataUrl) {
-      // Try flux-pulid first — correct param is reference_image_url (singular)
       console.log('Trying flux-pulid...');
       const pulidRes = await fetch('https://fal.run/fal-ai/flux-pulid', {
         method: 'POST',
@@ -28,7 +32,8 @@ export default async function handler(req, res) {
           negative_prompt: "blurry, low quality, distorted, deformed, ugly",
           image_size: "portrait_4_3",
           num_inference_steps: 30,
-          guidance_scale: 4.0,
+          guidance_scale: strongMods ? 6.0 : 4.0,
+          true_cfg: faceStrength,
           num_images: 1,
           enable_safety_checker: true
         })
@@ -43,15 +48,13 @@ export default async function handler(req, res) {
         return res.status(200).json({ images: pulidData.images, model: 'flux-pulid' });
       }
       if (pulidRes.ok && pulidData.image?.url) {
-        console.log('flux-pulid SUCCESS (image shape)');
         return res.status(200).json({ images: [pulidData.image], model: 'flux-pulid' });
       }
 
-      // Fallback to plain Flux
       console.log('flux-pulid failed, falling back to Flux dev...');
     }
 
-    // Plain Flux fallback (or no face image)
+    // Flux fallback
     const fluxRes = await fetch('https://fal.run/fal-ai/flux/dev', {
       method: 'POST',
       headers: {
@@ -69,14 +72,12 @@ export default async function handler(req, res) {
     });
 
     const fluxData = await fluxRes.json();
-    console.log('Flux fallback status:', fluxRes.status);
-
     if (fluxData.images?.length > 0) return res.status(200).json({ images: fluxData.images, model: 'flux-fallback' });
     if (fluxData.image?.url) return res.status(200).json({ images: [fluxData.image], model: 'flux-fallback' });
 
     return res.status(500).json({
       images: null,
-      error: { message: 'Both models failed. Flux response: ' + JSON.stringify(Object.keys(fluxData)) }
+      error: { message: 'Both models failed: ' + JSON.stringify(Object.keys(fluxData)) }
     });
 
   } catch (err) {
