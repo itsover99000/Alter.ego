@@ -846,7 +846,7 @@ document.getElementById('mjBtn').addEventListener('click', function() {
 // Reset
 // Generate image with fal.ai
 document.getElementById('generateImageBtn').addEventListener('click', async () => {
-  if (!generatedPrompt || !falKey) return;
+  if (!generatedPrompt) return;
 
   const imageArea = document.getElementById('imageArea');
   const imageContainer = document.getElementById('imageContainer');
