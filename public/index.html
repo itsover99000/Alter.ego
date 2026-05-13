@@ -703,7 +703,7 @@ function handleFile(file) {
 
 // Generate
 document.getElementById('generateBtn').addEventListener('click', async () => {
-  if (!uploadedImageBase64 || !apiKey) return;
+  if (!uploadedImageBase64) return;
 
   const generateBtn = document.getElementById('generateBtn');
   generateBtn.disabled = true;

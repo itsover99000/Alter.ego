@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "description": "ALTER.EGO — AI Selfie Generator",
   "engines": {
-    "node": "24.x"
+    "node": "18.x"
   }
 }
