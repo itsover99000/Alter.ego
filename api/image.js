@@ -11,67 +11,76 @@ export default async function handler(req, res) {
 
   try {
     const { prompt, imageBase64, mediaType } = req.body;
+    const imageDataUrl = imageBase64 ? `data:${mediaType || 'image/jpeg'};base64,${imageBase64}` : null;
 
-    if (imageBase64) {
-      const imageDataUrl = `data:${mediaType || 'image/jpeg'};base64,${imageBase64}`;
-
-      const response = await fetch('https://fal.run/fal-ai/flux-pulid', {
+    if (imageDataUrl) {
+      // Try flux-pulid first — correct param is reference_image_url (singular)
+      console.log('Trying flux-pulid...');
+      const pulidRes = await fetch('https://fal.run/fal-ai/flux-pulid', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Key ${falKey}`
         },
         body: JSON.stringify({
-          reference_images: [{ image_url: imageDataUrl }],
           prompt: prompt,
-          negative_prompt: "oversaturated, neon colors, psychedelic, distorted, low quality, blurry, deformed face, bad anatomy, watermark",
-          num_inference_steps: 20,
-          guidance_scale: 4,
-          true_cfg: 1,
-          id_weight: 1.0,
+          reference_image_url: imageDataUrl,
+          negative_prompt: "blurry, low quality, distorted, deformed, ugly",
           image_size: "portrait_4_3",
+          num_inference_steps: 30,
+          guidance_scale: 4.0,
           num_images: 1,
           enable_safety_checker: true
         })
       });
 
-      const data = await response.json();
-      console.log('PuLID response:', JSON.stringify(data).slice(0, 300));
+      const pulidData = await pulidRes.json();
+      console.log('flux-pulid status:', pulidRes.status);
+      console.log('flux-pulid response:', JSON.stringify(pulidData).slice(0, 300));
 
-      if (data.images && data.images.length > 0) {
-        return res.status(200).json({ images: data.images });
+      if (pulidRes.ok && pulidData.images?.length > 0) {
+        console.log('flux-pulid SUCCESS');
+        return res.status(200).json({ images: pulidData.images, model: 'flux-pulid' });
       }
-      if (data.image && data.image.url) {
-        return res.status(200).json({ images: [data.image] });
+      if (pulidRes.ok && pulidData.image?.url) {
+        console.log('flux-pulid SUCCESS (image shape)');
+        return res.status(200).json({ images: [pulidData.image], model: 'flux-pulid' });
       }
 
-      return res.status(200).json({
-        images: null,
-        error: { message: 'No image: ' + JSON.stringify(Object.keys(data)) }
-      });
-
-    } else {
-      const response = await fetch('https://fal.run/fal-ai/flux/dev', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Key ${falKey}`
-        },
-        body: JSON.stringify({
-          prompt,
-          image_size: 'portrait_4_3',
-          num_inference_steps: 28,
-          guidance_scale: 3.5,
-          num_images: 1,
-          enable_safety_checker: true
-        })
-      });
-
-      const data = await response.json();
-      return res.status(response.status).json(data);
+      // Fallback to plain Flux
+      console.log('flux-pulid failed, falling back to Flux dev...');
     }
 
+    // Plain Flux fallback (or no face image)
+    const fluxRes = await fetch('https://fal.run/fal-ai/flux/dev', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Key ${falKey}`
+      },
+      body: JSON.stringify({
+        prompt,
+        image_size: 'portrait_4_3',
+        num_inference_steps: 28,
+        guidance_scale: 3.5,
+        num_images: 1,
+        enable_safety_checker: true
+      })
+    });
+
+    const fluxData = await fluxRes.json();
+    console.log('Flux fallback status:', fluxRes.status);
+
+    if (fluxData.images?.length > 0) return res.status(200).json({ images: fluxData.images, model: 'flux-fallback' });
+    if (fluxData.image?.url) return res.status(200).json({ images: [fluxData.image], model: 'flux-fallback' });
+
+    return res.status(500).json({
+      images: null,
+      error: { message: 'Both models failed. Flux response: ' + JSON.stringify(Object.keys(fluxData)) }
+    });
+
   } catch (err) {
+    console.error('Exception:', err.message);
     return res.status(500).json({ error: { message: err.message } });
   }
 }
