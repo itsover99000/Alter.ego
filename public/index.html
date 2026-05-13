@@ -590,8 +590,12 @@
       </div>
     </div>
     <div id="imageError" style="display:none;font-size:11px;color:#f09595;font-family:DM Mono,monospace;margin-top:8px;padding:10px 12px;background:rgba(240,149,149,0.06);border:0.5px solid rgba(240,149,149,0.2);border-radius:8px;line-height:1.6"></div>
-    <div id="imageSaveRow" style="display:none;margin-top:10px">
-      <a id="imageDownload" download="alter-ego.png" style="display:block;width:100%;padding:10px;background:transparent;border:0.5px solid rgba(200,240,90,0.3);border-radius:8px;font-family:Syne,sans-serif;font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:#c8f05a;cursor:pointer;text-align:center;text-decoration:none">↓ Save Image</a>
+    <div id="imageSaveRow" style="display:none;margin-top:10px;display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <a id="imageDownload" download="alter-ego.png" style="display:block;padding:12px;background:transparent;border:0.5px solid rgba(200,240,90,0.3);border-radius:8px;font-family:Syne,sans-serif;font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:#c8f05a;cursor:pointer;text-align:center;text-decoration:none">↓ Save</a>
+        <button id="shareBtn" style="padding:12px;background:#c8f05a;border:none;border-radius:8px;font-family:Syne,sans-serif;font-size:11px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#0a0a0a;cursor:pointer">↗ Share</button>
+      </div>
+      <canvas id="watermarkCanvas" style="display:none"></canvas>
     </div>
   </div>
 
@@ -984,7 +988,7 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
       dl.href = imageUrl;
       dl.download = 'alter-ego.png';
     }
-    imageSaveRow.style.display = 'block';
+    const isr = document.getElementById('imageSaveRow'); isr.style.display = 'block';
 
   } catch (err) {
     imageLoading.style.display = 'none';
@@ -996,6 +1000,91 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
   btn.textContent = '⚡ Generate Image';
   btn.disabled = false;
 });
+
+// Share with watermark
+document.getElementById('shareBtn').addEventListener('click', async () => {
+  const img = document.querySelector('#imageContainer img');
+  if (!img) return;
+
+  const btn = document.getElementById('shareBtn');
+  btn.textContent = 'Creating...';
+  btn.disabled = true;
+
+  try {
+    const canvas = document.getElementById('watermarkCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Load image onto canvas
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    image.onload = async () => {
+      canvas.width = image.width;
+      canvas.height = image.height;
+      ctx.drawImage(image, 0, 0);
+
+      // Watermark bar at bottom
+      const barH = Math.round(canvas.height * 0.07);
+      ctx.fillStyle = 'rgba(0,0,0,0.72)';
+      ctx.fillRect(0, canvas.height - barH, canvas.width, barH);
+
+      // ALTER.EGO text
+      const fontSize = Math.round(barH * 0.42);
+      ctx.font = `800 ${fontSize}px 'Arial Black', Arial, sans-serif`;
+      ctx.letterSpacing = '4px';
+      ctx.fillStyle = '#c8f05a';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('ALTER.EGO', Math.round(canvas.width * 0.04), canvas.height - barH / 2);
+
+      // URL
+      ctx.font = `${Math.round(fontSize * 0.65)}px 'Arial', sans-serif`;
+      ctx.fillStyle = 'rgba(240,237,230,0.5)';
+      ctx.textAlign = 'right';
+      ctx.fillText(window.location.hostname, canvas.width - Math.round(canvas.width * 0.04), canvas.height - barH / 2);
+
+      // Try native share first (mobile)
+      canvas.toBlob(async (blob) => {
+        const file = new File([blob], 'alter-ego.png', { type: 'image/png' });
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: 'My ALTER.EGO',
+              text: 'Generated my alter ego with ALTER.EGO ✦'
+            });
+          } catch (e) {
+            if (e.name !== 'AbortError') downloadWatermarked(blob);
+          }
+        } else {
+          downloadWatermarked(blob);
+        }
+        btn.textContent = '↗ Share';
+        btn.disabled = false;
+      }, 'image/png');
+    };
+
+    image.onerror = () => {
+      btn.textContent = '↗ Share';
+      btn.disabled = false;
+      alert('Could not process image for sharing');
+    };
+
+    image.src = img.src;
+
+  } catch (err) {
+    btn.textContent = '↗ Share';
+    btn.disabled = false;
+  }
+});
+
+function downloadWatermarked(blob) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'alter-ego-' + Date.now() + '.png';
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 document.getElementById('resetBtn').addEventListener('click', () => {
   uploadedImageBase64 = null;
