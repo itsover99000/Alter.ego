@@ -13,8 +13,11 @@ export default async function handler(req, res) {
     const { prompt, imageBase64, mediaType } = req.body;
     const imageDataUrl = imageBase64 ? `data:${mediaType || 'image/jpeg'};base64,${imageBase64}` : null;
 
+    // Prepend realism booster to every prompt
+    const realisticPrompt = `hyper-realistic photographic portrait, photorealistic, real person, 8k resolution, ${prompt}, NOT a painting, NOT illustration, NOT cartoon, NOT CGI`;
+
     if (imageDataUrl) {
-      console.log('Trying flux-pulid with full face lock...');
+      console.log('Trying flux-pulid...');
       const pulidRes = await fetch('https://fal.run/fal-ai/flux-pulid', {
         method: 'POST',
         headers: {
@@ -22,9 +25,9 @@ export default async function handler(req, res) {
           'Authorization': `Key ${falKey}`
         },
         body: JSON.stringify({
-          prompt,
+          prompt: realisticPrompt,
           reference_image_url: imageDataUrl,
-          negative_prompt: "blurry, low quality, distorted, deformed, ugly, bad likeness",
+          negative_prompt: "cartoon, illustration, painting, drawing, anime, CGI, render, fake, plastic, low quality, blurry, distorted",
           image_size: "portrait_4_3",
           num_inference_steps: 35,
           guidance_scale: 4.5,
@@ -36,7 +39,6 @@ export default async function handler(req, res) {
 
       const pulidData = await pulidRes.json();
       console.log('flux-pulid status:', pulidRes.status);
-      console.log('flux-pulid response:', JSON.stringify(pulidData).slice(0, 300));
 
       if (pulidRes.ok && pulidData.images?.length > 0) {
         console.log('flux-pulid SUCCESS');
@@ -45,8 +47,7 @@ export default async function handler(req, res) {
       if (pulidRes.ok && pulidData.image?.url) {
         return res.status(200).json({ images: [pulidData.image] });
       }
-
-      console.log('flux-pulid failed, falling back to Flux...');
+      console.log('flux-pulid failed, falling back...');
     }
 
     // Flux fallback
@@ -57,7 +58,8 @@ export default async function handler(req, res) {
         'Authorization': `Key ${falKey}`
       },
       body: JSON.stringify({
-        prompt,
+        prompt: realisticPrompt,
+        negative_prompt: "cartoon, illustration, painting, drawing, anime, CGI, render, fake",
         image_size: 'portrait_4_3',
         num_inference_steps: 35,
         guidance_scale: 4.0,
