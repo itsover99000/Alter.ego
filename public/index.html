@@ -887,7 +887,10 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
     }
 
     const imageUrl = data.images?.[0]?.url;
-    if (!imageUrl) throw new Error('No image returned');
+    if (!imageUrl) {
+      const debugInfo = data.debug ? JSON.stringify(Object.keys(data.debug)) : 'no debug';
+      throw new Error((data.error?.message || 'No image returned') + ' | keys: ' + debugInfo);
+    }
 
     imageLoading.style.display = 'none';
     imageStatusDot.style.display = 'none';

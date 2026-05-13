@@ -12,7 +12,6 @@ export default async function handler(req, res) {
   try {
     const { prompt, imageBase64, mediaType } = req.body;
 
-    // If we have a face image, use InstantID for face-locked generation
     if (imageBase64) {
       const imageDataUrl = `data:${mediaType || 'image/jpeg'};base64,${imageBase64}`;
 
@@ -36,17 +35,36 @@ export default async function handler(req, res) {
 
       const data = await response.json();
 
-      // InstantID returns images array directly
-      if (data.images) {
+      // Log full response for debugging
+      console.log('InstantID response keys:', Object.keys(data));
+      console.log('InstantID response:', JSON.stringify(data).slice(0, 500));
+
+      // Handle different response shapes from fal.ai
+      // Shape 1: { images: [{url: ...}] }
+      if (data.images && data.images.length > 0) {
         return res.status(200).json({ images: data.images });
       }
+      // Shape 2: { image: {url: ...} }
+      if (data.image && data.image.url) {
+        return res.status(200).json({ images: [data.image] });
+      }
+      // Shape 3: { output: {images: [...]} }
+      if (data.output && data.output.images) {
+        return res.status(200).json({ images: data.output.images });
+      }
+      // Shape 4: direct url string
+      if (data.url) {
+        return res.status(200).json({ images: [{ url: data.url }] });
+      }
 
-      // If InstantID fails, fall back to Flux
-      console.log('InstantID response:', JSON.stringify(data).slice(0, 200));
-      return res.status(response.status).json(data);
+      // Return raw data so frontend can log it
+      return res.status(200).json({ 
+        images: null, 
+        debug: data,
+        error: { message: 'Unexpected response format: ' + JSON.stringify(Object.keys(data)) }
+      });
 
     } else {
-      // No face image — fall back to plain Flux
       const response = await fetch('https://fal.run/fal-ai/flux/dev', {
         method: 'POST',
         headers: {
