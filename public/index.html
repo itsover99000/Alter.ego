@@ -567,11 +567,7 @@
     </div>
     <textarea id="promptBox" class="prompt-box" style="resize:vertical;min-height:120px;width:100%;font-family:DM Mono,monospace;font-size:12px;line-height:1.8;color:rgba(240,237,230,0.75);background:rgba(240,237,230,0.04);border:0.5px solid rgba(240,237,230,0.1);border-radius:8px;padding:16px;outline:none;transition:border-color 0.15s" placeholder="Your prompt will appear here — edit before generating..." readonly></textarea>
 
-    <!-- Quick mod chips -->
-    <div id="modChips" style="display:none;margin-top:10px">
-      <div style="font-family:DM Mono,monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(240,237,230,0.3);margin-bottom:8px">Quick Mods — tap to add</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px" id="chipsRow"></div>
-    </div>
+
     <div class="action-row" id="actionRow">
       <button class="action-btn" id="copyBtn">📋 Copy</button>
       <button class="action-btn accent" id="mjBtn">✦ MJ Format</button>
@@ -831,9 +827,7 @@ Structure the prompt as: subject description → environment/setting → mood/at
     promptBox.className = 'prompt-box';
     statusDot.style.display = 'none';
     actionRow.style.display = 'flex';
-    // Show mod chips
-    document.getElementById('modChips').style.display = 'block';
-    renderChips();
+
     const genImgBtn = document.getElementById('generateImageBtn');
     if (genImgBtn) genImgBtn.style.display = 'block';
 
@@ -905,7 +899,9 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        prompt: document.getElementById('promptBox').value || generatedPrompt
+        prompt: document.getElementById('promptBox').value || generatedPrompt,
+        imageBase64: uploadedImageBase64,
+        mediaType: uploadedMediaType
       })
     });
 
@@ -954,52 +950,6 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
   btn.disabled = false;
 });
 
-// Mod chips
-const MOD_CHIPS = [
-  { label: '📷 holding camera', text: 'holding a professional DSLR camera up to eye level, camera strap visible' },
-  { label: '🎸 holding guitar', text: 'holding a vintage electric guitar, fingers on strings' },
-  { label: '🥊 boxing gloves', text: 'wearing red boxing gloves raised in fighting stance' },
-  { label: '🕶 sunglasses', text: 'wearing large black designer sunglasses' },
-  { label: '💀 face tattoo', text: 'with large dark ink tribal face tattoos covering cheeks and forehead' },
-  { label: '🤿 no hat', text: 'no hat, natural hair visible' },
-  { label: '🧔 long beard', text: 'with a very long full Viking beard reaching chest' },
-  { label: '⚡ shaved head', text: 'completely shaved bald head, no hair' },
-  { label: '🌿 long hair', text: 'with long flowing hair past shoulders' },
-  { label: '🏍 leather jacket', text: 'wearing a black biker leather jacket with silver zips' },
-  { label: '🎩 top hat', text: 'wearing a tall black Victorian top hat' },
-  { label: '🔥 hoodie', text: 'wearing a large oversized graphic hoodie' },
-  { label: '🌹 neck tattoo', text: 'with an elaborate rose neck tattoo' },
-  { label: '💈 mohawk', text: 'with a dramatic spiked mohawk hairstyle' },
-  { label: '👑 crown', text: 'wearing a jewelled gold crown' },
-  { label: '🎭 face paint', text: 'with dramatic theatrical white and black face paint' },
-];
-
-const activeChips = new Set();
-
-function renderChips() {
-  const row = document.getElementById('chipsRow');
-  row.innerHTML = '';
-  MOD_CHIPS.forEach((chip, i) => {
-    const el = document.createElement('button');
-    el.className = 'mod-chip' + (activeChips.has(i) ? ' active' : '');
-    el.textContent = chip.label;
-    el.addEventListener('click', () => {
-      const box = document.getElementById('promptBox');
-      if (activeChips.has(i)) {
-        // Remove chip text from prompt
-        activeChips.delete(i);
-        box.value = box.value.replace(', ' + chip.text, '').replace(chip.text + ', ', '').replace(chip.text, '').trim();
-      } else {
-        // Add chip text to prompt
-        activeChips.add(i);
-        box.value = box.value.trimEnd() + ', ' + chip.text;
-      }
-      renderChips();
-    });
-    row.appendChild(el);
-  });
-}
-
 document.getElementById('resetBtn').addEventListener('click', () => {
   uploadedImageBase64 = null;
   const img = uploadZone.querySelector('img.preview');
@@ -1011,10 +961,6 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   document.getElementById('mjTip').style.display = 'none';
   document.getElementById('imageArea').style.display = 'none';
   document.getElementById('generateImageBtn').style.display = 'none';
-  document.getElementById('modChips').style.display = 'none';
-  document.getElementById('promptEditHint').style.display = 'none';
-  document.getElementById('promptBox').setAttribute('readonly','');
-  activeChips.clear();
   generatedPrompt = '';
   updateGenerateBtn();
 });
