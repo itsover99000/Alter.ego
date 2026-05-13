@@ -1,0 +1,8 @@
+{
+  "name": "alter-ego",
+  "version": "1.0.0",
+  "description": "ALTER.EGO — AI Selfie Generator",
+  "engines": {
+    "node": "18.x"
+  }
+}

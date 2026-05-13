@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALTER.EGO — AI Selfie Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent: #c8f05a;
+    --accent-hover: #d4f570;
+    --bg: #0a0a0a;
+    --surface: rgba(240,237,230,0.04);
+    --border: rgba(240,237,230,0.1);
+    --border-hover: rgba(240,237,230,0.25);
+    --text: #f0ede6;
+    --text-muted: rgba(240,237,230,0.5);
+    --text-faint: rgba(240,237,230,0.3);
+    --error-bg: rgba(240,149,149,0.06);
+    --error-border: rgba(240,149,149,0.25);
+    --error-text: #f09595;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 16px 80px;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 480px;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+
+  .logo {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .logo span { color: var(--accent); }
+
+  .badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    border: 0.5px solid rgba(240,237,230,0.15);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  /* API Key */
+  .api-section {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 24px;
+  }
+
+  .api-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+  }
+
+  .api-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .api-input {
+    flex: 1;
+    background: rgba(240,237,230,0.04);
+    border: 0.5px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .api-input:focus { border-color: rgba(200,240,90,0.4); }
+  .api-input::placeholder { color: var(--text-faint); }
+
+  .api-save {
+    background: rgba(200,240,90,0.12);
+    border: 0.5px solid rgba(200,240,90,0.3);
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .api-save:hover { background: rgba(200,240,90,0.2); }
+
+  .api-hint {
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  .api-hint a { color: var(--accent); text-decoration: none; }
+  .api-hint a:hover { text-decoration: underline; }
+
+  .api-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    margin-top: 6px;
+  }
+
+  .api-status.ok { color: var(--accent); }
+  .api-status.empty { color: var(--text-faint); }
+
+  .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  /* Upload */
+  .upload-zone {
+    border: 1px dashed rgba(240,237,230,0.18);
+    border-radius: 12px;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    background: rgba(240,237,230,0.015);
+    margin-bottom: 20px;
+  }
+
+  .upload-zone:hover {
+    border-color: rgba(200,240,90,0.4);
+    background: rgba(200,240,90,0.025);
+  }
+
+  .upload-zone.has-image {
+    border-style: solid;
+    border-color: rgba(200,240,90,0.35);
+    min-height: 240px;
+  }
+
+  .upload-zone img.preview {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.5;
+    border-radius: 11px;
+  }
+
+  .upload-label {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .upload-icon {
+    font-size: 32px;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+  }
+
+  .upload-zone.has-image .upload-icon {
+    color: rgba(200,240,90,0.7);
+    text-shadow: 0 0 20px rgba(200,240,90,0.3);
+  }
+
+  .upload-text { font-size: 13px; color: var(--text-muted); letter-spacing: 0.04em; }
+  .upload-zone.has-image .upload-text { color: var(--text); font-weight: 600; }
+
+  input[type=file] { display: none; }
+
+  /* Divider */
+  .divider { height: 0.5px; background: rgba(240,237,230,0.07); margin: 20px 0; }
+
+  /* Styles */
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 10px;
+  }
+
+  .styles-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .style-btn {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 6px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .style-btn:hover {
+    background: rgba(240,237,230,0.07);
+    border-color: var(--border-hover);
+  }
+
+  .style-btn.active {
+    background: rgba(200,240,90,0.08);
+    border-color: rgba(200,240,90,0.45);
+  }
+
+  .style-emoji { font-size: 18px; display: block; margin-bottom: 4px; }
+
+  .style-name {
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .style-btn.active .style-name { color: var(--accent); }
+
+  /* Generate button */
+  .generate-btn {
+    width: 100%;
+    padding: 15px;
+    background: var(--accent);
+    color: #0a0a0a;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .generate-btn:hover:not(:disabled) { background: var(--accent-hover); transform: translateY(-1px); }
+  .generate-btn:active:not(:disabled) { transform: translateY(0); }
+
+  .generate-btn:disabled {
+    background: rgba(240,237,230,0.07);
+    color: rgba(240,237,230,0.2);
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Error */
+  .error-msg {
+    display: none;
+    font-size: 11px;
+    color: var(--error-text);
+    font-family: 'DM Mono', monospace;
+    margin-top: 12px;
+    padding: 12px 14px;
+    background: var(--error-bg);
+    border: 0.5px solid var(--error-border);
+    border-radius: 8px;
+    line-height: 1.6;
+  }
+
+  /* Results */
+  .result-area { display: none; margin-top: 24px; }
+
+  .analysis-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .analysis-card {
+    background: rgba(240,237,230,0.03);
+    border: 0.5px solid rgba(240,237,230,0.07);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+
+  .analysis-card.full { grid-column: span 2; }
+
+  .ac-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 4px;
+  }
+
+  .ac-value {
+    font-size: 12px;
+    color: rgba(240,237,230,0.8);
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  .prompt-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: blink 1.2s ease-in-out infinite;
+    display: none;
+    flex-shrink: 0;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.75)} }
+
+  .prompt-box {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    color: rgba(240,237,230,0.75);
+    white-space: pre-wrap;
+    word-break: break-word;
+    min-height: 80px;
+  }
+
+  .prompt-box.active { border-color: rgba(200,240,90,0.2); }
+
+  /* Action row */
+  .action-row {
+    display: none;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .action-btn {
+    flex: 1;
+    padding: 10px 8px;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+
+  .action-btn:hover {
+    background: rgba(240,237,230,0.05);
+    border-color: var(--border-hover);
+    color: var(--text);
+  }
+
+  .action-btn.accent {
+    border-color: rgba(200,240,90,0.3);
+    color: var(--accent);
+  }
+
+  .action-btn.accent:hover { background: rgba(200,240,90,0.07); }
+  .action-btn.copied { color: var(--accent); border-color: rgba(200,240,90,0.3); }
+
+  /* Midjourney tip */
+  .mj-tip {
+    display: none;
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: rgba(200,240,90,0.04);
+    border: 0.5px solid rgba(200,240,90,0.15);
+    border-radius: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .mj-tip strong { color: var(--accent); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="logo">ALTER<span>.</span>EGO</div>
+    <div class="badge">Local MVP</div>
+  </div>
+
+  <!-- No API keys needed - handled server-side -->
+
+  <!-- Upload -->
+  <input type="file" id="fileInput" accept="image/*">
+  <div class="upload-zone" id="uploadZone">
+    <div class="upload-label">
+      <div class="upload-icon">📷</div>
+      <div class="upload-text" id="uploadText">Drop a selfie or click to upload</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Style selector -->
+  <div class="section-label">Style Direction</div>
+  <div class="styles-grid">
+    <div class="style-btn active" data-style="cinematic"><span class="style-emoji">🎬</span><span class="style-name">Cinematic</span></div>
+    <div class="style-btn" data-style="editorial"><span class="style-emoji">📸</span><span class="style-name">Editorial</span></div>
+    <div class="style-btn" data-style="cyberpunk"><span class="style-emoji">⚡</span><span class="style-name">Cyberpunk</span></div>
+    <div class="style-btn" data-style="anime"><span class="style-emoji">🌸</span><span class="style-name">Anime</span></div>
+    <div class="style-btn" data-style="painterly"><span class="style-emoji">🎨</span><span class="style-name">Painterly</span></div>
+    <div class="style-btn" data-style="fashion"><span class="style-emoji">✦</span><span class="style-name">Fashion</span></div>
+    <div class="style-btn" data-style="sci-fi"><span class="style-emoji">🚀</span><span class="style-name">Sci-Fi</span></div>
+    <div class="style-btn" data-style="streetwear"><span class="style-emoji">🔥</span><span class="style-name">Streetwear</span></div>
+  </div>
+
+  <button class="generate-btn" id="generateBtn" disabled>Analyse &amp; Generate Prompt</button>
+  <div class="error-msg" id="errorMsg"></div>
+
+  <!-- Results -->
+  <div class="result-area" id="resultArea">
+    <div class="divider"></div>
+    <div class="analysis-grid" id="analysisGrid"></div>
+    <div class="prompt-label">
+      <span class="status-dot" id="statusDot"></span>
+      AI Image Prompt
+    </div>
+    <div class="prompt-box" id="promptBox"></div>
+    <div class="action-row" id="actionRow">
+      <button class="action-btn" id="copyBtn">📋 Copy</button>
+      <button class="action-btn accent" id="mjBtn">✦ MJ Format</button>
+      <button class="action-btn" id="resetBtn">↺ Reset</button>
+    </div>
+    <button id="generateImageBtn" style="display:none;width:100%;margin-top:10px;padding:14px;background:#c8f05a;color:#0a0a0a;border:none;border-radius:8px;font-family:Syne,sans-serif;font-size:13px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:all 0.15s">⚡ Generate Image with Flux</button>
+    <div class="mj-tip" id="mjTip"></div>
+
+  <!-- Image generation result -->
+  <div id="imageArea" style="display:none;margin-top:16px">
+    <div style="height:0.5px;background:rgba(240,237,230,0.07);margin:16px 0"></div>
+    <div style="font-family:DM Mono,monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(240,237,230,0.35);margin-bottom:12px;display:flex;align-items:center;gap:8px">
+      <span id="imageStatusDot" style="display:none;width:6px;height:6px;border-radius:50%;background:#c8f05a;animation:blink 1.2s ease-in-out infinite;flex-shrink:0"></span>
+      Generated Image
+    </div>
+    <div id="imageContainer" style="border-radius:10px;overflow:hidden;background:rgba(240,237,230,0.03);border:0.5px solid rgba(240,237,230,0.08);min-height:180px;display:flex;align-items:center;justify-content:center">
+      <div id="imageLoading" style="font-family:DM Mono,monospace;font-size:11px;color:rgba(240,237,230,0.3);text-align:center;padding:40px 20px">
+        <div style="font-size:24px;margin-bottom:10px">⚡</div>
+        Generating with Flux...
+      </div>
+    </div>
+    <div id="imageError" style="display:none;font-size:11px;color:#f09595;font-family:DM Mono,monospace;margin-top:8px;padding:10px 12px;background:rgba(240,149,149,0.06);border:0.5px solid rgba(240,149,149,0.2);border-radius:8px;line-height:1.6"></div>
+    <div id="imageSaveRow" style="display:none;margin-top:10px">
+      <a id="imageDownload" download="alter-ego.png" style="display:block;width:100%;padding:10px;background:transparent;border:0.5px solid rgba(200,240,90,0.3);border-radius:8px;font-family:Syne,sans-serif;font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:#c8f05a;cursor:pointer;text-align:center;text-decoration:none">↓ Save Image</a>
+    </div>
+  </div>
+
+  </div>
+
+</div>
+
+<script>
+const styleDescriptions = {
+  cinematic: 'cinematic film still, anamorphic lens, dramatic natural light, shallow depth of field, muted warm tones, 35mm aesthetic, Kodak Portra grain, golden hour',
+  editorial: 'high-fashion editorial photography, Vogue magazine spread, studio lighting, clean background, bold composition, sharp crisp details, fashion week energy',
+  cyberpunk: 'cyberpunk city night scene, neon lights reflecting on wet streets, holographic HUD overlay, Blade Runner 2049 aesthetic, electric blue and magenta palette',
+  anime: 'anime portrait, Studio Ghibli inspired, cel-shaded illustration, expressive large eyes, pastel gradient sky background, soft glow, detailed linework',
+  painterly: 'classical oil painting portrait, Rembrandt chiaroscuro lighting, rich textured visible brushwork, dark dramatic background, Old Masters style, museum quality',
+  fashion: 'luxury fashion campaign, minimalist white studio, high contrast black and white, designer clothing, supermodel composition, impeccable styling, Helmut Newton inspired',
+  'sci-fi': 'futuristic sci-fi character portrait, deep space station interior, holographic armor suit, bioluminescent accents, epic cosmic backdrop, James Cameron aesthetic',
+  streetwear: 'streetwear lookbook, urban rooftop golden hour, authentic candid energy, graffiti mural background, raw documentary style, skate culture aesthetic'
+};
+
+let selectedStyle = 'cinematic';
+let uploadedImageBase64 = null;
+let uploadedMediaType = 'image/jpeg';
+let generatedPrompt = '';
+
+
+function updateGenerateBtn() {
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = !uploadedImageBase64;
+}
+
+// Style buttons
+document.querySelectorAll('.style-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedStyle = btn.dataset.style;
+  });
+});
+
+// Upload
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+
+uploadZone.addEventListener('click', () => fileInput.click());
+
+uploadZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  uploadZone.style.borderColor = 'rgba(200,240,90,0.6)';
+});
+uploadZone.addEventListener('dragleave', () => { uploadZone.style.borderColor = ''; });
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.style.borderColor = '';
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) handleFile(file);
+});
+fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+function handleFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const result = e.target.result;
+    uploadedImageBase64 = result.split(',')[1];
+    uploadedMediaType = file.type || 'image/jpeg';
+    const existing = uploadZone.querySelector('img.preview');
+    if (existing) existing.remove();
+    const img = document.createElement('img');
+    img.className = 'preview';
+    img.src = result;
+    uploadZone.insertBefore(img, uploadZone.firstChild);
+    uploadZone.classList.add('has-image');
+    document.getElementById('uploadText').textContent = 'Click to change photo';
+    updateGenerateBtn();
+  };
+  reader.readAsDataURL(file);
+}
+
+
+
+// Generate
+document.getElementById('generateBtn').addEventListener('click', async () => {
+  if (!uploadedImageBase64 || !apiKey) return;
+
+  const generateBtn = document.getElementById('generateBtn');
+  generateBtn.disabled = true;
+  generateBtn.textContent = 'Analysing...';
+
+  const errorMsg = document.getElementById('errorMsg');
+  errorMsg.style.display = 'none';
+
+  const resultArea = document.getElementById('resultArea');
+  const promptBox = document.getElementById('promptBox');
+  const statusDot = document.getElementById('statusDot');
+  const analysisGrid = document.getElementById('analysisGrid');
+  const actionRow = document.getElementById('actionRow');
+  const mjTip = document.getElementById('mjTip');
+
+  resultArea.style.display = 'block';
+  statusDot.style.display = 'inline-block';
+  promptBox.textContent = 'Analysing your photo...';
+  promptBox.className = 'prompt-box active';
+  analysisGrid.innerHTML = '';
+  actionRow.style.display = 'none';
+  mjTip.style.display = 'none';
+
+  const styleDesc = styleDescriptions[selectedStyle];
+
+  const systemPrompt = `You are an expert AI art director and prompt engineer. Analyse the person in this selfie and generate a highly detailed AI image generation prompt.
+
+Respond ONLY with a valid JSON object. No markdown. No backticks. No explanation. Raw JSON only.
+
+{
+  "mood": "2-3 word mood descriptor",
+  "lighting": "detected or ideal lighting style",
+  "features": "concise physical description to anchor the AI generation accurately",
+  "prompt": "the complete AI image generation prompt, 60-90 words, ready for Midjourney or DALL-E"
+}
+
+Style to incorporate: ${styleDesc}
+
+Structure the prompt as: subject description → environment/setting → mood/atmosphere → technical camera and lighting specs. Make it vivid, specific, and professional.`;
+
+  try {
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: { type: 'base64', media_type: uploadedMediaType, data: uploadedImageBase64 }
+            },
+            { type: 'text', text: 'Analyse this selfie and respond with only the JSON object.' }
+          ]
+        }]
+      })
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      const msg = errData.error?.message || `HTTP ${response.status}`;
+      if (response.status === 401) throw new Error('Invalid API key. Check your key at console.anthropic.com');
+      throw new Error(msg);
+    }
+
+    const data = await response.json();
+    const rawText = (data.content || []).map(i => i.text || '').join('').trim();
+
+    let parsed;
+    try {
+      const clean = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+      parsed = JSON.parse(clean);
+    } catch {
+      parsed = { prompt: rawText, mood: '—', lighting: '—', features: '—' };
+    }
+
+    generatedPrompt = parsed.prompt || rawText;
+
+    analysisGrid.innerHTML = `
+      <div class="analysis-card">
+        <div class="ac-label">Mood</div>
+        <div class="ac-value">${parsed.mood || '—'}</div>
+      </div>
+      <div class="analysis-card">
+        <div class="ac-label">Lighting</div>
+        <div class="ac-value">${parsed.lighting || '—'}</div>
+      </div>
+      <div class="analysis-card full">
+        <div class="ac-label">Features detected</div>
+        <div class="ac-value">${parsed.features || '—'}</div>
+      </div>
+    `;
+
+    promptBox.textContent = generatedPrompt;
+    promptBox.className = 'prompt-box';
+    statusDot.style.display = 'none';
+    actionRow.style.display = 'flex';
+    const genImgBtn = document.getElementById('generateImageBtn');
+    if (genImgBtn) genImgBtn.style.display = 'block';
+
+  } catch (err) {
+    promptBox.textContent = '';
+    promptBox.className = 'prompt-box';
+    statusDot.style.display = 'none';
+    resultArea.style.display = 'none';
+    errorMsg.textContent = '⚠ ' + (err.message || 'Something went wrong. Please try again.');
+    errorMsg.style.display = 'block';
+  }
+
+  generateBtn.disabled = false;
+  generateBtn.textContent = 'Analyse & Generate Prompt';
+  updateGenerateBtn();
+});
+
+// Copy
+document.getElementById('copyBtn').addEventListener('click', function() {
+  if (!generatedPrompt) return;
+  navigator.clipboard.writeText(generatedPrompt).then(() => {
+    this.textContent = '✓ Copied';
+    this.classList.add('copied');
+    setTimeout(() => {
+      this.textContent = '📋 Copy';
+      this.classList.remove('copied');
+    }, 2000);
+  });
+});
+
+// MJ format
+document.getElementById('mjBtn').addEventListener('click', function() {
+  if (!generatedPrompt) return;
+  const mjPrompt = `/imagine prompt: ${generatedPrompt} --ar 4:5 --v 6.1 --style raw --q 2`;
+  const mjTip = document.getElementById('mjTip');
+  mjTip.innerHTML = `<strong>Midjourney ready:</strong><br><br>${mjPrompt}<br><br><button onclick="navigator.clipboard.writeText(\`${mjPrompt.replace(/`/g,"'")}\`);this.textContent='✓ Copied';setTimeout(()=>this.textContent='Copy for Midjourney',2000)" style="margin-top:8px;background:rgba(200,240,90,0.1);border:0.5px solid rgba(200,240,90,0.3);border-radius:6px;padding:6px 14px;font-family:Syne,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#c8f05a;cursor:pointer">Copy for Midjourney</button>`;
+  mjTip.style.display = 'block';
+});
+
+// Reset
+// Generate image with fal.ai
+document.getElementById('generateImageBtn').addEventListener('click', async () => {
+  if (!generatedPrompt || !falKey) return;
+
+  const imageArea = document.getElementById('imageArea');
+  const imageContainer = document.getElementById('imageContainer');
+  const imageLoading = document.getElementById('imageLoading');
+  const imageError = document.getElementById('imageError');
+  const imageSaveRow = document.getElementById('imageSaveRow');
+  const imageStatusDot = document.getElementById('imageStatusDot');
+
+  imageArea.style.display = 'block';
+  imageLoading.style.display = 'block';
+  imageError.style.display = 'none';
+  imageSaveRow.style.display = 'none';
+  imageStatusDot.style.display = 'inline-block';
+
+  // Remove any existing image
+  const existingImg = imageContainer.querySelector('img');
+  if (existingImg) existingImg.remove();
+
+  const btn = document.getElementById('generateImageBtn');
+  btn.textContent = '⏳ Generating...';
+  btn.disabled = true;
+
+  try {
+    const response = await fetch('/api/image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: generatedPrompt
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.detail || data.error?.message || `Error ${response.status}`);
+    }
+
+    const imageUrl = data.images?.[0]?.url;
+    if (!imageUrl) throw new Error('No image returned');
+
+    imageLoading.style.display = 'none';
+    imageStatusDot.style.display = 'none';
+
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.style.cssText = 'width:100%;display:block;border-radius:10px';
+    imageContainer.appendChild(img);
+
+    // Force download by fetching as blob
+    const dl = document.getElementById('imageDownload');
+    try {
+      const imgResp = await fetch(imageUrl);
+      const blob = await imgResp.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      dl.href = blobUrl;
+      dl.download = 'alter-ego-' + Date.now() + '.png';
+    } catch {
+      dl.href = imageUrl;
+      dl.download = 'alter-ego.png';
+    }
+    imageSaveRow.style.display = 'block';
+
+  } catch (err) {
+    imageLoading.style.display = 'none';
+    imageStatusDot.style.display = 'none';
+    imageError.textContent = '⚠ ' + (err.message || 'Image generation failed');
+    imageError.style.display = 'block';
+  }
+
+  btn.textContent = '⚡ Generate Image';
+  btn.disabled = false;
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  uploadedImageBase64 = null;
+  const img = uploadZone.querySelector('img.preview');
+  if (img) img.remove();
+  uploadZone.classList.remove('has-image');
+  document.getElementById('uploadText').textContent = 'Drop a selfie or click to upload';
+  document.getElementById('resultArea').style.display = 'none';
+  document.getElementById('errorMsg').style.display = 'none';
+  document.getElementById('mjTip').style.display = 'none';
+  document.getElementById('imageArea').style.display = 'none';
+  document.getElementById('generateImageBtn').style.display = 'none';
+  generatedPrompt = '';
+  updateGenerateBtn();
+});
+</script>
+</body>
+</html>
