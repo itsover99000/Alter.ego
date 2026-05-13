@@ -15,18 +15,20 @@ export default async function handler(req, res) {
     if (imageBase64) {
       const imageDataUrl = `data:${mediaType || 'image/jpeg'};base64,${imageBase64}`;
 
-      const response = await fetch('https://fal.run/fal-ai/instantid', {
+      const response = await fetch('https://fal.run/fal-ai/flux-pulid', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Key ${falKey}`
         },
         body: JSON.stringify({
-          face_image_url: imageDataUrl,
+          reference_images: [{ image_url: imageDataUrl }],
           prompt: prompt,
-          negative_prompt: "blurry, low quality, distorted face, deformed, ugly, bad anatomy",
-          num_inference_steps: 30,
-          guidance_scale: 5,
+          negative_prompt: "oversaturated, neon colors, psychedelic, distorted, low quality, blurry, deformed face, bad anatomy, watermark",
+          num_inference_steps: 20,
+          guidance_scale: 4,
+          true_cfg: 1,
+          id_weight: 1.0,
           image_size: "portrait_4_3",
           num_images: 1,
           enable_safety_checker: true
@@ -34,34 +36,18 @@ export default async function handler(req, res) {
       });
 
       const data = await response.json();
+      console.log('PuLID response:', JSON.stringify(data).slice(0, 300));
 
-      // Log full response for debugging
-      console.log('InstantID response keys:', Object.keys(data));
-      console.log('InstantID response:', JSON.stringify(data).slice(0, 500));
-
-      // Handle different response shapes from fal.ai
-      // Shape 1: { images: [{url: ...}] }
       if (data.images && data.images.length > 0) {
         return res.status(200).json({ images: data.images });
       }
-      // Shape 2: { image: {url: ...} }
       if (data.image && data.image.url) {
         return res.status(200).json({ images: [data.image] });
       }
-      // Shape 3: { output: {images: [...]} }
-      if (data.output && data.output.images) {
-        return res.status(200).json({ images: data.output.images });
-      }
-      // Shape 4: direct url string
-      if (data.url) {
-        return res.status(200).json({ images: [{ url: data.url }] });
-      }
 
-      // Return raw data so frontend can log it
-      return res.status(200).json({ 
-        images: null, 
-        debug: data,
-        error: { message: 'Unexpected response format: ' + JSON.stringify(Object.keys(data)) }
+      return res.status(200).json({
+        images: null,
+        error: { message: 'No image: ' + JSON.stringify(Object.keys(data)) }
       });
 
     } else {
