@@ -905,12 +905,7 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        prompt: document.getElementById('promptBox').value || generatedPrompt,
-        imageBase64: uploadedImageBase64,
-        mediaType: uploadedMediaType,
-        strongMods: ['face tattoo','face paint','mohawk','shaved head','long beard','neck tattoo','crown'].some(t =>
-          (document.getElementById('promptBox').value || '').toLowerCase().includes(t)
-        )
+        prompt: document.getElementById('promptBox').value || generatedPrompt
       })
     });
 
