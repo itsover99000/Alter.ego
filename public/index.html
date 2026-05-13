@@ -584,7 +584,7 @@
     <div id="imageContainer" style="border-radius:10px;overflow:hidden;background:rgba(240,237,230,0.03);border:0.5px solid rgba(240,237,230,0.08);min-height:180px;display:flex;align-items:center;justify-content:center">
       <div id="imageLoading" style="font-family:DM Mono,monospace;font-size:11px;color:rgba(240,237,230,0.3);text-align:center;padding:40px 20px">
         <div style="font-size:24px;margin-bottom:10px">⚡</div>
-        Generating with Flux...
+        Locking your face with InstantID...
       </div>
     </div>
     <div id="imageError" style="display:none;font-size:11px;color:#f09595;font-family:DM Mono,monospace;margin-top:8px;padding:10px 12px;background:rgba(240,149,149,0.06);border:0.5px solid rgba(240,149,149,0.2);border-radius:8px;line-height:1.6"></div>
@@ -866,7 +866,7 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
   if (existingImg) existingImg.remove();
 
   const btn = document.getElementById('generateImageBtn');
-  btn.textContent = '⏳ Generating...';
+  btn.textContent = '⏳ Generating your alter ego...';
   btn.disabled = true;
 
   try {
@@ -874,7 +874,9 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        prompt: generatedPrompt
+        prompt: generatedPrompt,
+        imageBase64: uploadedImageBase64,
+        mediaType: uploadedMediaType
       })
     });
 
