@@ -633,15 +633,62 @@ gateBtn.addEventListener('click', checkPassword);
 gateInput.addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(); });
 
 const styleDescriptions = {
-  cinematic: 'cinematic film still, anamorphic lens, dramatic natural light, shallow depth of field, muted warm tones, 35mm aesthetic, Kodak Portra grain, golden hour',
-  editorial: 'high-fashion editorial photography, Vogue magazine spread, studio lighting, clean background, bold composition, sharp crisp details, fashion week energy',
-  cyberpunk: 'cyberpunk city night scene, neon lights reflecting on wet streets, holographic HUD overlay, Blade Runner 2049 aesthetic, electric blue and magenta palette',
-  anime: 'anime portrait, Studio Ghibli inspired, cel-shaded illustration, expressive large eyes, pastel gradient sky background, soft glow, detailed linework',
-  painterly: 'classical oil painting portrait, Rembrandt chiaroscuro lighting, rich textured visible brushwork, dark dramatic background, Old Masters style, museum quality',
-  fashion: 'luxury fashion campaign, minimalist white studio, high contrast black and white, designer clothing, supermodel composition, impeccable styling, Helmut Newton inspired',
-  'sci-fi': 'futuristic sci-fi character portrait, deep space station interior, holographic armor suit, bioluminescent accents, epic cosmic backdrop, James Cameron aesthetic',
-  streetwear: 'streetwear lookbook, urban rooftop golden hour, authentic candid energy, graffiti mural background, raw documentary style, skate culture aesthetic'
+  cinematic: [
+    'cinematic film still, anamorphic lens, dramatic golden hour natural light, shallow depth of field, muted warm tones, 35mm Kodak Portra grain, lens flare, epic scale',
+    'cinematic noir portrait, rain-soaked city street at night, single overhead street lamp casting dramatic shadows, deep blacks, silver highlights, 1950s detective thriller aesthetic',
+    'cinematic wide shot, vast desert landscape at dusk, subject silhouetted against burning orange sky, dust in the air, spaghetti western aesthetic, Sergio Leone inspired',
+    'intimate cinematic close-up, soft window light from the side, shallow focus, film grain texture, muted earth tones, quiet emotional drama, Terrence Malick visual style'
+  ],
+  editorial: [
+    'high-fashion editorial, Vogue magazine cover, stark white studio, single hard strobe light casting dramatic shadow, bold graphic composition, sharp crisp details',
+    'editorial fashion portrait, industrial warehouse setting, exposed brick and steel, fashion week energy, moody ambient light with dramatic fill, W Magazine aesthetic',
+    'luxury editorial, marble architecture backdrop, classical columns, dramatic arched doorways, deep shadows sculpting the face, architectural fashion photography',
+    'editorial portrait, minimalist seamless grey backdrop, Helmut Newton inspired composition, black and white, single hard side light, razor sharp details, commanding presence'
+  ],
+  cyberpunk: [
+    'cyberpunk city night, rain-soaked neon streets, holographic billboards, Blade Runner 2049 aesthetic, electric blue and magenta neon reflections on wet pavement',
+    'cyberpunk close-up portrait, holographic HUD data streams floating in air, augmented reality implants glowing cyan, dark urban alley, neon green and purple palette',
+    'dystopian cyberpunk rooftop, towering megacity backdrop, acid rain, bioluminescent tattoos glowing, leather and chrome outfit, stormy orange polluted sky',
+    'cyberpunk underground club, strobing neon lights, smoke machine haze, electric violet and hot pink palette, futuristic fashion, bass-heavy dark energy'
+  ],
+  anime: [
+    'anime portrait, Studio Ghibli inspired, cel-shaded illustration, expressive large eyes, soft pastel sky background, cherry blossoms, golden light, detailed linework',
+    'anime character, dark fantasy setting, dramatic cel-shading, glowing magical energy, intricate detailed armour, moonlit forest background, epic composition',
+    'anime portrait, slice of life aesthetic, warm cafe interior, soft afternoon light through window, cosy intimate mood, Makoto Shinkai colour palette',
+    'anime close-up, cyberpunk anime aesthetic, neon city backdrop, detailed digital illustration, electric eyes, futuristic fashion, ghost in the shell vibes'
+  ],
+  painterly: [
+    'classical oil painting portrait, Rembrandt chiaroscuro lighting, rich textured visible brushwork, dark dramatic background, Old Masters style, museum quality',
+    'impressionist oil painting, loose expressive brushwork, dappled garden light, vibrant colour palette, Monet inspired, painterly texture, soft edges',
+    'painterly portrait, John Singer Sargent style, elegant composition, dramatic loose brushwork, rich jewel tones, confident commanding presence',
+    'dark romantic oil painting, stormy dramatic sky background, baroque lighting, deep shadows, intense emotional energy, Caravaggio inspired chiaroscuro'
+  ],
+  fashion: [
+    'luxury fashion campaign, subject wearing an elegant dramatic floor-length black coat with oversized fur trim cuffs, posed inside a series of tall arched stone doorways, architectural minimalism, cool grey tones, full body editorial composition',
+    'high fashion editorial, bold cobalt blue tailored power suit, double breasted blazer and wide leg trousers, subject seated on industrial steel staircase, clean white studio backdrop, confident composed pose, sharp tailoring',
+    'fashion editorial, monochromatic all-red ensemble, oversized blazer and slim trousers, seated in a rattan peacock chair surrounded by sculptural red paper, bold flat colour background, vibrant energy, powerful pose',
+    'luxury fashion portrait, sheer draped silk evening gown, rooftop at golden hour, Dubai skyline blurred behind, warm champagne light, glamorous editorial energy, Vogue Arabia aesthetic'
+  ],
+  'sci-fi': [
+    'futuristic sci-fi character, deep space station interior, sleek holographic armour suit with bioluminescent accents, cosmic nebula visible through observation window, James Cameron cinematic scale',
+    'sci-fi portrait, post-apocalyptic wasteland survivor, rugged battle-worn armour, red dust storm on alien desert planet, two moons on the horizon, Mad Max meets Dune aesthetic',
+    'sci-fi close-up, time traveller aesthetic, glowing circuitry embedded in skin, holographic projections floating around hands, clean white lab environment, clinical futuristic lighting',
+    'sci-fi epic, underwater deep ocean research station, bioluminescent sea creatures visible through porthole, pressurised suit, teal and deep blue colour palette, Avatar aesthetic'
+  ],
+  streetwear: [
+    'streetwear lookbook, urban rooftop golden hour, authentic candid energy, large weathered graffiti mural background, warm amber light, raw documentary style, skate culture',
+    'streetwear editorial, Tokyo backstreet at night, neon convenience store signs, oversized silhouette, layered outfit, candid street photography aesthetic, film grain',
+    'streetwear portrait, Los Angeles warehouse district, faded mural backdrop, skateboard under arm, lens flare, golden California light, Supreme aesthetic, relaxed confident pose',
+    'streetwear lookbook, NYC subway platform, dramatic underground lighting, graffiti covered walls, cinematic documentary energy, candid moment, raw authentic urban culture'
+  ]
 };
+
+// Pick a random variation from array or return string directly
+function getStyleDesc(style) {
+  const desc = styleDescriptions[style];
+  if (Array.isArray(desc)) return desc[Math.floor(Math.random() * desc.length)];
+  return desc || styleDescriptions.cinematic[0];
+}
 
 let selectedStyle = 'cinematic';
 let uploadedImageBase64 = null;
@@ -748,7 +795,7 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
   actionRow.style.display = 'none';
   mjTip.style.display = 'none';
 
-  const styleDesc = styleDescriptions[selectedStyle];
+  const styleDesc = getStyleDesc(selectedStyle);
 
   const systemPrompt = `You are an expert AI art director and prompt engineer. Analyse the person in this selfie and generate a highly detailed AI image generation prompt.
 
