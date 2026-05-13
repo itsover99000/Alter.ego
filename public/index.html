@@ -438,7 +438,90 @@
 </style>
 </head>
 <body>
-<div class="app">
+<style>
+  .gate {
+    position: fixed;
+    inset: 0;
+    background: #0a0a0a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    font-family: 'Syne', sans-serif;
+  }
+  .gate-box {
+    text-align: center;
+    width: 320px;
+  }
+  .gate-logo {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #f0ede6;
+    margin-bottom: 8px;
+  }
+  .gate-logo span { color: #c8f05a; }
+  .gate-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: rgba(240,237,230,0.35);
+    letter-spacing: 0.08em;
+    margin-bottom: 32px;
+  }
+  .gate-input {
+    width: 100%;
+    background: rgba(240,237,230,0.05);
+    border: 0.5px solid rgba(240,237,230,0.15);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: #f0ede6;
+    outline: none;
+    text-align: center;
+    letter-spacing: 0.1em;
+    transition: border-color 0.15s;
+    margin-bottom: 10px;
+  }
+  .gate-input:focus { border-color: rgba(200,240,90,0.4); }
+  .gate-input::placeholder { color: rgba(240,237,230,0.25); letter-spacing: 0.08em; }
+  .gate-btn {
+    width: 100%;
+    padding: 12px;
+    background: #c8f05a;
+    color: #0a0a0a;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .gate-btn:hover { background: #d4f570; }
+  .gate-error {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: #f09595;
+    margin-top: 8px;
+    display: none;
+  }
+</style>
+
+<div class="gate" id="passwordGate">
+  <div class="gate-box">
+    <div class="gate-logo">ALTER<span>.</span>EGO</div>
+    <div class="gate-sub">PRIVATE BETA — ENTER ACCESS CODE</div>
+    <input type="password" class="gate-input" id="gateInput" placeholder="ACCESS CODE" autocomplete="off">
+    <button class="gate-btn" id="gateBtn">Enter</button>
+    <div class="gate-error" id="gateError">Invalid access code</div>
+  </div>
+</div>
+
+<div class="app" style="display:none" id="mainApp">
 
   <div class="header">
     <div class="logo">ALTER<span>.</span>EGO</div>
@@ -513,8 +596,40 @@
   </div>
 
 </div>
+</div>
 
 <script>
+// Password gate
+const CORRECT_PASSWORD = 'alterego2026';
+
+const gateInput = document.getElementById('gateInput');
+const gateBtn = document.getElementById('gateBtn');
+const gateError = document.getElementById('gateError');
+const gate = document.getElementById('passwordGate');
+const mainApp = document.getElementById('mainApp');
+
+// Check if already authenticated
+if (sessionStorage.getItem('alterego_auth') === 'true') {
+  gate.style.display = 'none';
+  mainApp.style.display = 'block';
+}
+
+function checkPassword() {
+  if (gateInput.value.trim().toLowerCase() === CORRECT_PASSWORD) {
+    sessionStorage.setItem('alterego_auth', 'true');
+    gate.style.display = 'none';
+    mainApp.style.display = 'block';
+  } else {
+    gateError.style.display = 'block';
+    gateInput.value = '';
+    gateInput.focus();
+    setTimeout(() => { gateError.style.display = 'none'; }, 2000);
+  }
+}
+
+gateBtn.addEventListener('click', checkPassword);
+gateInput.addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(); });
+
 const styleDescriptions = {
   cinematic: 'cinematic film still, anamorphic lens, dramatic natural light, shallow depth of field, muted warm tones, 35mm aesthetic, Kodak Portra grain, golden hour',
   editorial: 'high-fashion editorial photography, Vogue magazine spread, studio lighting, clean background, bold composition, sharp crisp details, fashion week energy',
