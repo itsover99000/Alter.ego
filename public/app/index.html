@@ -564,7 +564,6 @@
   }
 
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <style>
@@ -782,7 +781,7 @@
 // ── SUPABASE ──────────────────────────────────────────
 const SUPABASE_URL = 'https://vzlrivfnzxmrymxpondl.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6bHJpdmZuenhtcnlteHBvbmRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MTM1MzUsImV4cCI6MjA5NDI4OTUzNX0.oV_mACedg9AfC-n0QEiLx4ouQV4asAHtLYBTBUzMvQg';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let sb = null;
 
 let currentUser = null;
 
@@ -966,17 +965,8 @@ async function handleSignOut() {
   if (genGallery) genGallery.classList.remove('visible');
   const genGrid = document.getElementById('genGrid');
   if (genGrid) genGrid.innerHTML = '';
-  // Hide app, show auth gate
-  const mainApp = document.getElementById('mainApp');
-  const authGate = document.getElementById('authGate');
-  if (mainApp) mainApp.setAttribute('style', 'display:none');
-  if (authGate) authGate.setAttribute('style', 'display:flex !important');
-  // Clear form fields
-  const siEmail = document.getElementById('siEmail');
-  const siPass = document.getElementById('siPassword');
-  if (siEmail) siEmail.value = '';
-  if (siPass) siPass.value = '';
-  console.log('Signed out — auth gate shown');
+  // Redirect to landing page
+  window.location.href = '/';
 }
 
 function skipAuth() {
@@ -998,6 +988,14 @@ document.addEventListener('DOMContentLoaded', () => {
     console.warn('Auth timeout — showing gate');
     showAuthGate();
   }, 4000);
+
+  try {
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  } catch(e) {
+    console.error('Supabase init failed:', e);
+    showAuthGate();
+    return;
+  }
 
   initAuth().then(() => clearTimeout(fallbackTimer)).catch(e => {
     console.error('initAuth failed:', e);
@@ -1493,5 +1491,6 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   updateGenerateBtn();
 });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </body>
 </html>
