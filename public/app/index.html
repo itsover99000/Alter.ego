@@ -765,7 +765,7 @@
       </div>
     </div>
     <div id="imageError" style="display:none;font-size:11px;color:#f09595;font-family:DM Mono,monospace;margin-top:8px;padding:10px 12px;background:rgba(240,149,149,0.06);border:0.5px solid rgba(240,149,149,0.2);border-radius:8px;line-height:1.6"></div>
-    <div id="imageSaveRow" style="display:none;margin-top:10px;display:none">
+    <div id="imageSaveRow" style="display:none;margin-top:10px">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <a id="imageDownload" download="alter-ego.png" style="display:block;padding:12px;background:transparent;border:0.5px solid rgba(200,240,90,0.3);border-radius:8px;font-family:Syne,sans-serif;font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:#c8f05a;cursor:pointer;text-align:center;text-decoration:none">↓ Save</a>
         <button id="shareBtn" style="padding:12px;background:#c8f05a;border:none;border-radius:8px;font-family:Syne,sans-serif;font-size:11px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#0a0a0a;cursor:pointer">↗ Share</button>
@@ -815,7 +815,13 @@ async function initAuth() {
   // Check for existing session FIRST before setting up listener
   // This prevents the listener firing before we know initial state
   try {
-    const { data: { session } } = await sb.auth.getSession();
+    const { data: { session }, error } = await sb.auth.getSession();
+    // If session exists but is expired or invalid, sign out cleanly
+    if (error || (session && !session.user)) {
+      await sb.auth.signOut({ scope: 'local' });
+      showAuthGate();
+      return;
+    }
     if (session?.user) {
       await onSignedIn(session.user);
     } else {
@@ -823,6 +829,8 @@ async function initAuth() {
     }
   } catch(e) {
     console.error('initAuth error:', e);
+    // Clear potentially corrupt session and show auth gate
+    try { await sb.auth.signOut({ scope: 'local' }); } catch {}
     showAuthGate();
   }
 
@@ -1400,6 +1408,8 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
 
   btn.textContent = '⚡ Generate Image';
   btn.disabled = false;
+  // Reset file input so the same image can be re-selected / a new one triggers change event
+  document.getElementById('fileInput').value = '';
 });
 
 // Share with watermark
