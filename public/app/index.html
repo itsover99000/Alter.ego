@@ -949,27 +949,17 @@ async function handleSignUp() {
 }
 
 async function handleSignOut() {
-  try {
-    await sb.auth.signOut();
-    // Nuclear option - clear all supabase localStorage keys
-    Object.keys(localStorage).forEach(key => {
-      if (key.startsWith('sb-') || key.includes('supabase')) {
-        localStorage.removeItem(key);
-      }
-    });
-  } catch(e) { console.log('signout error', e); }
+  // Clear everything locally first — never rely on signOut() succeeding
   currentUser = null;
-  // Clear user bar
-  const userBar = document.getElementById('userBar');
-  if (userBar) userBar.classList.remove('visible');
-  const userCredits = document.getElementById('userCredits');
-  if (userCredits) userCredits.textContent = '';
-  const genGallery = document.getElementById('genGallery');
-  if (genGallery) genGallery.classList.remove('visible');
-  const genGrid = document.getElementById('genGrid');
-  if (genGrid) genGrid.innerHTML = '';
-  // Redirect to landing page
-  window.location.href = '/';
+  Object.keys(localStorage).forEach(key => {
+    if (key.startsWith('sb-') || key.includes('supabase')) {
+      localStorage.removeItem(key);
+    }
+  });
+  // Tell Supabase to sign out (best effort)
+  try { await sb.auth.signOut({ scope: 'local' }); } catch(e) { console.log('signout error', e); }
+  // Always redirect
+  window.location.replace('/');
 }
 
 function skipAuth() {
