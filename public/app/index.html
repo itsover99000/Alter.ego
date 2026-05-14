@@ -834,9 +834,10 @@ async function initAuth() {
     } else if (event === 'SIGNED_OUT') {
       onSignedOut();
       showAuthGate();
+    } else if (event === 'INITIAL_SESSION' && !session?.user) {
+      showAuthGate();
     }
-    // Deliberately ignore: INITIAL_SESSION, TOKEN_REFRESHED, USER_UPDATED
-    // These cause the flicker/blank screen bug
+    // Deliberately ignore: TOKEN_REFRESHED, USER_UPDATED
   });
 }
 
