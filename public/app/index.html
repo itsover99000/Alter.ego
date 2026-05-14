@@ -518,15 +518,6 @@
   }
   .auth-msg.error { color: #f09595; background: rgba(240,149,149,0.06); border: 0.5px solid rgba(240,149,149,0.2); }
   .auth-msg.success { color: #c8f05a; background: rgba(200,240,90,0.06); border: 0.5px solid rgba(200,240,90,0.2); }
-  .auth-skip {
-    text-align: center; margin-top: 20px;
-  }
-  .auth-skip button {
-    background: none; border: none; font-family: 'DM Mono', monospace;
-    font-size: 10px; color: rgba(240,237,230,0.25); cursor: pointer;
-    letter-spacing: 0.06em; text-transform: uppercase; transition: color 0.15s;
-  }
-  .auth-skip button:hover { color: rgba(240,237,230,0.5); }
 
   /* ── USER BAR ───────────────────────────────────── */
   .user-bar {
@@ -685,9 +676,7 @@
       <button class="auth-btn" id="suBtn" onclick="handleSignUp()">Create Account</button>
       <div class="auth-msg" id="suMsg"></div>
     </div>
-    <div class="auth-skip">
-      <button onclick="skipAuth()">Continue without account →</button>
-    </div>
+
   </div>
 </div>
 
@@ -974,10 +963,7 @@ async function handleSignOut() {
   window.location.replace('/');
 }
 
-function skipAuth() {
-  document.getElementById('authGate').style.display = 'none';
-  document.getElementById('mainApp').style.display = 'block';
-}
+
 
 function showMsg(el, type, text) {
   el.className = 'auth-msg ' + type;
