@@ -936,8 +936,18 @@ async function handleSignUp() {
 
 async function handleSignOut() {
   await sb.auth.signOut();
-  document.getElementById('authGate').style.display = 'flex';
+  currentUser = null;
+  // Clear user bar
+  document.getElementById('userBar').classList.remove('visible');
+  document.getElementById('userCredits').textContent = '';
+  document.getElementById('genGallery').classList.remove('visible');
+  document.getElementById('genGrid').innerHTML = '';
+  // Show auth gate
   document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('authGate').style.display = 'flex';
+  // Clear form fields
+  document.getElementById('siEmail').value = '';
+  document.getElementById('siPassword').value = '';
 }
 
 function skipAuth() {
