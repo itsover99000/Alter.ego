@@ -640,15 +640,6 @@
   }
 </style>
 
-<div class="gate" id="passwordGate">
-  <div class="gate-box">
-    <div class="gate-logo">ALTER<span>.</span>EGO</div>
-    <div class="gate-sub">PRIVATE BETA — ENTER ACCESS CODE</div>
-    <input type="password" class="gate-input" id="gateInput" placeholder="ACCESS CODE" autocomplete="off">
-    <button class="gate-btn" id="gateBtn">Enter</button>
-    <div class="gate-error" id="gateError">Invalid access code</div>
-  </div>
-</div>
 
 <div class="app" id="mainApp" style="display:none">
 
@@ -966,35 +957,7 @@ function showMsg(el, type, text) {
 initAuth();
 
 // ── PASSWORD GATE ──────────────────────────────────────
-const CORRECT_PASSWORD = 'alterego2026';
-
-const gateInput = document.getElementById('gateInput');
-const gateBtn = document.getElementById('gateBtn');
-const gateError = document.getElementById('gateError');
-const gate = document.getElementById('passwordGate');
-const mainApp = document.getElementById('mainApp');
-
-// Check if already authenticated
-if (sessionStorage.getItem('alterego_auth') === 'true') {
-  gate.style.display = 'none';
-  mainApp.style.display = 'block';
-}
-
-function checkPassword() {
-  if (gateInput.value.trim().toLowerCase() === CORRECT_PASSWORD) {
-    sessionStorage.setItem('alterego_auth', 'true');
-    gate.style.display = 'none';
-    mainApp.style.display = 'block';
-  } else {
-    gateError.style.display = 'block';
-    gateInput.value = '';
-    gateInput.focus();
-    setTimeout(() => { gateError.style.display = 'none'; }, 2000);
-  }
-}
-
-gateBtn.addEventListener('click', checkPassword);
-gateInput.addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(); });
+// Auth handled by Supabase
 
 const styleDescriptions = {
   cinematic: [
