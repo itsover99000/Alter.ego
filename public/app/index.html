@@ -435,6 +435,113 @@
   }
 
   .mj-tip strong { color: var(--accent); font-weight: 600; }
+
+  /* ── AUTH GATE ─────────────────────────────────── */
+  .auth-gate {
+    position: fixed; inset: 0; background: #0a0a0a;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999;
+  }
+  .auth-box {
+    width: 100%; max-width: 380px; padding: 0 28px;
+  }
+  .auth-logo {
+    font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800;
+    letter-spacing: 0.14em; text-transform: uppercase; color: #f0ede6;
+    margin-bottom: 6px;
+  }
+  .auth-logo span { color: #c8f05a; }
+  .auth-tagline {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    color: rgba(240,237,230,0.35); letter-spacing: 0.06em; margin-bottom: 36px;
+  }
+  .auth-tabs {
+    display: flex; margin-bottom: 24px;
+    border-bottom: 0.5px solid rgba(240,237,230,0.1);
+  }
+  .auth-tab {
+    flex: 1; padding: 10px; text-align: center; font-family: 'Syne', sans-serif;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(240,237,230,0.3); cursor: pointer; transition: all 0.15s;
+    border-bottom: 2px solid transparent; margin-bottom: -0.5px;
+  }
+  .auth-tab.active { color: #c8f05a; border-bottom-color: #c8f05a; }
+  .auth-field { margin-bottom: 12px; }
+  .auth-label {
+    font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: rgba(240,237,230,0.35); margin-bottom: 6px; display: block;
+  }
+  .auth-input {
+    width: 100%; background: rgba(240,237,230,0.05);
+    border: 0.5px solid rgba(240,237,230,0.15); border-radius: 6px;
+    padding: 12px 14px; font-family: 'DM Mono', monospace; font-size: 13px;
+    color: #f0ede6; outline: none; transition: border-color 0.15s;
+  }
+  .auth-input:focus { border-color: rgba(200,240,90,0.4); }
+  .auth-input::placeholder { color: rgba(240,237,230,0.2); }
+  .auth-btn {
+    width: 100%; padding: 14px; background: #c8f05a; color: #0a0a0a; border: none;
+    border-radius: 6px; font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 800;
+    letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
+    transition: all 0.15s; margin-top: 6px;
+  }
+  .auth-btn:hover:not(:disabled) { background: #d4f570; }
+  .auth-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .auth-msg {
+    font-family: 'DM Mono', monospace; font-size: 11px; margin-top: 10px;
+    padding: 10px 12px; border-radius: 6px; line-height: 1.6; display: none;
+  }
+  .auth-msg.error { color: #f09595; background: rgba(240,149,149,0.06); border: 0.5px solid rgba(240,149,149,0.2); }
+  .auth-msg.success { color: #c8f05a; background: rgba(200,240,90,0.06); border: 0.5px solid rgba(200,240,90,0.2); }
+  .auth-skip {
+    text-align: center; margin-top: 20px;
+  }
+  .auth-skip button {
+    background: none; border: none; font-family: 'DM Mono', monospace;
+    font-size: 10px; color: rgba(240,237,230,0.25); cursor: pointer;
+    letter-spacing: 0.06em; text-transform: uppercase; transition: color 0.15s;
+  }
+  .auth-skip button:hover { color: rgba(240,237,230,0.5); }
+
+  /* ── USER BAR ───────────────────────────────────── */
+  .user-bar {
+    display: none; align-items: center; justify-content: space-between;
+    padding: 10px 14px; background: rgba(240,237,230,0.04);
+    border: 0.5px solid rgba(240,237,230,0.08); border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  .user-bar.visible { display: flex; }
+  .user-email { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(240,237,230,0.45); }
+  .user-credits { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; color: #c8f05a; }
+  .sign-out-btn {
+    background: none; border: none; font-family: 'DM Mono', monospace; font-size: 10px;
+    color: rgba(240,237,230,0.3); cursor: pointer; letter-spacing: 0.06em;
+    text-transform: uppercase; transition: color 0.15s;
+  }
+  .sign-out-btn:hover { color: rgba(240,237,230,0.7); }
+
+  /* ── GEN GALLERY ────────────────────────────────── */
+  .gen-gallery { margin-top: 20px; display: none; }
+  .gen-gallery.visible { display: block; }
+  .gen-gallery-label {
+    font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: rgba(240,237,230,0.35); margin-bottom: 10px;
+  }
+  .gen-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .gen-thumb {
+    aspect-ratio: 3/4; overflow: hidden; border-radius: 6px;
+    background: rgba(240,237,230,0.04); cursor: pointer; position: relative;
+    transition: opacity 0.2s;
+  }
+  .gen-thumb:hover { opacity: 0.8; }
+  .gen-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .gen-thumb-label {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 5px 8px; background: linear-gradient(transparent, rgba(10,10,10,0.8));
+    font-family: 'DM Mono', monospace; font-size: 9px;
+    letter-spacing: 0.06em; text-transform: uppercase; color: rgba(240,237,230,0.6);
+  }
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -536,12 +643,10 @@
   <div class="auth-box">
     <div class="auth-logo">Alter<span>.</span>Ego</div>
     <div class="auth-tagline">Sign in to save your generations</div>
-
     <div class="auth-tabs">
       <div class="auth-tab active" id="tabSignIn" onclick="switchTab('signin')">Sign In</div>
       <div class="auth-tab" id="tabSignUp" onclick="switchTab('signup')">Create Account</div>
     </div>
-
     <div id="formSignIn">
       <div class="auth-field">
         <label class="auth-label">Email</label>
@@ -554,7 +659,6 @@
       <button class="auth-btn" id="siBtn" onclick="handleSignIn()">Sign In</button>
       <div class="auth-msg" id="siMsg"></div>
     </div>
-
     <div id="formSignUp" style="display:none">
       <div class="auth-field">
         <label class="auth-label">Email</label>
@@ -567,11 +671,8 @@
       <button class="auth-btn" id="suBtn" onclick="handleSignUp()">Create Account</button>
       <div class="auth-msg" id="suMsg"></div>
     </div>
-
-    <div style="margin-top:20px;text-align:center">
-      <button onclick="skipAuth()" style="background:none;border:none;font-family:DM Mono,monospace;font-size:10px;color:rgba(240,237,230,0.25);cursor:pointer;letter-spacing:0.06em;text-transform:uppercase">
-        Continue without account →
-      </button>
+    <div class="auth-skip">
+      <button onclick="skipAuth()">Continue without account →</button>
     </div>
   </div>
 </div>
