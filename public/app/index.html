@@ -6,6 +6,7 @@
 <title>ALTER.EGO — AI Selfie Generator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -810,18 +811,8 @@ function showMainApp() {
 }
 
 async function initAuth() {
-  // Listen for auth changes
-  sb.auth.onAuthStateChange(async (event, session) => {
-    console.log('Auth event:', event, session?.user?.email);
-    if (session?.user) {
-      await onSignedIn(session.user);
-    } else if (event === 'SIGNED_OUT') {
-      onSignedOut();
-      showAuthGate();
-    }
-  });
-
-  // Check for existing session
+  // Check for existing session FIRST before setting up listener
+  // This prevents the listener firing before we know initial state
   try {
     const { data: { session } } = await sb.auth.getSession();
     if (session?.user) {
@@ -833,6 +824,20 @@ async function initAuth() {
     console.error('initAuth error:', e);
     showAuthGate();
   }
+
+  // Listen for auth changes AFTER initial check
+  // Only act on definitive events — ignore TOKEN_REFRESHED to prevent flicker
+  sb.auth.onAuthStateChange(async (event, session) => {
+    console.log('Auth event:', event, session?.user?.email);
+    if (event === 'SIGNED_IN' && session?.user) {
+      await onSignedIn(session.user);
+    } else if (event === 'SIGNED_OUT') {
+      onSignedOut();
+      showAuthGate();
+    }
+    // Deliberately ignore: INITIAL_SESSION, TOKEN_REFRESHED, USER_UPDATED
+    // These cause the flicker/blank screen bug
+  });
 }
 
 async function onSignedIn(user) {
@@ -1491,6 +1496,5 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   updateGenerateBtn();
 });
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </body>
 </html>
