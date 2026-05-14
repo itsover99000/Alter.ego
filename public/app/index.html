@@ -926,19 +926,30 @@ async function handleSignUp() {
 }
 
 async function handleSignOut() {
-  await sb.auth.signOut();
+  try {
+    await sb.auth.signOut();
+  } catch(e) { console.log('signout error', e); }
   currentUser = null;
   // Clear user bar
-  document.getElementById('userBar').classList.remove('visible');
-  document.getElementById('userCredits').textContent = '';
-  document.getElementById('genGallery').classList.remove('visible');
-  document.getElementById('genGrid').innerHTML = '';
-  // Show auth gate
-  document.getElementById('mainApp').style.display = 'none';
-  document.getElementById('authGate').style.display = 'flex';
+  const userBar = document.getElementById('userBar');
+  if (userBar) userBar.classList.remove('visible');
+  const userCredits = document.getElementById('userCredits');
+  if (userCredits) userCredits.textContent = '';
+  const genGallery = document.getElementById('genGallery');
+  if (genGallery) genGallery.classList.remove('visible');
+  const genGrid = document.getElementById('genGrid');
+  if (genGrid) genGrid.innerHTML = '';
+  // Hide app, show auth gate
+  const mainApp = document.getElementById('mainApp');
+  const authGate = document.getElementById('authGate');
+  if (mainApp) mainApp.setAttribute('style', 'display:none');
+  if (authGate) authGate.setAttribute('style', 'display:flex !important');
   // Clear form fields
-  document.getElementById('siEmail').value = '';
-  document.getElementById('siPassword').value = '';
+  const siEmail = document.getElementById('siEmail');
+  const siPass = document.getElementById('siPassword');
+  if (siEmail) siEmail.value = '';
+  if (siPass) siPass.value = '';
+  console.log('Signed out — auth gate shown');
 }
 
 function skipAuth() {
