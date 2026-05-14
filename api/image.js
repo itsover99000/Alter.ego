@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     const imageDataUrl = imageBase64 ? `data:${mediaType || 'image/jpeg'};base64,${imageBase64}` : null;
 
     // Prepend realism booster to every prompt
-    const realisticPrompt = `hyper-realistic editorial photography, photorealistic, real person, full body sharp focus head to toe, tack sharp face, crisp facial detail, natural skin texture, visible pores, subtle skin imperfections, realistic complexion, film grain on skin, ${prompt}, NOT a painting, NOT illustration, NOT cartoon, NOT CGI, NOT over-retouched, NOT plastic skin, NOT smooth AI skin, NOT blurry face, NOT soft focus face`;
+    const realisticPrompt = `hyper-realistic editorial photography, photorealistic, real person, full body sharp focus head to toe, tack sharp face, crisp facial detail, natural skin texture, visible pores, subtle skin imperfections, realistic complexion, film grain on skin, ${prompt}, NOT a painting, NOT illustration, NOT cartoon, NOT CGI, NOT over-retouched, NOT plastic skin, NOT smooth AI skin, NOT blurry face, NOT soft focus face, NOT white background, NOT plain background, NOT studio white, NOT blank background`;
 
     if (imageDataUrl) {
       console.log('Trying flux-pulid...');
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
           prompt: realisticPrompt,
           reference_image_url: imageDataUrl,
           negative_prompt: "cartoon, illustration, painting, drawing, anime, CGI, render, fake, plastic, low quality, blurry face, soft face, out of focus face, distorted face, ugly, deformed",
-          image_size: "square_hd",
+          image_size: "portrait_4_3",
           num_inference_steps: 50,
           guidance_scale: 5.0,
           true_cfg: 1.0,
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         prompt: realisticPrompt,
         negative_prompt: "cartoon, illustration, painting, drawing, anime, CGI, render, fake, blurry face, soft focus, distorted",
-        image_size: 'square_hd',
+        image_size: 'portrait_4_3',
         num_inference_steps: 50,
         guidance_scale: 4.5,
         num_images: 1,
