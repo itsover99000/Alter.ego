@@ -436,6 +436,7 @@
 
   .mj-tip strong { color: var(--accent); font-weight: 600; }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <style>
@@ -521,7 +522,7 @@
   </div>
 </div>
 
-<div class="app" style="display:none" id="mainApp">
+<div class="app" id="mainApp" style="display:none">
 
   <div class="header">
     <div class="logo">ALTER<span>.</span>EGO</div>
@@ -530,8 +531,60 @@
 
   <!-- No API keys needed - handled server-side -->
 
+<!-- AUTH GATE -->
+<div class="auth-gate" id="authGate">
+  <div class="auth-box">
+    <div class="auth-logo">Alter<span>.</span>Ego</div>
+    <div class="auth-tagline">Sign in to save your generations</div>
+
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tabSignIn" onclick="switchTab('signin')">Sign In</div>
+      <div class="auth-tab" id="tabSignUp" onclick="switchTab('signup')">Create Account</div>
+    </div>
+
+    <div id="formSignIn">
+      <div class="auth-field">
+        <label class="auth-label">Email</label>
+        <input type="email" class="auth-input" id="siEmail" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Password</label>
+        <input type="password" class="auth-input" id="siPassword" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="auth-btn" id="siBtn" onclick="handleSignIn()">Sign In</button>
+      <div class="auth-msg" id="siMsg"></div>
+    </div>
+
+    <div id="formSignUp" style="display:none">
+      <div class="auth-field">
+        <label class="auth-label">Email</label>
+        <input type="email" class="auth-input" id="suEmail" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Password</label>
+        <input type="password" class="auth-input" id="suPassword" placeholder="Min. 6 characters" autocomplete="new-password">
+      </div>
+      <button class="auth-btn" id="suBtn" onclick="handleSignUp()">Create Account</button>
+      <div class="auth-msg" id="suMsg"></div>
+    </div>
+
+    <div style="margin-top:20px;text-align:center">
+      <button onclick="skipAuth()" style="background:none;border:none;font-family:DM Mono,monospace;font-size:10px;color:rgba(240,237,230,0.25);cursor:pointer;letter-spacing:0.06em;text-transform:uppercase">
+        Continue without account →
+      </button>
+    </div>
+  </div>
+</div>
+
   <!-- Upload -->
-  <input type="file" id="fileInput" accept="image/*">
+  <!-- USER BAR -->
+<div class="user-bar" id="userBar">
+  <div class="user-email" id="userEmail">—</div>
+  <div class="user-credits" id="userCredits"></div>
+  <button class="sign-out-btn" onclick="handleSignOut()">Sign out</button>
+</div>
+
+<input type="file" id="fileInput" accept="image/*">
   <div class="upload-zone" id="uploadZone">
     <div class="upload-label">
       <div class="upload-icon">📷</div>
@@ -605,8 +658,158 @@
 </div>
 
 <script>
-// Password gate
-const CORRECT_PASSWORD = 'ego7734';
+// ── SUPABASE ──────────────────────────────────────────
+const SUPABASE_URL = 'https://vzlrivfnzxmrymxpondl.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6bHJpdmZuenhtcnlteHBvbmRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MTM1MzUsImV4cCI6MjA5NDI4OTUzNX0.oV_mACedg9AfC-n0QEiLx4ouQV4asAHtLYBTBUzMvQg';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+
+// Init auth state
+async function initAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user) {
+    await onSignedIn(session.user);
+  }
+  // Listen for auth changes
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session?.user) {
+      await onSignedIn(session.user);
+    } else if (event === 'SIGNED_OUT') {
+      onSignedOut();
+    }
+  });
+}
+
+async function onSignedIn(user) {
+  currentUser = user;
+  document.getElementById('authGate').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  document.getElementById('userBar').classList.add('visible');
+  document.getElementById('userEmail').textContent = user.email;
+  await loadProfile();
+  await loadGenerations();
+}
+
+function onSignedOut() {
+  currentUser = null;
+  document.getElementById('userBar').classList.remove('visible');
+  document.getElementById('userCredits').textContent = '';
+  document.getElementById('genGallery').classList.remove('visible');
+  document.getElementById('genGrid').innerHTML = '';
+}
+
+async function loadProfile() {
+  const { data } = await sb.from('profiles').select('credits, total_generations').eq('id', currentUser.id).single();
+  if (data) {
+    document.getElementById('userCredits').textContent = `${data.credits} credits`;
+  }
+}
+
+async function loadGenerations() {
+  const { data } = await sb.from('generations').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(12);
+  if (data && data.length > 0) {
+    const grid = document.getElementById('genGrid');
+    grid.innerHTML = data.map(g => `
+      <div class="gen-thumb" onclick="reuseGeneration('${g.image_url}','${(g.style||'').replace(/'/g,"\'")}')">
+        <img src="${g.image_url}" alt="${g.style || 'generation'}" loading="lazy">
+        <div class="gen-thumb-label">${g.style || '—'}</div>
+      </div>
+    `).join('');
+    document.getElementById('genGallery').classList.add('visible');
+  }
+}
+
+function reuseGeneration(url, style) {
+  // Show image in result area
+  const imageArea = document.getElementById('imageArea');
+  const imageContainer = document.getElementById('imageContainer');
+  imageArea.style.display = 'block';
+  const existing = imageContainer.querySelector('img');
+  if (existing) existing.remove();
+  document.getElementById('imageLoading').style.display = 'none';
+  const img = document.createElement('img');
+  img.src = url;
+  img.style.cssText = 'width:100%;display:block;border-radius:10px';
+  imageContainer.appendChild(img);
+  document.getElementById('imageSaveRow').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function saveGeneration(imageUrl, style, prompt, mood, lighting, features) {
+  if (!currentUser) return;
+  await sb.from('generations').insert({
+    user_id: currentUser.id,
+    image_url: imageUrl,
+    style: style,
+    prompt: prompt,
+    mood: mood,
+    lighting: lighting,
+    features: features
+  });
+  // Update total generations count
+  await sb.rpc('increment_generations', { user_id: currentUser.id }).catch(() => {});
+  await loadGenerations();
+  await loadProfile();
+}
+
+// Auth functions
+function switchTab(tab) {
+  document.getElementById('tabSignIn').classList.toggle('active', tab === 'signin');
+  document.getElementById('tabSignUp').classList.toggle('active', tab === 'signup');
+  document.getElementById('formSignIn').style.display = tab === 'signin' ? 'block' : 'none';
+  document.getElementById('formSignUp').style.display = tab === 'signup' ? 'block' : 'none';
+}
+
+async function handleSignIn() {
+  const email = document.getElementById('siEmail').value.trim();
+  const password = document.getElementById('siPassword').value;
+  const btn = document.getElementById('siBtn');
+  const msg = document.getElementById('siMsg');
+  if (!email || !password) return showMsg(msg, 'error', 'Please fill in all fields');
+  btn.disabled = true; btn.textContent = 'Signing in...';
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  btn.disabled = false; btn.textContent = 'Sign In';
+  if (error) showMsg(msg, 'error', error.message);
+}
+
+async function handleSignUp() {
+  const email = document.getElementById('suEmail').value.trim();
+  const password = document.getElementById('suPassword').value;
+  const btn = document.getElementById('suBtn');
+  const msg = document.getElementById('suMsg');
+  if (!email || !password) return showMsg(msg, 'error', 'Please fill in all fields');
+  if (password.length < 6) return showMsg(msg, 'error', 'Password must be at least 6 characters');
+  btn.disabled = true; btn.textContent = 'Creating account...';
+  const { error } = await sb.auth.signUp({ email, password });
+  btn.disabled = false; btn.textContent = 'Create Account';
+  if (error) showMsg(msg, 'error', error.message);
+  else showMsg(msg, 'success', 'Account created! Check your email to confirm.');
+}
+
+async function handleSignOut() {
+  await sb.auth.signOut();
+  document.getElementById('authGate').style.display = 'flex';
+  document.getElementById('mainApp').style.display = 'none';
+}
+
+function skipAuth() {
+  document.getElementById('authGate').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+}
+
+function showMsg(el, type, text) {
+  el.className = 'auth-msg ' + type;
+  el.textContent = text;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+// Init on load
+initAuth();
+
+// ── PASSWORD GATE ──────────────────────────────────────
+const CORRECT_PASSWORD = 'alterego2026';
 
 const gateInput = document.getElementById('gateInput');
 const gateBtn = document.getElementById('gateBtn');
@@ -814,7 +1017,7 @@ Respond ONLY with a valid JSON object. No markdown. No backticks. No explanation
 
 Style to incorporate: ${styleDesc}
 
-Structure the prompt as: subject description → environment/setting → mood/atmosphere → technical camera and lighting specs. Make it vivid, specific, and professional.`;
+Structure the prompt as: subject description → environment/setting → mood/atmosphere → technical camera and lighting specs. Make it vivid, specific, and professional. CRITICAL: always include these exact words in the prompt: natural skin texture, visible pores, subtle skin imperfections, realistic complexion, film grain on skin. This prevents plastic AI skin and creates a real photographic look.`;
 
   try {
     const response = await fetch('/api/generate', {
@@ -975,6 +1178,13 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
     img.src = imageUrl;
     img.style.cssText = 'width:100%;display:block;border-radius:10px';
     imageContainer.appendChild(img);
+
+    // Save to Supabase if logged in
+    saveGeneration(imageUrl, selectedStyle, generatedPrompt, 
+      document.querySelector('.analysis-card-value')?.textContent || '',
+      document.querySelectorAll('.analysis-card-value')[1]?.textContent || '',
+      document.querySelectorAll('.analysis-card-value')[2]?.textContent || ''
+    ).catch(() => {});
 
     // Force download by fetching as blob
     const dl = document.getElementById('imageDownload');

@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     const imageDataUrl = imageBase64 ? `data:${mediaType || 'image/jpeg'};base64,${imageBase64}` : null;
 
     // Prepend realism booster to every prompt
-    const realisticPrompt = `hyper-realistic photographic portrait, photorealistic, real person, 8k resolution, ${prompt}, NOT a painting, NOT illustration, NOT cartoon, NOT CGI`;
+    const realisticPrompt = `hyper-realistic photographic portrait, photorealistic, real person, natural skin texture, visible pores, subtle skin imperfections, realistic complexion, film grain on skin, ${prompt}, NOT a painting, NOT illustration, NOT cartoon, NOT CGI, NOT over-retouched, NOT plastic skin, NOT smooth AI skin`;
 
     if (imageDataUrl) {
       console.log('Trying flux-pulid...');
