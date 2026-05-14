@@ -787,37 +787,56 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null;
 
 // Init auth state
+function hideLoader() {
+  const loader = document.getElementById('appLoader');
+  if (loader) { loader.classList.add('hidden'); setTimeout(() => { try { loader.remove(); } catch(e){} }, 400); }
+}
+
+function showAuthGate() {
+  hideLoader();
+  const gate = document.getElementById('authGate');
+  const app = document.getElementById('mainApp');
+  if (gate) gate.setAttribute('style', 'display:flex');
+  if (app) app.setAttribute('style', 'display:none');
+}
+
+function showMainApp() {
+  hideLoader();
+  const gate = document.getElementById('authGate');
+  const app = document.getElementById('mainApp');
+  if (gate) gate.setAttribute('style', 'display:none');
+  if (app) app.setAttribute('style', 'display:block');
+}
+
 async function initAuth() {
-  // Listen for auth changes FIRST before checking session
+  // Listen for auth changes
   sb.auth.onAuthStateChange(async (event, session) => {
     console.log('Auth event:', event, session?.user?.email);
     if (session?.user) {
       await onSignedIn(session.user);
     } else if (event === 'SIGNED_OUT') {
       onSignedOut();
-      document.getElementById('authGate').style.display = 'flex';
-      document.getElementById('mainApp').style.display = 'none';
+      showAuthGate();
     }
   });
 
-  // Then check for existing session
-  const { data: { session } } = await sb.auth.getSession();
-  if (session?.user) {
-    await onSignedIn(session.user);
-  } else {
-    // No session — show auth gate
-    document.getElementById('authGate').style.display = 'flex';
-    document.getElementById('appLoader').classList.add('hidden');
-    setTimeout(() => document.getElementById('appLoader').remove(), 400);
+  // Check for existing session
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session?.user) {
+      await onSignedIn(session.user);
+    } else {
+      showAuthGate();
+    }
+  } catch(e) {
+    console.error('initAuth error:', e);
+    showAuthGate();
   }
 }
 
 async function onSignedIn(user) {
   currentUser = user;
-  document.getElementById('authGate').style.display = 'none';
-  document.getElementById('mainApp').style.display = 'block';
-  const loader = document.getElementById('appLoader');
-  if (loader) { loader.classList.add('hidden'); setTimeout(() => loader.remove(), 400); }
+  showMainApp();
   document.getElementById('userBar').classList.add('visible');
   document.getElementById('userEmail').textContent = user.email;
   await loadProfile();
