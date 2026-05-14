@@ -436,6 +436,27 @@
 
   .mj-tip strong { color: var(--accent); font-weight: 600; }
 
+
+  /* ── LOADING SPINNER ──────────────────────────── */
+  .app-loader {
+    position: fixed; inset: 0; background: #0a0a0a;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9998; transition: opacity 0.3s ease;
+  }
+  .app-loader.hidden { opacity: 0; pointer-events: none; }
+  .spinner-wrap { text-align: center; }
+  .spinner {
+    width: 32px; height: 32px; border: 2px solid rgba(240,237,230,0.1);
+    border-top-color: #c8f05a; border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner-label {
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: rgba(240,237,230,0.25);
+  }
+
   /* ── AUTH GATE ─────────────────────────────────── */
   .auth-gate {
     position: fixed; inset: 0; background: #0a0a0a;
@@ -638,6 +659,14 @@
 
   <!-- No API keys needed - handled server-side -->
 
+<!-- LOADING SPINNER -->
+<div class="app-loader" id="appLoader">
+  <div class="spinner-wrap">
+    <div class="spinner"></div>
+    <div class="spinner-label">Loading</div>
+  </div>
+</div>
+
 <!-- AUTH GATE -->
 <div class="auth-gate" id="authGate">
   <div class="auth-box">
@@ -768,24 +797,36 @@ let currentUser = null;
 
 // Init auth state
 async function initAuth() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (session?.user) {
-    await onSignedIn(session.user);
-  }
-  // Listen for auth changes
+  // Listen for auth changes FIRST before checking session
   sb.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session?.user) {
+    console.log('Auth event:', event, session?.user?.email);
+    if (session?.user) {
       await onSignedIn(session.user);
     } else if (event === 'SIGNED_OUT') {
       onSignedOut();
+      document.getElementById('authGate').style.display = 'flex';
+      document.getElementById('mainApp').style.display = 'none';
     }
   });
+
+  // Then check for existing session
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user) {
+    await onSignedIn(session.user);
+  } else {
+    // No session — show auth gate
+    document.getElementById('authGate').style.display = 'flex';
+    document.getElementById('appLoader').classList.add('hidden');
+    setTimeout(() => document.getElementById('appLoader').remove(), 400);
+  }
 }
 
 async function onSignedIn(user) {
   currentUser = user;
   document.getElementById('authGate').style.display = 'none';
   document.getElementById('mainApp').style.display = 'block';
+  const loader = document.getElementById('appLoader');
+  if (loader) { loader.classList.add('hidden'); setTimeout(() => loader.remove(), 400); }
   document.getElementById('userBar').classList.add('visible');
   document.getElementById('userEmail').textContent = user.email;
   await loadProfile();
@@ -869,9 +910,14 @@ async function handleSignIn() {
   const msg = document.getElementById('siMsg');
   if (!email || !password) return showMsg(msg, 'error', 'Please fill in all fields');
   btn.disabled = true; btn.textContent = 'Signing in...';
-  const { error } = await sb.auth.signInWithPassword({ email, password });
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
   btn.disabled = false; btn.textContent = 'Sign In';
-  if (error) showMsg(msg, 'error', error.message);
+  if (error) {
+    console.error('Sign in error:', error);
+    showMsg(msg, 'error', error.message);
+  } else {
+    console.log('Signed in:', data.user?.email);
+  }
 }
 
 async function handleSignUp() {
@@ -1279,6 +1325,18 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
     img.src = imageUrl;
     img.style.cssText = 'width:100%;display:block;border-radius:10px';
     imageContainer.appendChild(img);
+
+    // Deduct credit if logged in
+    if (currentUser) {
+      const { data: profile } = await sb.from('profiles').select('credits').eq('id', currentUser.id).single();
+      if (profile && profile.credits > 0) {
+        await sb.from('profiles').update({ 
+          credits: profile.credits - 1,
+          total_generations: (profile.total_generations || 0) + 1
+        }).eq('id', currentUser.id);
+        await loadProfile();
+      }
+    }
 
     // Save to Supabase if logged in
     saveGeneration(imageUrl, selectedStyle, generatedPrompt, 
