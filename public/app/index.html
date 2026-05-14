@@ -788,8 +788,10 @@ let currentUser = null;
 
 // Init auth state
 function hideLoader() {
-  const loader = document.getElementById('appLoader');
-  if (loader) { loader.classList.add('hidden'); setTimeout(() => { try { loader.remove(); } catch(e){} }, 400); }
+  try {
+    const loader = document.getElementById('appLoader');
+    if (loader) { loader.classList.add('hidden'); setTimeout(() => { try { loader.remove(); } catch(e){} }, 400); }
+  } catch(e) {}
 }
 
 function showAuthGate() {
@@ -947,6 +949,12 @@ async function handleSignUp() {
 async function handleSignOut() {
   try {
     await sb.auth.signOut();
+    // Nuclear option - clear all supabase localStorage keys
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('sb-') || key.includes('supabase')) {
+        localStorage.removeItem(key);
+      }
+    });
   } catch(e) { console.log('signout error', e); }
   currentUser = null;
   // Clear user bar
@@ -983,8 +991,20 @@ function showMsg(el, type, text) {
   setTimeout(() => { el.style.display = 'none'; }, 4000);
 }
 
-// Init on load
-initAuth();
+// Init on load — wait for DOM + add hard fallback
+document.addEventListener('DOMContentLoaded', () => {
+  // Hard fallback: if nothing happens in 4s, show auth gate
+  const fallbackTimer = setTimeout(() => {
+    console.warn('Auth timeout — showing gate');
+    showAuthGate();
+  }, 4000);
+
+  initAuth().then(() => clearTimeout(fallbackTimer)).catch(e => {
+    console.error('initAuth failed:', e);
+    clearTimeout(fallbackTimer);
+    showAuthGate();
+  });
+});
 
 // ── PASSWORD GATE ──────────────────────────────────────
 // Auth handled by Supabase
