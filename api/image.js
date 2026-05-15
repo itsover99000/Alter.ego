@@ -35,6 +35,12 @@ export default async function handler(req, res) {
       'sci-fi':   0.60,
       anime:      0.55,
       painterly:  0.50,
+      // Fantasy/stylised — loose face, world is the hero
+      acotar:     0.60,
+      // Athlete — medium, face matters in sports campaign
+      athlete:    0.75,
+      // Warhol — very loose, graphic treatment dominates
+      warhol:     0.40,
     };
 
     const idWeight = idWeightByStyle[style] ?? 0.75;
