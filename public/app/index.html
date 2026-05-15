@@ -976,25 +976,32 @@ function showMsg(el, type, text) {
 
 // Init on load — wait for DOM + add hard fallback
 document.addEventListener('DOMContentLoaded', () => {
-  // Hard fallback: if nothing happens in 4s, show auth gate
+  // Nuclear fallback: if ANYTHING hangs for 5s, force show auth gate
   const fallbackTimer = setTimeout(() => {
-    console.warn('Auth timeout — showing gate');
-    showAuthGate();
-  }, 4000);
+    console.warn('Auth timeout — forcing auth gate');
+    document.getElementById('appLoader').style.display = 'none';
+    document.getElementById('authGate').style.display = 'flex';
+    document.getElementById('mainApp').style.display = 'none';
+  }, 5000);
 
   try {
     sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   } catch(e) {
     console.error('Supabase init failed:', e);
-    showAuthGate();
+    clearTimeout(fallbackTimer);
+    document.getElementById('appLoader').style.display = 'none';
+    document.getElementById('authGate').style.display = 'flex';
     return;
   }
 
-  initAuth().then(() => clearTimeout(fallbackTimer)).catch(e => {
-    console.error('initAuth failed:', e);
-    clearTimeout(fallbackTimer);
-    showAuthGate();
-  });
+  initAuth()
+    .then(() => clearTimeout(fallbackTimer))
+    .catch(e => {
+      console.error('initAuth failed:', e);
+      clearTimeout(fallbackTimer);
+      document.getElementById('appLoader').style.display = 'none';
+      document.getElementById('authGate').style.display = 'flex';
+    });
 });
 
 // ── PASSWORD GATE ──────────────────────────────────────
@@ -1052,7 +1059,7 @@ const styleDescriptions = {
   glamour: [
     'glamour portrait, warm close upper-body frame, subject with voluminous styled hair and full glam makeup — bold lip, defined brows, luminous highlight — wearing a luxurious off-shoulder draped satin top in champagne, warm golden key light from above-left, soft fill, deep warm background with subtle bokeh, gaze just past the lens with warmth and confidence, Vogue Australia cover quality, skin luminous and detailed',
     'beauty glamour portrait, tight upper-body frame, subject with perfectly styled hair and polished makeup, wearing a plunging deep-V sequin gown with jewel necklace, dramatic warm studio lighting with soft box fill, rich dark background, eyes slightly hooded looking just off-camera, old Hollywood glamour energy, sharp detail on eyes and lips',
-    'glamour editorial, close warm portrait, subject with full voluminous blow-out and bold red lip, wearing sleek black strapless neckline with statement earrings, warm amber key light sculpting the cheekbones, soft shadow side, rich chocolate seamless backdrop, gaze off-frame with quiet confidence, Harper's Bazaar Australia quality',
+    'glamour editorial, close warm portrait, subject with full voluminous blow-out and bold red lip, wearing sleek black strapless neckline with statement earrings, warm amber key light sculpting the cheekbones, soft shadow side, rich chocolate seamless backdrop, gaze off-frame with quiet confidence, Harpers Bazaar Australia quality',
     'luxury beauty campaign portrait, upper body frame, subject with glossy healthy hair and dewy glam makeup, wearing elegant draped silk top, diamond drop earrings catching light, warm diffused studio lighting, champagne and cream tones throughout, slight head tilt gaze just past lens, confident warm energy, Net-a-Porter campaign quality'
   ],
   headshot: [
