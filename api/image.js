@@ -40,7 +40,7 @@ export default async function handler(req, res) {
       // Athlete — medium, face matters in sports campaign
       athlete:    0.75,
       // Warhol — very loose, graphic treatment dominates
-      warhol:     0.40,
+      warhol:     0.60,
     };
 
     const idWeight = idWeightByStyle[style] ?? 0.75;
