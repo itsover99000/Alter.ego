@@ -10,56 +10,86 @@ export default async function handler(req, res) {
   if (!falKey) return res.status(500).json({ error: { message: 'Fal API key not configured' } });
 
   try {
-    const { prompt, imageBase64, mediaType } = req.body;
+    const { prompt, imageBase64, mediaType, style } = req.body;
     const imageDataUrl = imageBase64 ? `data:${mediaType || 'image/jpeg'};base64,${imageBase64}` : null;
 
-    // Prepend realism booster to every prompt
-    const realisticPrompt = `hyper-realistic editorial photography, photorealistic, real person, full body sharp focus head to toe, tack sharp face, crisp facial detail, natural skin texture, visible pores, subtle skin imperfections, realistic complexion, film grain on skin, ${prompt}, NOT a painting, NOT illustration, NOT cartoon, NOT CGI, NOT over-retouched, NOT plastic skin, NOT smooth AI skin, NOT blurry face, NOT soft focus face, NOT white background, NOT plain background, NOT studio white, NOT blank background`;
+    // Styles that need atmosphere over face accuracy → flux-pro
+    // Styles that need face accuracy → flux-pulid first, flux-pro fallback
+    const atmosphereStyles = ['cyberpunk', 'sci-fi', 'cinematic', 'anime', 'painterly'];
+    const faceStyles = ['headshot', 'campaign', 'cover', 'glamour', 'streetwear'];
+    const useAtmosphereModel = atmosphereStyles.includes(style);
 
-    if (imageDataUrl) {
-      console.log('Trying flux-pulid...');
-      const pulidRes = await fetch('https://fal.run/fal-ai/flux-pulid', {
+    // Build prompt booster based on style type
+    const skinDetail = 'natural skin texture, visible pores, subtle skin imperfections, film grain on skin, NOT smooth, NOT airbrushed, NOT plastic skin';
+
+    const atmospherePrompt = `${prompt}, ${skinDetail}, NOT white background, NOT plain background, NOT studio backdrop`;
+    const facePrompt = `hyper-realistic editorial photography, photorealistic, real person, tack sharp face, crisp facial detail, ${skinDetail}, ${prompt}, NOT white background, NOT plain background`;
+
+    // ATMOSPHERE STYLES → flux-pro (style fidelity wins)
+    if (useAtmosphereModel || !imageDataUrl) {
+      console.log(`Style: ${style} → flux-pro (atmosphere mode)`);
+      const fluxRes = await fetch('https://fal.run/fal-ai/flux-pro', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Key ${falKey}`
         },
         body: JSON.stringify({
-          prompt: realisticPrompt,
-          reference_image_url: imageDataUrl,
-          negative_prompt: "cartoon, illustration, painting, drawing, anime, CGI, render, fake, plastic, low quality, blurry face, soft face, out of focus face, distorted face, ugly, deformed",
-          image_size: "portrait_4_3",
+          prompt: atmospherePrompt,
+          negative_prompt: 'ugly, deformed, blurry, low quality, white background, plain background, studio white, watermark',
+          image_size: 'portrait_4_3',
           num_inference_steps: 50,
-          guidance_scale: 5.0,
-          true_cfg: 1.0,
+          guidance_scale: 5.5,
           num_images: 1,
           enable_safety_checker: true
         })
       });
 
-      const pulidData = await pulidRes.json();
-      console.log('flux-pulid status:', pulidRes.status);
-
-      if (pulidRes.ok && pulidData.images?.length > 0) {
-        console.log('flux-pulid SUCCESS');
-        return res.status(200).json({ images: pulidData.images });
-      }
-      if (pulidRes.ok && pulidData.image?.url) {
-        return res.status(200).json({ images: [pulidData.image] });
-      }
-      console.log('flux-pulid failed, falling back to flux-pro...');
+      const fluxData = await fluxRes.json();
+      console.log('flux-pro status:', fluxRes.status);
+      if (fluxData.images?.length > 0) return res.status(200).json({ images: fluxData.images });
+      if (fluxData.image?.url) return res.status(200).json({ images: [fluxData.image] });
+      return res.status(500).json({ error: { message: fluxData.detail || 'Generation failed' } });
     }
 
-    // Flux Pro fallback — sharper detail than flux/dev, better face quality at distance
-    const fluxRes = await fetch('https://fal.run/fal-ai/flux-pro', {
+    // FACE STYLES → flux-pulid first (face accuracy wins), flux-pro fallback
+    console.log(`Style: ${style} → flux-pulid (face mode)`);
+    const pulidRes = await fetch('https://fal.run/fal-ai/flux-pulid', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Key ${falKey}`
       },
       body: JSON.stringify({
-        prompt: realisticPrompt,
-        negative_prompt: "cartoon, illustration, painting, drawing, anime, CGI, render, fake, blurry face, soft focus, distorted",
+        prompt: facePrompt,
+        reference_image_url: imageDataUrl,
+        negative_prompt: 'cartoon, illustration, anime, CGI, render, fake, plastic, low quality, blurry face, distorted face, ugly, deformed, white background, plain background',
+        image_size: 'portrait_4_3',
+        num_inference_steps: 50,
+        guidance_scale: 5.0,
+        true_cfg: 1.0,
+        num_images: 1,
+        enable_safety_checker: true
+      })
+    });
+
+    const pulidData = await pulidRes.json();
+    console.log('flux-pulid status:', pulidRes.status);
+
+    if (pulidRes.ok && pulidData.images?.length > 0) return res.status(200).json({ images: pulidData.images });
+    if (pulidRes.ok && pulidData.image?.url) return res.status(200).json({ images: [pulidData.image] });
+
+    // Pulid failed — fall back to flux-pro
+    console.log('flux-pulid failed, falling back to flux-pro...');
+    const fallbackRes = await fetch('https://fal.run/fal-ai/flux-pro', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Key ${falKey}`
+      },
+      body: JSON.stringify({
+        prompt: facePrompt,
+        negative_prompt: 'ugly, deformed, blurry, low quality, white background, plain background, watermark',
         image_size: 'portrait_4_3',
         num_inference_steps: 50,
         guidance_scale: 4.5,
@@ -68,14 +98,11 @@ export default async function handler(req, res) {
       })
     });
 
-    const fluxData = await fluxRes.json();
-    if (fluxData.images?.length > 0) return res.status(200).json({ images: fluxData.images });
-    if (fluxData.image?.url) return res.status(200).json({ images: [fluxData.image] });
+    const fallbackData = await fallbackRes.json();
+    if (fallbackData.images?.length > 0) return res.status(200).json({ images: fallbackData.images });
+    if (fallbackData.image?.url) return res.status(200).json({ images: [fallbackData.image] });
 
-    return res.status(500).json({
-      images: null,
-      error: { message: fluxData.detail || 'Generation failed' }
-    });
+    return res.status(500).json({ error: { message: fallbackData.detail || 'Generation failed' } });
 
   } catch (err) {
     return res.status(500).json({ error: { message: err.message } });

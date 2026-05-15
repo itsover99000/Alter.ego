@@ -708,14 +708,15 @@
   <div class="section-label">Style Direction</div>
   <div class="styles-grid">
     <div class="style-btn active" data-style="cinematic"><span class="style-emoji">🎬</span><span class="style-name">Cinematic</span></div>
-    <div class="style-btn" data-style="editorial"><span class="style-emoji">📸</span><span class="style-name">Editorial</span></div>
+    <div class="style-btn" data-style="cover"><span class="style-emoji">📸</span><span class="style-name">Cover</span></div>
     <div class="style-btn" data-style="cyberpunk"><span class="style-emoji">⚡</span><span class="style-name">Cyberpunk</span></div>
     <div class="style-btn" data-style="anime"><span class="style-emoji">🌸</span><span class="style-name">Anime</span></div>
     <div class="style-btn" data-style="painterly"><span class="style-emoji">🎨</span><span class="style-name">Painterly</span></div>
-    <div class="style-btn" data-style="fashion"><span class="style-emoji">✦</span><span class="style-name">Fashion</span></div>
+    <div class="style-btn" data-style="campaign"><span class="style-emoji">✦</span><span class="style-name">Campaign</span></div>
     <div class="style-btn" data-style="sci-fi"><span class="style-emoji">🚀</span><span class="style-name">Sci-Fi</span></div>
     <div class="style-btn" data-style="streetwear"><span class="style-emoji">🔥</span><span class="style-name">Streetwear</span></div>
     <div class="style-btn" data-style="headshot"><span class="style-emoji">💼</span><span class="style-name">Headshot</span></div>
+    <div class="style-btn" data-style="glamour"><span class="style-emoji">✨</span><span class="style-name">Glamour</span></div>
   </div>
 
   <button class="generate-btn" id="generateBtn" disabled>Analyse &amp; Generate Prompt</button>
@@ -1006,7 +1007,7 @@ const styleDescriptions = {
     'full body cinematic frame, subject standing at entrance of brutalist concrete building at golden hour, long shadows stretching across pavement, wearing oversized denim jacket and wide leg cargo pants, canvas tote, warm orange backlight, 35mm documentary style, Sergio Leone wide framing',
     'full body cinematic shot, subject leaning against wood-panelled elevator wall, looking down at phone, completely unaware of camera, recessed downlighting casting warm pools, wearing relaxed short-sleeve overshirt and wide shorts, leather boots, intimate contained space, Kodak Portra warm tones, film grain'
   ],
-  editorial: [
+  cover: [
     'full body fashion editorial, subject standing in clean white minimalist studio doorframe, gaze angled just off-camera to the right, chin slightly down, wearing wide leg black trousers and oversized utility overshirt in olive canvas, fisherman beanie, dark sunglasses, hands in pockets, head-to-toe full body composition, hard strobe key light, W Magazine aesthetic',
     'full body editorial lookbook, three-angle composition — front, side profile, rear — subject wearing matching wide leg trouser set and cropped overshirt, seamless white studio background, even softbox lighting, clean sharp details, luxury ready-to-wear lookbook energy',
     'full body editorial, subject leaning back against raw concrete wall, side profile, looking off into the distance, weight on one shoulder, wearing oversized tailored blazer over relaxed wide linen trousers, loafers, woven leather clutch, one foot raised, moody ambient light with dramatic side fill, Dazed magazine composition',
@@ -1030,11 +1031,11 @@ const styleDescriptions = {
     'full body painterly portrait, John Singer Sargent style, subject in elegant salon interior, warm firelight, wearing wide tailored silhouette, confident relaxed pose, dramatic loose brushwork, jewel tones, head-to-toe composition',
     'full body dark romantic oil painting, subject standing in stormy clifftop landscape, wearing wide dramatic overcoat, wind-blown, Caspar David Friedrich rear-view composition, deep brooding palette, painterly sky'
   ],
-  fashion: [
-    'high fashion editorial portrait, subject wearing a sharp structured black double-breasted blazer with deep V neckline, bold silver chain necklace and oversized cat-eye sunglasses, voluminous platinum blonde blow-out hair, gaze directed just off camera, neutral grey seamless backdrop, single hard key light from above-left casting dramatic shadow, Helmut Newton black and white energy, W Magazine cover quality, razor sharp detail',
-    'full body luxury fashion campaign, subject in monochromatic all-red power suit — tailored blazer and straight-leg trousers — seated in a sculptural rattan peacock chair surrounded by oversized red paper botanicals, bold red seamless backdrop, gaze lifted off-camera, warm flat studio lighting, Vogue Italia editorial energy, commanding presence',
-    'fashion editorial portrait, subject wearing oversized dark structured blazer, pearl drop earrings, looking just off-frame with quiet intensity, architectural white minimalist interior with geometric light and shadow from tall windows, black and white, single directional light sculpting the face, Celine campaign aesthetic, intimate editorial distance',
-    'full body luxury campaign, subject wearing wide-leg tailored trousers and sharp cropped double-breasted blazer in cobalt blue, seated on industrial steel staircase, leaning forward elbows on knees not looking at camera, clean white backdrop, dramatic hard strobe lighting, Financial Times How to Spend It aesthetic, full body frame'
+  campaign: [
+    'full body luxury fashion campaign, subject in monochromatic all-crimson power suit — sharp tailored blazer and straight-leg trousers — seated in sculptural rattan peacock chair surrounded by oversized paper botanical props, bold red seamless studio backdrop, gaze lifted off-camera chin up, warm even flat lighting, Vogue Italia full body editorial, commanding confident presence',
+    'full body fashion campaign, subject wearing wide-leg cobalt blue double-breasted power suit, seated on industrial steel staircase leaning forward elbows on knees looking away from camera, clean studio backdrop with dramatic hard strobe, full head-to-toe frame, sharp tailoring, GQ campaign energy',
+    'full body luxury campaign, subject in elegant floor-length camel trench coat belted at waist, standing in vast minimalist gallery space with polished concrete floor, single overhead spotlight creating long shadow, gaze directed off into distance, Loro Piana campaign quality, full body head-to-toe frame',
+    'full body fashion editorial campaign, subject wearing sharp monochromatic forest-green power blazer and wide-leg trousers, one hand in pocket, standing against bold colour-matched seamless backdrop, gaze just off-camera, dramatic single-source key light from above, Bottega Veneta campaign aesthetic, full body confident frame'
   ],
   'sci-fi': [
     'full body sci-fi character, subject standing in vast deep space station corridor, sleek wide-silhouette flight suit with bioluminescent panel accents, cosmic nebula visible through observation porthole, head-to-toe full body frame, dramatic overhead industrial lighting, James Cameron cinematic scale',
@@ -1047,6 +1048,12 @@ const styleDescriptions = {
     'full body street style editorial, subject mid-stride in pure side profile on quiet urban footpath, gaze forward and down, not acknowledging camera, wearing wide leg dark denim, oversized overshirt, Panama hat, woven leather clutch, natural overcast street light, warm wood-panelled building facade behind, shot on film, candid',
     'full body street lookbook, subject inside luxury hotel elevator, leaning against back wall looking down at phone, three-quarter rear angle, warm wood-panelled interior, recessed downlighting, wearing relaxed short-sleeve overshirt and wide shorts, leather boots, canvas tote on floor beside feet, 35mm grain',
     'full body street wide shot, subject walking away glancing back over shoulder, baggy wide leg jeans, oversized denim jacket, worn-in fisherman beanie, street level wide angle perspective, golden hour warm raking light across weathered concrete wall, candid documentary style'
+  ],
+  glamour: [
+    'glamour portrait, warm close upper-body frame, subject with voluminous styled hair and full glam makeup — bold lip, defined brows, luminous highlight — wearing a luxurious off-shoulder draped satin top in champagne, warm golden key light from above-left, soft fill, deep warm background with subtle bokeh, gaze just past the lens with warmth and confidence, Vogue Australia cover quality, skin luminous and detailed',
+    'beauty glamour portrait, tight upper-body frame, subject with perfectly styled hair and polished makeup, wearing a plunging deep-V sequin gown with jewel necklace, dramatic warm studio lighting with soft box fill, rich dark background, eyes slightly hooded looking just off-camera, old Hollywood glamour energy, sharp detail on eyes and lips',
+    'glamour editorial, close warm portrait, subject with full voluminous blow-out and bold red lip, wearing sleek black strapless neckline with statement earrings, warm amber key light sculpting the cheekbones, soft shadow side, rich chocolate seamless backdrop, gaze off-frame with quiet confidence, Harper's Bazaar Australia quality',
+    'luxury beauty campaign portrait, upper body frame, subject with glossy healthy hair and dewy glam makeup, wearing elegant draped silk top, diamond drop earrings catching light, warm diffused studio lighting, champagne and cream tones throughout, slight head tilt gaze just past lens, confident warm energy, Net-a-Porter campaign quality'
   ],
   headshot: [
     'professional corporate headshot, subject wearing sharp dark navy business suit with white dress shirt, clean light grey seamless studio backdrop, soft diffused box lighting from 45 degrees, catchlight in eyes, confident approachable expression, shallow depth of field, Sony A7R, LinkedIn profile quality, polished executive presence',
@@ -1193,31 +1200,49 @@ LIGHTING REFERENCES: favour warm recessed spotlights, wood-panelled interiors, g
 
 SKIN: always include: natural skin texture, visible pores, subtle skin imperfections, fine facial hair, micro skin texture, realistic complexion, slight subsurface scattering, film grain on skin, NOT smooth, NOT airbrushed, NOT plastic.`;
 
+  // Retry up to 3 times on overload (529) or server error (500)
+  const fetchWithRetry = async (retries = 3, delay = 2000) => {
+    for (let i = 0; i < retries; i++) {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 1000,
+          system: systemPrompt,
+          messages: [{
+            role: 'user',
+            content: [
+              {
+                type: 'image',
+                source: { type: 'base64', media_type: uploadedMediaType, data: uploadedImageBase64 }
+              },
+              { type: 'text', text: 'Analyse this selfie and respond with only the JSON object.' }
+            ]
+          }]
+        })
+      });
+      if (response.ok) return response;
+      const errData = await response.json().catch(() => ({}));
+      const msg = errData.error?.message || `HTTP ${response.status}`;
+      if (response.status === 401) throw new Error('Invalid API key. Check your key at console.anthropic.com');
+      if ((response.status === 529 || response.status === 500) && i < retries - 1) {
+        console.log(`API overloaded, retrying in ${delay/1000}s... (attempt ${i+1}/${retries})`);
+        analyseBtn.textContent = `⏳ Retrying... (${i+1}/${retries})`;
+        await new Promise(r => setTimeout(r, delay));
+        delay *= 1.5; // back off each retry
+        continue;
+      }
+      throw new Error(msg);
+    }
+  };
+
   try {
-    const response = await fetch('/api/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: [{
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: { type: 'base64', media_type: uploadedMediaType, data: uploadedImageBase64 }
-            },
-            { type: 'text', text: 'Analyse this selfie and respond with only the JSON object.' }
-          ]
-        }]
-      })
-    });
+    const response = await fetchWithRetry();
 
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
       const msg = errData.error?.message || `HTTP ${response.status}`;
-      if (response.status === 401) throw new Error('Invalid API key. Check your key at console.anthropic.com');
       throw new Error(msg);
     }
 
@@ -1329,7 +1354,8 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
       body: JSON.stringify({
         prompt: document.getElementById('promptBox').value || generatedPrompt,
         imageBase64: uploadedImageBase64,
-        mediaType: uploadedMediaType
+        mediaType: uploadedMediaType,
+        style: selectedStyle
       })
     });
 
