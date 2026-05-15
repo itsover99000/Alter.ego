@@ -890,7 +890,8 @@ function reuseGeneration(url, style) {
   img.style.cssText = 'width:100%;display:block;border-radius:10px';
   imageContainer.appendChild(img);
   document.getElementById('imageSaveRow').style.display = 'block';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Scroll to the generated image so user sees it + save buttons
+  document.getElementById('imageArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 async function saveGeneration(imageUrl, style, prompt, mood, lighting, features) {
@@ -1030,10 +1031,10 @@ const styleDescriptions = {
     'full body dark romantic oil painting, subject standing in stormy clifftop landscape, wearing wide dramatic overcoat, wind-blown, Caspar David Friedrich rear-view composition, deep brooding palette, painterly sky'
   ],
   fashion: [
-    'full body luxury fashion campaign, subject standing in tall arched stone doorway, gaze directed off to the side into the distance, chin slightly lifted, wearing oversized wide-leg olive canvas utility jacket over relaxed white underlayer and wide houndstooth trousers, Panama hat, woven leather clutch, one foot raised on door threshold, warm architectural light, GQ editorial quality',
-    'full body high fashion editorial, subject seated on wooden chair with one foot raised on rung, leaning forward with elbows on knees, looking down at hands not at camera, warm wood-panelled interior backdrop, recessed lighting, wearing wide leg tailored trousers and sharp double-breasted blazer, loafers, Financial Times How to Spend It aesthetic',
-    'full body fashion lookbook, subject in clean white seamless studio, wearing monochromatic wide silhouette relaxed set, fisherman beanie, dark sunglasses, three-quarter body frame, even softbox lighting, luxury ready-to-wear energy, Acne Studios campaign aesthetic',
-    'full body luxury campaign, subject striding through grand hotel lobby, wearing relaxed wide linen wide-leg trousers and cropped overshirt, canvas tote, boots, natural light flooding through arched windows, warm marble floor reflections, Loro Piana campaign energy'
+    'high fashion editorial portrait, subject wearing a sharp structured black double-breasted blazer with deep V neckline, bold silver chain necklace and oversized cat-eye sunglasses, voluminous platinum blonde blow-out hair, gaze directed just off camera, neutral grey seamless backdrop, single hard key light from above-left casting dramatic shadow, Helmut Newton black and white energy, W Magazine cover quality, razor sharp detail',
+    'full body luxury fashion campaign, subject in monochromatic all-red power suit — tailored blazer and straight-leg trousers — seated in a sculptural rattan peacock chair surrounded by oversized red paper botanicals, bold red seamless backdrop, gaze lifted off-camera, warm flat studio lighting, Vogue Italia editorial energy, commanding presence',
+    'fashion editorial portrait, subject wearing oversized dark structured blazer, pearl drop earrings, looking just off-frame with quiet intensity, architectural white minimalist interior with geometric light and shadow from tall windows, black and white, single directional light sculpting the face, Celine campaign aesthetic, intimate editorial distance',
+    'full body luxury campaign, subject wearing wide-leg tailored trousers and sharp cropped double-breasted blazer in cobalt blue, seated on industrial steel staircase, leaning forward elbows on knees not looking at camera, clean white backdrop, dramatic hard strobe lighting, Financial Times How to Spend It aesthetic, full body frame'
   ],
   'sci-fi': [
     'full body sci-fi character, subject standing in vast deep space station corridor, sleek wide-silhouette flight suit with bioluminescent panel accents, cosmic nebula visible through observation porthole, head-to-toe full body frame, dramatic overhead industrial lighting, James Cameron cinematic scale',
