@@ -1205,7 +1205,9 @@ POSE RULES: Never default to subject looking directly at camera. Rotate through 
 
 LIGHTING REFERENCES: favour warm recessed spotlights, wood-panelled interiors, golden hour raking light on textured walls, softbox studio setups, or dramatic single-source architectural light.
 
-SKIN: always include: natural skin texture, visible pores, subtle skin imperfections, fine facial hair, micro skin texture, realistic complexion, slight subsurface scattering, film grain on skin, NOT smooth, NOT airbrushed, NOT plastic.`;
+SKIN: always include: natural skin texture, visible pores, subtle skin imperfections, fine facial hair, micro skin texture, realistic complexion, slight subsurface scattering, film grain on skin, NOT smooth, NOT airbrushed, NOT plastic.
+
+CLOTHING: Describe the style, cut, colour and fabric of clothing only. NEVER reproduce any text, logos, brand names, slogans or graphic prints visible on clothing. If the subject is wearing a branded or graphic item, replace it with a generic equivalent (e.g. "oversized cream cotton sweatshirt" not "Country Road Since 1974 sweatshirt"). The generated image should never contain text or branding on clothing.`;
 
   // Retry up to 3 times on overload (529) or server error (500)
   const fetchWithRetry = async (retries = 3, delay = 2000) => {
