@@ -529,6 +529,51 @@
   .user-bar.visible { display: flex; }
   .user-email { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(240,237,230,0.45); }
   .user-credits { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; color: #c8f05a; }
+  /* ── CREDITS MODAL ── */
+  .credits-modal-overlay {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85);
+    z-index:1000; align-items:center; justify-content:center; padding:20px;
+  }
+  .credits-modal-overlay.open { display:flex; }
+  .credits-modal {
+    background:#111; border:0.5px solid rgba(200,240,90,0.2);
+    border-radius:16px; padding:32px; width:100%; max-width:400px;
+  }
+  .credits-modal-title {
+    font-family:'Syne',sans-serif; font-size:18px; font-weight:800;
+    letter-spacing:0.08em; text-transform:uppercase; color:#f0ede6;
+    margin-bottom:6px;
+  }
+  .credits-modal-sub {
+    font-size:11px; color:rgba(240,237,230,0.45); letter-spacing:0.05em;
+    margin-bottom:24px; font-family:'DM Mono',monospace;
+  }
+  .pack-card {
+    border:0.5px solid rgba(240,237,230,0.12); border-radius:10px;
+    padding:16px 20px; margin-bottom:10px; cursor:pointer;
+    transition:all 0.15s; display:flex; align-items:center; justify-content:space-between;
+    background:transparent;
+  }
+  .pack-card:hover { border-color:#c8f05a; background:rgba(200,240,90,0.05); }
+  .pack-name {
+    font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:#f0ede6;
+  }
+  .pack-credits {
+    font-size:11px; color:rgba(240,237,230,0.45); margin-top:3px;
+    font-family:'DM Mono',monospace; letter-spacing:0.05em;
+  }
+  .pack-price {
+    font-family:'Syne',sans-serif; font-size:18px; font-weight:800; color:#c8f05a;
+  }
+  .credits-modal-close {
+    width:100%; margin-top:12px; padding:12px; background:transparent;
+    border:0.5px solid rgba(240,237,230,0.15); border-radius:8px;
+    font-family:'Syne',sans-serif; font-size:11px; font-weight:700;
+    letter-spacing:0.08em; text-transform:uppercase; color:rgba(240,237,230,0.35);
+    cursor:pointer; transition:all 0.15s;
+  }
+  .credits-modal-close:hover { border-color:rgba(240,237,230,0.4); color:rgba(240,237,230,0.6); }
+
   .sign-out-btn {
     background: none; border: none; font-family: 'DM Mono', monospace; font-size: 10px;
     color: rgba(240,237,230,0.3); cursor: pointer; letter-spacing: 0.06em;
