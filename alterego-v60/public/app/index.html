@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALTER.EGO — AI Selfie Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent: #c8f05a;
+    --accent-hover: #d4f570;
+    --bg: #0a0a0a;
+    --surface: rgba(240,237,230,0.04);
+    --border: rgba(240,237,230,0.1);
+    --border-hover: rgba(240,237,230,0.25);
+    --text: #f0ede6;
+    --text-muted: rgba(240,237,230,0.5);
+    --text-faint: rgba(240,237,230,0.3);
+    --error-bg: rgba(240,149,149,0.06);
+    --error-border: rgba(240,149,149,0.25);
+    --error-text: #f09595;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 16px 80px;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 480px;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+
+  .logo {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .logo span { color: var(--accent); }
+
+  .badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    border: 0.5px solid rgba(240,237,230,0.15);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  /* API Key */
+  .api-section {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 24px;
+  }
+
+  .api-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+  }
+
+  .api-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .api-input {
+    flex: 1;
+    background: rgba(240,237,230,0.04);
+    border: 0.5px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .api-input:focus { border-color: rgba(200,240,90,0.4); }
+  .api-input::placeholder { color: var(--text-faint); }
+
+  .api-save {
+    background: rgba(200,240,90,0.12);
+    border: 0.5px solid rgba(200,240,90,0.3);
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .api-save:hover { background: rgba(200,240,90,0.2); }
+
+  .api-hint {
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  .api-hint a { color: var(--accent); text-decoration: none; }
+  .api-hint a:hover { text-decoration: underline; }
+
+  .api-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    margin-top: 6px;
+  }
+
+  .api-status.ok { color: var(--accent); }
+  .api-status.empty { color: var(--text-faint); }
+
+  .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  /* Upload */
+  .upload-zone {
+    border: 1px dashed rgba(240,237,230,0.18);
+    border-radius: 12px;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    background: rgba(240,237,230,0.015);
+    margin-bottom: 20px;
+  }
+
+  .upload-zone:hover {
+    border-color: rgba(200,240,90,0.4);
+    background: rgba(200,240,90,0.025);
+  }
+
+  .upload-zone.has-image {
+    border-style: solid;
+    border-color: rgba(200,240,90,0.35);
+    min-height: 240px;
+  }
+
+  .upload-zone img.preview {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.5;
+    border-radius: 11px;
+  }
+
+  .upload-label {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .upload-icon {
+    font-size: 32px;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+  }
+
+  .upload-zone.has-image .upload-icon {
+    color: rgba(200,240,90,0.7);
+    text-shadow: 0 0 20px rgba(200,240,90,0.3);
+  }
+
+  .upload-text { font-size: 13px; color: var(--text-muted); letter-spacing: 0.04em; }
+  .upload-zone.has-image .upload-text { color: var(--text); font-weight: 600; }
+
+  input[type=file] { display: none; }
+
+  /* Divider */
+  .divider { height: 0.5px; background: rgba(240,237,230,0.07); margin: 20px 0; }
+
+  /* Styles */
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 10px;
+  }
+
+  .styles-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .style-btn {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 6px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .style-btn:hover {
+    background: rgba(240,237,230,0.07);
+    border-color: var(--border-hover);
+  }
+
+  .style-btn.active {
+    background: rgba(200,240,90,0.08);
+    border-color: rgba(200,240,90,0.45);
+  }
+
+  .style-emoji { font-size: 18px; display: block; margin-bottom: 4px; }
+
+  .style-name {
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .style-btn.active .style-name { color: var(--accent); }
+
+  /* Generate button */
+  .generate-btn {
+    width: 100%;
+    padding: 15px;
+    background: var(--accent);
+    color: #0a0a0a;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .generate-btn:hover:not(:disabled) { background: var(--accent-hover); transform: translateY(-1px); }
+  .generate-btn:active:not(:disabled) { transform: translateY(0); }
+
+  .generate-btn:disabled {
+    background: rgba(240,237,230,0.07);
+    color: rgba(240,237,230,0.2);
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Error */
+  .error-msg {
+    display: none;
+    font-size: 11px;
+    color: var(--error-text);
+    font-family: 'DM Mono', monospace;
+    margin-top: 12px;
+    padding: 12px 14px;
+    background: var(--error-bg);
+    border: 0.5px solid var(--error-border);
+    border-radius: 8px;
+    line-height: 1.6;
+  }
+
+  /* Results */
+  .result-area { display: none; margin-top: 24px; }
+
+  .analysis-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .analysis-card {
+    background: rgba(240,237,230,0.03);
+    border: 0.5px solid rgba(240,237,230,0.07);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+
+  .analysis-card.full { grid-column: span 2; }
+
+  .ac-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 4px;
+  }
+
+  .ac-value {
+    font-size: 12px;
+    color: rgba(240,237,230,0.8);
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  .prompt-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: blink 1.2s ease-in-out infinite;
+    display: none;
+    flex-shrink: 0;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.75)} }
+
+  .prompt-box {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    color: rgba(240,237,230,0.75);
+    white-space: pre-wrap;
+    word-break: break-word;
+    min-height: 80px;
+  }
+
+  .prompt-box.active { border-color: rgba(200,240,90,0.2); }
+
+  /* Action row */
+  .action-row {
+    display: none;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .action-btn {
+    flex: 1;
+    padding: 10px 8px;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+
+  .action-btn:hover {
+    background: rgba(240,237,230,0.05);
+    border-color: var(--border-hover);
+    color: var(--text);
+  }
+
+  .action-btn.accent {
+    border-color: rgba(200,240,90,0.3);
+    color: var(--accent);
+  }
+
+  .action-btn.accent:hover { background: rgba(200,240,90,0.07); }
+  .action-btn.copied { color: var(--accent); border-color: rgba(200,240,90,0.3); }
+
+  /* Midjourney tip */
+  .mj-tip {
+    display: none;
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: rgba(200,240,90,0.04);
+    border: 0.5px solid rgba(200,240,90,0.15);
+    border-radius: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .mj-tip strong { color: var(--accent); font-weight: 600; }
+
+
+  /* ── LOADING SPINNER ──────────────────────────── */
+  .app-loader {
+    position: fixed; inset: 0; background: #0a0a0a;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9998; transition: opacity 0.3s ease;
+  }
+  .app-loader.hidden { opacity: 0; pointer-events: none; }
+  .spinner-wrap { text-align: center; }
+  .spinner {
+    width: 32px; height: 32px; border: 2px solid rgba(240,237,230,0.1);
+    border-top-color: #c8f05a; border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner-label {
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: rgba(240,237,230,0.25);
+  }
+
+  /* ── AUTH GATE ─────────────────────────────────── */
+  .auth-gate {
+    position: fixed; inset: 0; background: #0a0a0a;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999;
+  }
+  .auth-box {
+    width: 100%; max-width: 380px; padding: 0 28px;
+  }
+  .auth-logo {
+    font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800;
+    letter-spacing: 0.14em; text-transform: uppercase; color: #f0ede6;
+    margin-bottom: 6px;
+  }
+  .auth-logo span { color: #c8f05a; }
+  .auth-tagline {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    color: rgba(240,237,230,0.35); letter-spacing: 0.06em; margin-bottom: 36px;
+  }
+  .auth-tabs {
+    display: flex; margin-bottom: 24px;
+    border-bottom: 0.5px solid rgba(240,237,230,0.1);
+  }
+  .auth-tab {
+    flex: 1; padding: 12px 10px; text-align: center; font-family: 'Syne', sans-serif;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(240,237,230,0.55); cursor: pointer; transition: all 0.15s;
+    border-bottom: 2px solid transparent; margin-bottom: -0.5px;
+    background: rgba(240,237,230,0.04); border-radius: 6px 6px 0 0;
+  }
+  .auth-tab.active { 
+    color: #0a0a0a; background: #c8f05a; border-bottom-color: #c8f05a;
+  }
+  .auth-field { margin-bottom: 12px; }
+  .auth-label {
+    font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: rgba(240,237,230,0.35); margin-bottom: 6px; display: block;
+  }
+  .auth-input {
+    width: 100%; background: rgba(240,237,230,0.05);
+    border: 0.5px solid rgba(240,237,230,0.15); border-radius: 6px;
+    padding: 12px 14px; font-family: 'DM Mono', monospace; font-size: 13px;
+    color: #f0ede6; outline: none; transition: border-color 0.15s;
+  }
+  .auth-input:focus { border-color: rgba(200,240,90,0.4); }
+  .auth-input::placeholder { color: rgba(240,237,230,0.2); }
+  .auth-btn {
+    width: 100%; padding: 14px; background: #c8f05a; color: #0a0a0a; border: none;
+    border-radius: 6px; font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 800;
+    letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
+    transition: all 0.15s; margin-top: 6px;
+  }
+  .auth-btn:hover:not(:disabled) { background: #d4f570; }
+  .auth-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .auth-divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 14px 0 8px; color: rgba(240,237,230,0.25);
+    font-family: 'DM Mono', monospace; font-size: 11px;
+  }
+  .auth-divider::before, .auth-divider::after {
+    content: ''; flex: 1; height: 0.5px; background: rgba(240,237,230,0.1);
+  }
+  .auth-btn-google {
+    width: 100%; padding: 13px; background: rgba(240,237,230,0.05);
+    border: 0.5px solid rgba(240,237,230,0.15); border-radius: 6px;
+    font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase; color: #f0ede6;
+    cursor: pointer; transition: all 0.15s; display: flex;
+    align-items: center; justify-content: center; gap: 10px;
+  }
+  .auth-btn-google:hover { border-color: rgba(240,237,230,0.35); background: rgba(240,237,230,0.08); }
+  .auth-msg {
+    font-family: 'DM Mono', monospace; font-size: 11px; margin-top: 10px;
+    padding: 10px 12px; border-radius: 6px; line-height: 1.6; display: none;
+  }
+  .auth-msg.error { color: #f09595; background: rgba(240,149,149,0.06); border: 0.5px solid rgba(240,149,149,0.2); }
+  .auth-msg.success { color: #c8f05a; background: rgba(200,240,90,0.06); border: 0.5px solid rgba(200,240,90,0.2); }
+
+  /* ── USER BAR ───────────────────────────────────── */
+  .user-bar {
+    display: none; align-items: center; justify-content: space-between;
+    padding: 10px 14px; background: rgba(240,237,230,0.04);
+    border: 0.5px solid rgba(240,237,230,0.08); border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  .user-bar.visible { display: flex; }
+  .user-email { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(240,237,230,0.45); }
+  .user-credits { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; color: #c8f05a; }
+  /* ── CREDITS MODAL ── */
+  .credits-modal-overlay {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85);
+    z-index:1000; align-items:center; justify-content:center; padding:20px;
+  }
+  .credits-modal-overlay.open { display:flex; }
+  .credits-modal {
+    background:#111; border:0.5px solid rgba(200,240,90,0.2);
+    border-radius:16px; padding:32px; width:100%; max-width:400px;
+  }
+  .credits-modal-title {
+    font-family:'Syne',sans-serif; font-size:18px; font-weight:800;
+    letter-spacing:0.08em; text-transform:uppercase; color:#f0ede6;
+    margin-bottom:6px;
+  }
+  .credits-modal-sub {
+    font-size:11px; color:rgba(240,237,230,0.45); letter-spacing:0.05em;
+    margin-bottom:24px; font-family:'DM Mono',monospace;
+  }
+  .pack-card {
+    border:0.5px solid rgba(240,237,230,0.12); border-radius:10px;
+    padding:16px 20px; margin-bottom:10px; cursor:pointer;
+    transition:all 0.15s; display:flex; align-items:center; justify-content:space-between;
+    background:transparent;
+  }
+  .pack-card:hover { border-color:#c8f05a; background:rgba(200,240,90,0.05); }
+  .pack-name {
+    font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:#f0ede6;
+  }
+  .pack-credits {
+    font-size:11px; color:rgba(240,237,230,0.45); margin-top:3px;
+    font-family:'DM Mono',monospace; letter-spacing:0.05em;
+  }
+  .pack-price {
+    font-family:'Syne',sans-serif; font-size:18px; font-weight:800; color:#c8f05a;
+  }
+  .credits-modal-close {
+    width:100%; margin-top:12px; padding:12px; background:transparent;
+    border:0.5px solid rgba(240,237,230,0.15); border-radius:8px;
+    font-family:'Syne',sans-serif; font-size:11px; font-weight:700;
+    letter-spacing:0.08em; text-transform:uppercase; color:rgba(240,237,230,0.35);
+    cursor:pointer; transition:all 0.15s;
+  }
+  .credits-modal-close:hover { border-color:rgba(240,237,230,0.4); color:rgba(240,237,230,0.6); }
+
+  .sign-out-btn {
+    background: none; border: none; font-family: 'DM Mono', monospace; font-size: 10px;
+    color: rgba(240,237,230,0.3); cursor: pointer; letter-spacing: 0.06em;
+    text-transform: uppercase; transition: color 0.15s;
+  }
+  .sign-out-btn:hover { color: rgba(240,237,230,0.7); }
+
+  /* ── GEN GALLERY ────────────────────────────────── */
+  .gen-gallery { margin-top: 20px; display: none; }
+  .gen-gallery.visible { display: block; }
+  .gen-gallery-label {
+    font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: rgba(240,237,230,0.35); margin-bottom: 10px;
+  }
+  .gen-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .gen-thumb {
+    aspect-ratio: 3/4; overflow: hidden; border-radius: 6px;
+    background: rgba(240,237,230,0.04); cursor: pointer; position: relative;
+    transition: opacity 0.2s;
+  }
+  .gen-thumb:hover { opacity: 0.8; }
+  .gen-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .gen-thumb-label {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 5px 8px; background: linear-gradient(transparent, rgba(10,10,10,0.8));
+    font-family: 'DM Mono', monospace; font-size: 9px;
+    letter-spacing: 0.06em; text-transform: uppercase; color: rgba(240,237,230,0.6);
+  }
+
+</style>
+</head>
+<body>
+<style>
+  .gate {
+    position: fixed;
+    inset: 0;
+    background: #0a0a0a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    font-family: 'Syne', sans-serif;
+  }
+  .gate-box {
+    text-align: center;
+    width: 320px;
+  }
+  .gate-logo {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #f0ede6;
+    margin-bottom: 8px;
+  }
+  .gate-logo span { color: #c8f05a; }
+  .gate-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: rgba(240,237,230,0.35);
+    letter-spacing: 0.08em;
+    margin-bottom: 32px;
+  }
+  .gate-input {
+    width: 100%;
+    background: rgba(240,237,230,0.05);
+    border: 0.5px solid rgba(240,237,230,0.15);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: #f0ede6;
+    outline: none;
+    text-align: center;
+    letter-spacing: 0.1em;
+    transition: border-color 0.15s;
+    margin-bottom: 10px;
+  }
+  .gate-input:focus { border-color: rgba(200,240,90,0.4); }
+  .gate-input::placeholder { color: rgba(240,237,230,0.25); letter-spacing: 0.08em; }
+  .gate-btn {
+    width: 100%;
+    padding: 12px;
+    background: #c8f05a;
+    color: #0a0a0a;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .gate-btn:hover { background: #d4f570; }
+  .gate-error {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: #f09595;
+    margin-top: 8px;
+    display: none;
+  }
+</style>
+
+
+<!-- LOADING SPINNER -->
+<div class="app-loader" id="appLoader">
+  <div class="spinner-wrap">
+    <div class="spinner"></div>
+    <div class="spinner-label">Loading</div>
+  </div>
+</div>
+
+<!-- AUTH GATE -->
+<div class="auth-gate" id="authGate" style="display:none">
+  <div class="auth-box">
+    <div class="auth-logo">Alter<span>.</span>Ego</div>
+    <div class="auth-tagline">Sign in to save your generations</div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tabSignIn" onclick="switchTab('signin')">Sign In</div>
+      <div class="auth-tab" id="tabSignUp" onclick="switchTab('signup')">Create Account</div>
+    </div>
+    <div id="formSignIn">
+      <div class="auth-field">
+        <label class="auth-label">Email</label>
+        <input type="email" class="auth-input" id="siEmail" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Password</label>
+        <input type="password" class="auth-input" id="siPassword" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="auth-btn" id="siBtn" onclick="handleSignIn()">Sign In</button>
+      <div class="auth-msg" id="siMsg"></div>
+      <div class="auth-divider"><span>or</span></div>
+      <button class="auth-btn-google" onclick="handleGoogleSignIn()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Continue with Google
+      </button>
+    </div>
+    <div id="formSignUp" style="display:none">
+      <div class="auth-field">
+        <label class="auth-label">Email</label>
+        <input type="email" class="auth-input" id="suEmail" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Password</label>
+        <input type="password" class="auth-input" id="suPassword" placeholder="Min. 6 characters" autocomplete="new-password">
+      </div>
+      <button class="auth-btn" id="suBtn" onclick="handleSignUp()">Create Account</button>
+      <div class="auth-msg" id="suMsg"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CREDITS MODAL -->
+<div class="credits-modal-overlay" id="creditsModal">
+  <div class="credits-modal">
+    <div class="credits-modal-title">Buy Credits</div>
+    <div class="credits-modal-sub">One credit = one generation. No subscription.</div>
+    <div class="pack-card" onclick="handleBuyCredits('price_1TXWyIHdibGBYkOdq8xDgdql')">
+      <div>
+        <div class="pack-name">Starter</div>
+        <div class="pack-credits">10 credits</div>
+      </div>
+      <div class="pack-price">A$9</div>
+    </div>
+    <div class="pack-card" onclick="handleBuyCredits('price_1TXX05HdibGBYkOdW5a0H0mN')">
+      <div>
+        <div class="pack-name">Creator</div>
+        <div class="pack-credits">30 credits</div>
+      </div>
+      <div class="pack-price">A$25</div>
+    </div>
+    <div class="pack-card" onclick="handleBuyCredits('price_1TXX0wHdibGBYkOddBgIC5oT')">
+      <div>
+        <div class="pack-name">Pro</div>
+        <div class="pack-credits">100 credits</div>
+      </div>
+      <div class="pack-price">A$69</div>
+    </div>
+    <button class="credits-modal-close" onclick="closeCreditsModal()">Cancel</button>
+  </div>
+</div>
+
+<div class="app" id="mainApp" style="display:none">
+  <div class="header">
+    <div class="logo">ALTER<span>.</span>EGO</div>
+    <div class="badge">Beta</div>
+  </div>
+
+  <!-- Upload -->
+  <!-- USER BAR -->
+<div class="user-bar" id="userBar">
+  <div class="user-email" id="userEmail">—</div>
+  <div class="user-credits" id="userCredits" onclick="openCreditsModal()" style="cursor:pointer;text-decoration:underline" title="Buy more credits">⚡ <span id="creditCount">0</span> credits</div>
+  <button class="sign-out-btn" onclick="handleSignOut()">Sign out</button>
+</div>
+
+<input type="file" id="fileInput" accept="image/*">
+  <div class="upload-zone" id="uploadZone">
+    <div class="upload-label">
+      <div class="upload-icon">📷</div>
+      <div class="upload-text" id="uploadText">Drop a selfie or click to upload</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Style selector -->
+  <div class="section-label">Style Direction</div>
+  <div class="styles-grid">
+    <div class="style-btn active" data-style="cinematic"><span class="style-emoji">🎬</span><span class="style-name">Cinematic</span></div>
+    <div class="style-btn" data-style="cover"><span class="style-emoji">📸</span><span class="style-name">Cover</span></div>
+    <div class="style-btn" data-style="cyberpunk"><span class="style-emoji">⚡</span><span class="style-name">Cyberpunk</span></div>
+    <div class="style-btn" data-style="anime"><span class="style-emoji">🌸</span><span class="style-name">Anime</span></div>
+    <div class="style-btn" data-style="painterly"><span class="style-emoji">🎨</span><span class="style-name">Painterly</span></div>
+    <div class="style-btn" data-style="campaign"><span class="style-emoji">✦</span><span class="style-name">Campaign</span></div>
+    <div class="style-btn" data-style="sci-fi"><span class="style-emoji">🚀</span><span class="style-name">Sci-Fi</span></div>
+    <div class="style-btn" data-style="streetwear"><span class="style-emoji">🔥</span><span class="style-name">Streetwear</span></div>
+    <div class="style-btn" data-style="headshot"><span class="style-emoji">💼</span><span class="style-name">Headshot</span></div>
+    <div class="style-btn" data-style="glamour"><span class="style-emoji">✨</span><span class="style-name">Glamour</span></div>
+    <div class="style-btn" data-style="acotar"><span class="style-emoji">🌿</span><span class="style-name">Acotar</span></div>
+    <div class="style-btn" data-style="athlete"><span class="style-emoji">⚡</span><span class="style-name">Athlete</span></div>
+    <div class="style-btn" data-style="warhol"><span class="style-emoji">🎨</span><span class="style-name">Warhol</span></div>
+  </div>
+
+  <button class="generate-btn" id="generateBtn" disabled>Analyse &amp; Generate Prompt</button>
+  <div class="error-msg" id="errorMsg"></div>
+
+  <!-- Results -->
+  <div class="result-area" id="resultArea">
+    <div class="divider"></div>
+    <div class="analysis-grid" id="analysisGrid"></div>
+    <div class="prompt-label">
+      <span class="status-dot" id="statusDot"></span>
+      AI Image Prompt <span id="promptEditHint" style="display:none;font-size:9px;color:rgba(200,240,90,0.6);margin-left:6px;letter-spacing:0.04em">— tap to edit</span>
+    </div>
+    <textarea id="promptBox" class="prompt-box" style="resize:vertical;min-height:120px;width:100%;font-family:DM Mono,monospace;font-size:12px;line-height:1.8;color:rgba(240,237,230,0.75);background:rgba(240,237,230,0.04);border:0.5px solid rgba(240,237,230,0.1);border-radius:8px;padding:16px;outline:none;transition:border-color 0.15s" placeholder="Your prompt will appear here — edit before generating..." readonly></textarea>
+
+
+    <div class="action-row" id="actionRow">
+      <button class="action-btn" id="copyBtn">📋 Copy</button>
+      <button class="action-btn accent" id="mjBtn">✦ MJ Format</button>
+      <button class="action-btn" id="resetBtn">↺ Reset</button>
+    </div>
+    <button id="generateImageBtn" style="display:none;width:100%;margin-top:10px;padding:14px;background:#c8f05a;color:#0a0a0a;border:none;border-radius:8px;font-family:Syne,sans-serif;font-size:13px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:all 0.15s">⚡ Generate Image with Flux</button>
+    <div class="mj-tip" id="mjTip"></div>
+
+  <!-- Image generation result -->
+  <div id="imageArea" style="display:none;margin-top:16px">
+    <div style="height:0.5px;background:rgba(240,237,230,0.07);margin:16px 0"></div>
+    <div style="font-family:DM Mono,monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(240,237,230,0.35);margin-bottom:12px;display:flex;align-items:center;gap:8px">
+      <span id="imageStatusDot" style="display:none;width:6px;height:6px;border-radius:50%;background:#c8f05a;animation:blink 1.2s ease-in-out infinite;flex-shrink:0"></span>
+      Generated Image
+    </div>
+    <div id="imageContainer" style="border-radius:10px;overflow:hidden;background:rgba(240,237,230,0.03);border:0.5px solid rgba(240,237,230,0.08);min-height:180px;display:flex;align-items:center;justify-content:center">
+      <div id="imageLoading" style="font-family:DM Mono,monospace;font-size:11px;color:rgba(240,237,230,0.3);text-align:center;padding:40px 20px">
+        <div style="font-size:24px;margin-bottom:10px">⚡</div>
+        Generating your alter ego...
+      </div>
+    </div>
+    <div id="imageError" style="display:none;font-size:11px;color:#f09595;font-family:DM Mono,monospace;margin-top:8px;padding:10px 12px;background:rgba(240,149,149,0.06);border:0.5px solid rgba(240,149,149,0.2);border-radius:8px;line-height:1.6"></div>
+    <div id="imageSaveRow" style="display:none;margin-top:10px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <a id="imageDownload" download="alter-ego.png" style="display:block;padding:12px;background:transparent;border:0.5px solid rgba(200,240,90,0.3);border-radius:8px;font-family:Syne,sans-serif;font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:#c8f05a;cursor:pointer;text-align:center;text-decoration:none">↓ Save</a>
+        <button id="shareBtn" style="padding:12px;background:#c8f05a;border:none;border-radius:8px;font-family:Syne,sans-serif;font-size:11px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#0a0a0a;cursor:pointer">↗ Share</button>
+      </div>
+      <canvas id="watermarkCanvas" style="display:none"></canvas>
+    </div>
+  </div>
+
+  </div>
+
+  <!-- Generation history gallery -->
+  <div class="gen-gallery" id="genGallery">
+    <div class="gen-gallery-label">Recent Generations</div>
+    <div class="gen-grid" id="genGrid"></div>
+  </div>
+
+</div>
+</div>
+
+<script>
+// ── SUPABASE ──────────────────────────────────────────
+const SUPABASE_URL = 'https://vzlrivfnzxmrymxpondl.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6bHJpdmZuenhtcnlteHBvbmRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MTM1MzUsImV4cCI6MjA5NDI4OTUzNX0.oV_mACedg9AfC-n0QEiLx4ouQV4asAHtLYBTBUzMvQg';
+let sb = null;
+
+let currentUser = null;
+
+// Init auth state
+function hideLoader() {
+  try {
+    const loader = document.getElementById('appLoader');
+    if (loader) { loader.classList.add('hidden'); setTimeout(() => { try { loader.remove(); } catch(e){} }, 400); }
+  } catch(e) {}
+}
+
+function showAuthGate() {
+  hideLoader();
+  const gate = document.getElementById('authGate');
+  const app = document.getElementById('mainApp');
+  if (gate) gate.setAttribute('style', 'display:flex');
+  if (app) app.setAttribute('style', 'display:none');
+}
+
+function showMainApp() {
+  hideLoader();
+  const gate = document.getElementById('authGate');
+  const app = document.getElementById('mainApp');
+  if (gate) gate.setAttribute('style', 'display:none');
+  if (app) app.setAttribute('style', 'display:block');
+}
+
+async function initAuth() {
+  // Check for existing session FIRST before setting up listener
+  // This prevents the listener firing before we know initial state
+  try {
+    const { data: { session }, error } = await sb.auth.getSession();
+    // If session exists but is expired or invalid, sign out cleanly
+    if (error || (session && !session.user)) {
+      await sb.auth.signOut({ scope: 'local' });
+      showAuthGate();
+      return;
+    }
+    if (session?.user) {
+      await onSignedIn(session.user);
+    } else {
+      showAuthGate();
+    }
+  } catch(e) {
+    console.error('initAuth error:', e);
+    // Clear potentially corrupt session and show auth gate
+    try { await sb.auth.signOut({ scope: 'local' }); } catch {}
+    showAuthGate();
+  }
+
+  // Listen for auth changes AFTER initial check
+  // Only act on definitive events — ignore TOKEN_REFRESHED to prevent flicker
+  sb.auth.onAuthStateChange(async (event, session) => {
+    console.log('Auth event:', event, session?.user?.email);
+    if (event === 'SIGNED_IN' && session?.user) {
+      await onSignedIn(session.user);
+    } else if (event === 'SIGNED_OUT') {
+      onSignedOut();
+      showAuthGate();
+    } else if (event === 'INITIAL_SESSION' && !session?.user) {
+      showAuthGate();
+    }
+    // Deliberately ignore: TOKEN_REFRESHED, USER_UPDATED
+  });
+}
+
+async function onSignedIn(user) {
+  currentUser = user;
+  showMainApp();
+  if (window.__pendingPayment) {
+    const sid = window.__pendingPayment;
+    window.__pendingPayment = null;
+    await handlePaymentSuccess(sid);
+  }
+  document.getElementById('userBar').classList.add('visible');
+  document.getElementById('userEmail').textContent = user.email;
+  await loadProfile();
+  await loadGenerations();
+}
+
+function onSignedOut() {
+  currentUser = null;
+  const ub = document.getElementById('userBar'); if(ub) ub.classList.remove('visible');
+  const cc = document.getElementById('creditCount'); if(cc) cc.textContent = '0';
+  const gallery = document.getElementById('genGallery'); if(gallery) gallery.classList.remove('visible');
+  const grid = document.getElementById('genGrid'); if(grid) grid.innerHTML = '';
+}
+
+async function loadProfile() {
+  const { data } = await sb.from('profiles').select('credits, total_generations').eq('id', currentUser.id).single();
+  if (data) {
+    document.getElementById('creditCount').textContent = data.credits ?? 0;
+  }
+}
+
+async function loadGenerations() {
+  const { data } = await sb.from('generations').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(12);
+  if (data && data.length > 0) {
+    const grid = document.getElementById('genGrid');
+    if (!grid) return;
+    grid.innerHTML = data.map(g => `
+      <div class="gen-thumb" onclick="reuseGeneration('${g.image_url}','${(g.style||'').replace(/'/g,"\'")}')">
+        <img src="${g.image_url}" alt="${g.style || 'generation'}" loading="lazy">
+        <div class="gen-thumb-label">${g.style || '—'}</div>
+      </div>
+    `).join('');
+    const gal = document.getElementById('genGallery'); if(gal) gal.classList.add('visible');
+  }
+}
+
+function reuseGeneration(url, style) {
+  // Show image in result area
+  const imageArea = document.getElementById('imageArea');
+  const imageContainer = document.getElementById('imageContainer');
+  imageArea.style.display = 'block';
+  const existing = imageContainer.querySelector('img');
+  if (existing) existing.remove();
+  document.getElementById('imageLoading').style.display = 'none';
+  const img = document.createElement('img');
+  img.src = url;
+  img.style.cssText = 'width:100%;display:block;border-radius:10px';
+  imageContainer.appendChild(img);
+  document.getElementById('imageSaveRow').style.display = 'block';
+  // Scroll to the generated image so user sees it + save buttons
+  document.getElementById('imageArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function saveGeneration(imageUrl, style, prompt, mood, lighting, features) {
+  if (!currentUser) return;
+  await sb.from('generations').insert({
+    user_id: currentUser.id,
+    image_url: imageUrl,
+    style: style,
+    prompt: prompt,
+    mood: mood,
+    lighting: lighting,
+    features: features
+  });
+  // Update total generations count
+  await sb.rpc('increment_generations', { user_id: currentUser.id }).catch(() => {});
+  await loadGenerations();
+  await loadProfile();
+}
+
+// Auth functions
+function switchTab(tab) {
+  document.getElementById('tabSignIn').classList.toggle('active', tab === 'signin');
+  document.getElementById('tabSignUp').classList.toggle('active', tab === 'signup');
+  document.getElementById('formSignIn').style.display = tab === 'signin' ? 'block' : 'none';
+  document.getElementById('formSignUp').style.display = tab === 'signup' ? 'block' : 'none';
+}
+
+async function handleGoogleSignIn() {
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.href,
+    }
+  });
+  if (error) {
+    const msg = document.getElementById('siMsg');
+    if (msg) { msg.textContent = error.message; msg.className = 'auth-msg error'; msg.style.display = 'block'; }
+  }
+}
+
+async function handleSignIn() {
+  const email = document.getElementById('siEmail').value.trim();
+  const password = document.getElementById('siPassword').value;
+  const btn = document.getElementById('siBtn');
+  const msg = document.getElementById('siMsg');
+  if (!email || !password) return showMsg(msg, 'error', 'Please fill in all fields');
+  btn.disabled = true; btn.textContent = 'Signing in...';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  btn.disabled = false; btn.textContent = 'Sign In';
+  if (error) {
+    console.error('Sign in error:', error);
+    showMsg(msg, 'error', error.message);
+  } else {
+    console.log('Signed in:', data.user?.email);
+  }
+}
+
+async function handleSignUp() {
+  const email = document.getElementById('suEmail').value.trim();
+  const password = document.getElementById('suPassword').value;
+  const btn = document.getElementById('suBtn');
+  const msg = document.getElementById('suMsg');
+  if (!email || !password) return showMsg(msg, 'error', 'Please fill in all fields');
+  if (password.length < 6) return showMsg(msg, 'error', 'Password must be at least 6 characters');
+  btn.disabled = true; btn.textContent = 'Creating account...';
+  const { error } = await sb.auth.signUp({ email, password });
+  btn.disabled = false; btn.textContent = 'Create Account';
+  if (error) showMsg(msg, 'error', error.message);
+  else showMsg(msg, 'success', 'Account created! Check your email to confirm.');
+}
+
+// ── STRIPE ────────────────────────────────────────────────
+function openCreditsModal() {
+  document.getElementById('creditsModal').classList.add('open');
+}
+function closeCreditsModal() {
+  document.getElementById('creditsModal').classList.remove('open');
+}
+async function handleBuyCredits(priceId) {
+  if (!currentUser) return;
+  closeCreditsModal();
+  try {
+    const res = await fetch('/api/stripe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'create_checkout', priceId, userId: currentUser.id, userEmail: currentUser.email })
+    });
+    const data = await res.json();
+    if (data.url) { window.location.href = data.url; }
+    else { alert('Payment error: ' + (data.error || 'Unknown')); }
+  } catch(e) { alert('Payment error: ' + e.message); }
+}
+async function handlePaymentSuccess(sessionId) {
+  try {
+    const res = await fetch('/api/stripe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'verify_payment', sessionId, userId: currentUser.id })
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('creditCount').textContent = data.credits;
+      const msg = document.createElement('div');
+      msg.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#c8f05a;color:#0a0a0a;padding:12px 24px;border-radius:8px;font-family:Syne,sans-serif;font-weight:700;font-size:12px;letter-spacing:0.08em;z-index:9999';
+      msg.textContent = `✓ ${data.added} credits added!`;
+      document.body.appendChild(msg);
+      setTimeout(() => msg.remove(), 4000);
+    }
+  } catch(e) { console.error('Verify error:', e); }
+}
+
+async function handleSignOut() {
+  // Clear everything locally first — never rely on signOut() succeeding
+  currentUser = null;
+  Object.keys(localStorage).forEach(key => {
+    if (key.startsWith('sb-') || key.includes('supabase')) {
+      localStorage.removeItem(key);
+    }
+  });
+  // Tell Supabase to sign out (best effort)
+  try { await sb.auth.signOut({ scope: 'local' }); } catch(e) { console.log('signout error', e); }
+  // Always redirect
+  window.location.replace('/');
+}
+
+
+
+function showMsg(el, type, text) {
+  el.className = 'auth-msg ' + type;
+  el.textContent = text;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+// Init on load — wait for DOM + add hard fallback
+document.addEventListener('DOMContentLoaded', () => {
+  // Nuclear fallback: if ANYTHING hangs for 5s, force show auth gate
+  const fallbackTimer = setTimeout(() => {
+    console.warn('Auth timeout — forcing auth gate');
+    document.getElementById('appLoader').style.display = 'none';
+    document.getElementById('authGate').style.display = 'flex';
+    document.getElementById('mainApp').style.display = 'none';
+  }, 5000);
+
+  try {
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  } catch(e) {
+    console.error('Supabase init failed:', e);
+    clearTimeout(fallbackTimer);
+    document.getElementById('appLoader').style.display = 'none';
+    document.getElementById('authGate').style.display = 'flex';
+    return;
+  }
+
+  // Check if returning from Stripe
+  const __params = new URLSearchParams(window.location.search);
+  if (__params.get('payment') === 'success' && __params.get('session_id')) {
+    window.__pendingPayment = __params.get('session_id');
+    window.history.replaceState({}, '', '/app/');
+  }
+
+  initAuth()
+    .then(() => clearTimeout(fallbackTimer))
+    .catch(e => {
+      console.error('initAuth failed:', e);
+      clearTimeout(fallbackTimer);
+      document.getElementById('appLoader').style.display = 'none';
+      document.getElementById('authGate').style.display = 'flex';
+    });
+});
+
+// ── PASSWORD GATE ──────────────────────────────────────
+// Auth handled by Supabase
+
+const styleDescriptions = {
+  cinematic: [
+    'full body cinematic film still, subject standing in warmly lit wood-panelled hotel corridor, gaze directed just off-frame to the left, recessed ceiling spotlights casting pools of amber light, wide leg tailored trousers and relaxed overshirt, leather tote bag in hand, anamorphic lens, muted warm tones, 35mm Kodak Portra grain, head-to-toe framing with breathing room',
+    'full body cinematic wide shot, subject mid-stride through luxury hotel lobby at night, pure side profile, not looking at camera, marble floors reflecting warm chandelier light, wearing wide leg trousers and relaxed blazer, Panama hat, deep blacks and champagne highlights, 35mm film grain, Terrence Malick visual energy',
+    'full body cinematic frame, subject standing at entrance of brutalist concrete building at golden hour, long shadows stretching across pavement, wearing oversized denim jacket and wide leg cargo pants, canvas tote, warm orange backlight, 35mm documentary style, Sergio Leone wide framing',
+    'full body cinematic shot, subject leaning against wood-panelled elevator wall, looking down at phone, completely unaware of camera, recessed downlighting casting warm pools, wearing relaxed short-sleeve overshirt and wide shorts, leather boots, intimate contained space, Kodak Portra warm tones, film grain'
+  ],
+  cover: [
+    'full body magazine cover shot, subject wearing an ethereal floor-length sage-green chiffon gown with delicate spaghetti straps and flowing skirt with gentle movement, standing in a vast clean studio with sage-toned seamless backdrop, one hand gently lifting skirt hem, gaze directed softly downward with serene expression, hair in elegant updo with face-framing tendrils, soft diffused light from large overhead softbox, Vogue fashion editorial quality, graceful full body frame',
+    'magazine cover portrait, upper-body close frame, subject with voluminous wind-swept layered hair, wearing a bold fuchsia structured off-shoulder draped top with dramatic fabric ruching, gaze directed just off lens with parted lips and quiet intensity, clean neutral grey seamless backdrop, single soft beauty dish key light from above with gentle fill, luminous skin, Elle magazine cover quality, tack sharp eyes and detail',
+    'full body Vogue magazine cover, subject wearing a sharp monochromatic burnt-orange single-breasted structured suit with wide lapels and tapered trousers, standing on a sunlit hilltop with blurred cityscape and golden sky behind, one hand in trouser pocket, gaze directed just off camera with cool confident expression, natural golden hour light, Vogue Africa editorial quality, full head-to-toe commanding frame',
+    'upper body GQ magazine cover, subject in a sharp charcoal grey tailored suit jacket with open-collar white dress shirt, seated leaning slightly forward elbows on knees, gaze toward lens with quiet authority, neutral seamless grey studio backdrop, large softbox key light from above-left, warm fill from right, strong defined features, GQ Australia cover quality, confident powerful presence'
+  ],
+  cyberpunk: [
+    'full body cyberpunk street shot, subject standing on rain-soaked neon-lit urban street at night, wearing tech-fabric wide leg trousers and hooded utility jacket, reflective materials, neon blue and magenta light painting the scene, Blade Runner 2049 wide angle, puddles reflecting holographic signage',
+    'full body cyberpunk editorial, subject in underground transit station, flickering fluorescent lights, wearing dark tactical wide silhouette outfit with chrome hardware, fisherman beanie, carrying weathered canvas bag, electric teal and amber colour palette, gritty concrete environment',
+    'full body dystopian cyberpunk shot, rooftop megacity backdrop, acid rain, subject in layered wide oversized garments with bioluminescent accents, full head-to-toe frame, stormy orange polluted sky, cinematic wide angle, Akira aesthetic',
+    'full body cyberpunk atmosphere, subject reflected in floor-to-ceiling mirrored wall of nightclub interior, strobing neon violet and hot pink, wearing wide silhouette dark fashion with reflective panels, full body reflection doubled in mirror, cinematic scale'
+  ],
+  anime: [
+    'full body anime illustration, Studio Ghibli inspired, subject standing on cobblestone street in soft golden afternoon light, wearing relaxed wide linen trousers and oversized jacket, detailed cel-shading, cherry blossoms drifting, warm painterly background, head-to-toe character frame',
+    'full body anime character, dark fantasy setting, subject in wide silhouette dramatic cloak and layered armour, moonlit forest clearing, bioluminescent ground fog, glowing magical energy at hands, epic full body composition, detailed linework',
+    'full body anime slice-of-life, subject walking down quiet Japanese suburban street at dusk, wearing casual wide relaxed fit, cap, canvas bag, warm neighbourhood light, Makoto Shinkai colour palette, cinematic full frame',
+    'full body cyberpunk anime, subject standing before towering neon megacity, wearing futuristic wide silhouette fashion, glowing implants, electric eyes, detailed digital illustration, ghost in the shell full body framing'
+  ],
+  painterly: [
+    'full body classical oil painting, subject standing in grand dimly lit study, warm candlelight, wearing dark wide-silhouette coat and wide trousers, one hand resting on carved wooden chair, Rembrandt chiaroscuro, rich visible brushwork, Old Masters museum quality, head-to-toe composition',
+    'full body impressionist painting, subject in sunlit garden path, dappled golden light through trees, wearing loose relaxed linen wide set, canvas tote, Monet inspired loose expressive brushwork, vibrant warm palette, full figure framing',
+    'full body painterly portrait, John Singer Sargent style, subject in elegant salon interior, warm firelight, wearing wide tailored silhouette, confident relaxed pose, dramatic loose brushwork, jewel tones, head-to-toe composition',
+    'full body dark romantic oil painting, subject standing in stormy clifftop landscape, wearing wide dramatic overcoat, wind-blown, Caspar David Friedrich rear-view composition, deep brooding palette, painterly sky'
+  ],
+  campaign: [
+    'full body luxury fashion campaign, subject in monochromatic all-crimson power suit — sharp tailored blazer and straight-leg trousers — seated in sculptural rattan peacock chair surrounded by oversized paper botanical props, bold red seamless studio backdrop, gaze lifted off-camera chin up, warm even flat lighting, Vogue Italia full body editorial, commanding confident presence',
+    'full body fashion campaign, subject wearing wide-leg cobalt blue double-breasted power suit, seated on industrial steel staircase leaning forward elbows on knees looking away from camera, full head-to-toe frame, dramatic hard strobe, sharp tailoring, GQ campaign energy',
+    'full body luxury campaign, subject wearing elegant floor-length camel trench coat belted at waist, standing in vast minimalist white gallery with polished concrete floor, single overhead spotlight casting long shadow behind, gaze directed off into the distance, Loro Piana quality, full body frame',
+    'full body fashion campaign, subject in sharp mustard-yellow structured blazer and wide-leg tailored trousers in matching tone, standing against bold yellow seamless backdrop, one hand on hip gazing just off camera, dramatic overhead key light, bold monochromatic colour story, Saint Laurent campaign energy, full body confident frame'
+  ],
+  'sci-fi': [
+    'full body sci-fi character, subject standing in vast deep space station corridor, sleek wide-silhouette flight suit with bioluminescent panel accents, cosmic nebula visible through observation porthole, head-to-toe full body frame, dramatic overhead industrial lighting, James Cameron cinematic scale',
+    'full body sci-fi wasteland, subject striding across alien red dust desert, wide layered post-apocalyptic garments, battered utilitarian accessories, two moons on horizon, wide angle dramatic sky, Mad Max meets Dune full body composition',
+    'full body sci-fi clinical, subject standing in vast white research facility, wearing sleek wide silhouette protective suit, holographic data projections floating around hands, clean surgical lighting, minimal aesthetic, full head-to-toe frame, clinical futuristic atmosphere',
+    'full body sci-fi underwater, subject in pressurised deep-sea research station corridor, bioluminescent sea creatures visible through porthole windows, wide structured dive suit, teal and midnight blue palette, Avatar aesthetic, dramatic lighting'
+  ],
+  streetwear: [
+    'full body wide street photography, subject leaning against sun-bleached rendered motel facade, looking down at phone, completely unaware of camera, oversized denim jacket, wide leg cargo pants, worn canvas tote, fisherman beanie, dark sunglasses, warm golden side light raking across textured wall, 35mm film documentary style, caught in the moment',
+    'full body street style editorial, subject mid-stride in pure side profile on quiet urban footpath, gaze forward and down, not acknowledging camera, wearing wide leg dark denim, oversized overshirt, Panama hat, woven leather clutch, natural overcast street light, warm wood-panelled building facade behind, shot on film, candid',
+    'full body street lookbook, subject inside luxury hotel elevator, leaning against back wall looking down at phone, three-quarter rear angle, warm wood-panelled interior, recessed downlighting, wearing relaxed short-sleeve overshirt and wide shorts, leather boots, canvas tote on floor beside feet, 35mm grain',
+    'full body street wide shot, subject walking away glancing back over shoulder, baggy wide leg jeans, oversized denim jacket, worn-in fisherman beanie, street level wide angle perspective, golden hour warm raking light across weathered concrete wall, candid documentary style'
+  ],
+  glamour: [
+    'full body old Hollywood glamour portrait, subject in a dramatic floor-length crimson silk gown with off-shoulder sweetheart neckline and long trailing skirt with high slit, seated on grand marble staircase of a palatial mansion interior, voluminous dark curled hair, bold makeup, gold strappy heels, gazing toward camera with smouldering confidence, warm amber candlelit interior light, rich dark wood and stone architecture, Vogue Italia cinematic quality',
+    'full body black and white glamour editorial, subject wearing a deep plunge V-neck ivory silk shirt dramatically open at chest with wide-leg black tailored trousers, statement diamond choker necklace, bold rings, standing on a sun-drenched terrace or red carpet exterior, hands clasped in front, gaze just off-camera chin slightly lifted, confident magnetic presence, Cannes Film Festival red carpet energy, sharp editorial quality',
+    'upper body black and white glamour portrait, subject wearing an open white dress shirt unbuttoned to chest with sleeves rolled, seated leaning forward with one hand near face, perfectly groomed hair with natural movement, dark charcoal seamless backdrop, single soft key light from above sculpting strong jaw and cheekbones, smouldering gaze just past lens, quiet masculine sensuality, old Hollywood Helmut Newton quality',
+    'full body noir glamour portrait, subject in elegant black wide-brim hat, long black leather gloves, structured black coat with plunging neckline, seated in a velvet armchair in a dark moody interior, head tilted with eyes closed and lips slightly parted in a moment of quiet drama, single overhead spotlight, wisps of atmospheric smoke around, rich black and white, 1950s Hollywood film noir energy, Pirelli Calendar quality'
+  ],
+  acotar: [
+    'full body dark fantasy portrait, subject as an Illyrian Fae warrior standing on the edge of a crumbling stone cliff, deep mountain canyon behind with twin glowing moons in a deep blue-black starlit sky, wearing fitted obsidian battle leathers with silver armour shoulder plates and intricate bioluminescent Illyrian tattoos glowing blue-white across chest and arms, dark flowing cape billowing in wind, face turned 20-30 degrees toward camera with fierce otherworldly intensity, dramatic cool blue moonlight uplighting, ACOTAR Night Court aesthetic, cinematic epic fantasy scale',
+    'full body fantasy editorial, subject as High Fae warrior on rocky cliff top overlooking a vast misty mountain valley at dusk, purple-pink sky with large full moon rising, wearing dark Illyrian battle leathers with ornate silver pauldrons and intricate dark tattoos covering arms and neck, wind-swept hair, face angled toward camera with powerful brooding expression, cool atmospheric light with warm rim highlight, side-three-quarter pose showing both face and epic landscape, ACOTAR Illyrian aesthetic, painterly cinematic quality',
+    'full body ACOTAR portrait, subject as Night Court Fae standing at cliff edge with twin moons in deep cobalt blue starfield sky above vast dark mountain canyon, wearing midnight-black structured court outfit with silver-edged cape, elaborate Illyrian-style tattoos visible on arms and chest catching moonlight, face turned toward camera at 30 degrees chin slightly lifted with ancient powerful gaze, cool blue moonlight as key light with deep shadows, stars reflecting in distant valley river below, epic cinematic fantasy scale',
+    'full body dark fantasy portrait, subject as Fae court warrior in an ancient moonlit forest clearing, enormous bioluminescent glowing flowers at feet in violet and teal, twin moons visible through dark twisted tree canopy above, wearing dark fitted battle leathers with intricate glowing tattoos on arms, ornate silver jewellery at throat and wrists, face angled toward camera 20 degrees with fierce knowing expression, cool blue-violet magical light, wind moving through hair and cloak, ACOTAR Spring-Night Court crossover aesthetic'
+  ],
+  athlete: [
+    'full body sports campaign, subject in dynamic mid-stride running pose on an empty stadium track at golden hour, wearing sleek athletic kit in bold primary colours with white trainers, motion blur on legs showing speed, stadium lights blazing behind, lens flare, glistening skin, powerful athletic build, low angle dramatic perspective, Nike campaign quality, cinematic sports photography',
+    'full body athlete editorial, subject in powerful standing pose in an empty professional stadium at night, stadium floodlights creating dramatic overhead lighting with sharp shadows, wearing premium sports kit and boots, arms crossed looking just off-camera with fierce determination, wet grass reflecting lights, Adidas campaign energy, Sports Illustrated quality',
+    'full body sports portrait, subject in explosive jump or leap pose at peak height, indoor arena background with blurred crowd, wearing vibrant athletic uniform, dramatic split lighting from arena spots, frozen motion, powerful muscular energy, ESPN The Magazine cover quality, cinematic sports photography',
+    'athletic lifestyle campaign, subject in cool confident pose leaning against a gym wall post-workout, wearing premium athleisure — fitted hoodie and track pants — towel over shoulder, slight sweat sheen on skin, industrial gym interior with dramatic window light, looking just off-camera with quiet confidence, Nike lifestyle campaign quality'
+  ],
+  warhol: [
+    'Andy Warhol pop art silkscreen portrait, bold flat graphic treatment, subject face repeated in four-panel grid, each panel in different bold colour combination — hot pink and yellow, cyan and orange, lime green and purple, red and black — high contrast simplified facial features, halftone dot pattern overlay, thick black outline, Museum of Modern Art quality, iconic pop art aesthetic',
+    'Warhol-style pop art portrait, single panel bold silkscreen treatment, subject in vivid acid yellow background with electric blue shadows and hot pink highlights, simplified graphic face with strong outlines, flat colour blocking, no gradients, screen print texture, Factory era Andy Warhol aesthetic, bold graphic editorial',
+    'pop art portrait, Warhol silkscreen style, subject with vivid magenta background, cyan and yellow face tones, bold black outlines, halftone texture throughout, graphic simplified features, Factory New York aesthetic, high contrast, iconic and immediately shareable, MoMA exhibition quality',
+    'Warhol pop art editorial, bold four-colour silkscreen treatment, cobalt blue background with orange and white face tones, thick graphic outlines, flat colour areas, no photorealism, pure graphic pop art, Andy Warhol 1960s Factory aesthetic, instantly iconic portrait treatment'
+  ],
+  headshot: [
+    'professional corporate headshot, subject wearing sharp dark navy business suit with white dress shirt, clean light grey seamless studio backdrop, soft diffused box lighting from 45 degrees, catchlight in eyes, confident approachable expression, shallow depth of field, Sony A7R, LinkedIn profile quality, polished executive presence',
+    'professional headshot, modern tech company aesthetic, subject in smart business casual attire, clean white background, softbox lighting, natural warm skin tones, crisp sharp focus on face, slight smile, competent trustworthy energy, corporate portrait photography',
+    'executive portrait, architectural office interior background softly blurred, floor-to-ceiling windows with city view, subject in tailored blazer, natural window light as key with reflector fill, warm colour grade, confident authoritative presence, Financial Review magazine quality',
+    'professional headshot, minimalist clean aesthetic, subject in elegant business attire, seamless studio background, Rembrandt lighting setup, direct confident eye contact, award-winning corporate portrait photography, Fortune 500 executive energy'
+  ]
+};
+
+// Pick a random variation from array or return string directly
+function getStyleDesc(style) {
+  const desc = styleDescriptions[style];
+  if (Array.isArray(desc)) return desc[Math.floor(Math.random() * desc.length)];
+  return desc || styleDescriptions.cinematic[0];
+}
+
+let selectedStyle = 'cinematic';
+let uploadedImageBase64 = null;
+let uploadedMediaType = 'image/jpeg';
+let generatedPrompt = '';
+
+
+function updateGenerateBtn() {
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = !uploadedImageBase64;
+}
+
+// Style buttons
+document.querySelectorAll('.style-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedStyle = btn.dataset.style;
+  });
+});
+
+// Upload
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+
+uploadZone.addEventListener('click', () => fileInput.click());
+
+uploadZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  uploadZone.style.borderColor = 'rgba(200,240,90,0.6)';
+});
+uploadZone.addEventListener('dragleave', () => { uploadZone.style.borderColor = ''; });
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.style.borderColor = '';
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) handleFile(file);
+});
+fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+function handleFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const result = e.target.result;
+
+    // Show preview immediately
+    const existing = uploadZone.querySelector('img.preview');
+    if (existing) existing.remove();
+    const previewImg = document.createElement('img');
+    previewImg.className = 'preview';
+    previewImg.src = result;
+    uploadZone.insertBefore(previewImg, uploadZone.firstChild);
+    uploadZone.classList.add('has-image');
+    document.getElementById('uploadText').textContent = 'Click to change photo';
+
+    // Compress image to max 1200px and quality 0.85 to stay under 4MB
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 1200;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL('image/jpeg', 0.85);
+      uploadedImageBase64 = compressed.split(',')[1];
+      uploadedMediaType = 'image/jpeg';
+      console.log(`Image compressed to ~${Math.round(uploadedImageBase64.length * 0.75 / 1024)}KB`);
+      updateGenerateBtn();
+    };
+    img.src = result;
+  };
+  reader.readAsDataURL(file);
+}
+
+
+
+// Generate
+document.getElementById('generateBtn').addEventListener('click', async () => {
+  if (!uploadedImageBase64) return;
+
+  const generateBtn = document.getElementById('generateBtn');
+  generateBtn.disabled = true;
+  generateBtn.textContent = 'Analysing...';
+
+  const errorMsg = document.getElementById('errorMsg');
+  errorMsg.style.display = 'none';
+
+  const resultArea = document.getElementById('resultArea');
+  const promptBox = document.getElementById('promptBox');
+  const statusDot = document.getElementById('statusDot');
+  const analysisGrid = document.getElementById('analysisGrid');
+  const actionRow = document.getElementById('actionRow');
+  const mjTip = document.getElementById('mjTip');
+
+  resultArea.style.display = 'block';
+  statusDot.style.display = 'inline-block';
+  promptBox.value = 'Analysing your photo...'; promptBox.setAttribute('readonly','');
+  promptBox.className = 'prompt-box active';
+  analysisGrid.innerHTML = '';
+  actionRow.style.display = 'none';
+  mjTip.style.display = 'none';
+
+  const styleDesc = getStyleDesc(selectedStyle);
+
+  const systemPrompt = `You are an expert AI art director and prompt engineer. Analyse the person in this selfie and generate a highly detailed AI image generation prompt.
+
+Respond ONLY with a valid JSON object. No markdown. No backticks. No explanation. Raw JSON only.
+
+{
+  "mood": "2-3 word mood descriptor",
+  "lighting": "detected or ideal lighting style",
+  "features": "concise physical description to anchor the AI generation accurately",
+  "prompt": "the complete AI image generation prompt, 60-90 words, ready for Midjourney or DALL-E"
+}
+
+Style to incorporate: ${styleDesc}
+
+Structure the prompt as: subject description → clothing and accessories → pose and body language → environment/setting → mood/atmosphere → technical camera and lighting specs. Make it vivid, specific, and professional.
+
+FRAMING RULES: Always specify FULL BODY, HEAD-TO-TOE framing unless the style is headshot. Never describe close-up portrait or selfie framing. Always include environmental breathing room — the subject should occupy 60-70% of the frame with background visible.
+
+POSE RULES: Never default to subject looking directly at camera. Rotate through these naturally — gaze directed just off-frame to one side, side profile walking or striding, leaning against wall looking down at phone, seated with weight back looking into distance, mid-stride glancing back over shoulder, standing still looking down or away, three-quarter rear view, candid unaware moment. The pose should feel like the photographer caught a real moment, not a posed shot.
+
+LIGHTING REFERENCES: favour warm recessed spotlights, wood-panelled interiors, golden hour raking light on textured walls, softbox studio setups, or dramatic single-source architectural light.
+
+SKIN: always include: natural skin texture, visible pores, subtle skin imperfections, fine facial hair, micro skin texture, realistic complexion, slight subsurface scattering, film grain on skin, NOT smooth, NOT airbrushed, NOT plastic.
+
+CLOTHING: This rule depends on the style being generated.
+
+For styles where the outfit must match the theme (acotar, cyberpunk, sci-fi, athlete, warhol, anime, painterly, cinematic, glamour, cover, campaign): COMPLETELY IGNORE what the subject is wearing in the photo. Do not describe their actual clothing at all. Instead invent theme-appropriate wardrobe from scratch that fits the style (e.g. for acotar: Illyrian battle leathers; for athlete: performance athletic kit; for warhol: simple plain top so the graphic treatment dominates).
+
+For all other styles: Describe the style, cut, colour and fabric of clothing only. NEVER reproduce any text, logos, brand names or graphic prints. Replace branded items with generic equivalents (e.g. "oversized cream cotton sweatshirt" not "Country Road sweatshirt"). The generated image should never contain text or branding on clothing.`;
+
+  // Retry up to 3 times on overload (529) or server error (500)
+  const fetchWithRetry = async (retries = 3, delay = 2000) => {
+    for (let i = 0; i < retries; i++) {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 1000,
+          system: systemPrompt,
+          messages: [{
+            role: 'user',
+            content: [
+              {
+                type: 'image',
+                source: { type: 'base64', media_type: uploadedMediaType, data: uploadedImageBase64 }
+              },
+              { type: 'text', text: 'Analyse this selfie and respond with only the JSON object.' }
+            ]
+          }]
+        })
+      });
+      if (response.ok) return response;
+      const errData = await response.json().catch(() => ({}));
+      const msg = errData.error?.message || `HTTP ${response.status}`;
+      if (response.status === 401) throw new Error('Invalid API key. Check your key at console.anthropic.com');
+      if ((response.status === 529 || response.status === 500) && i < retries - 1) {
+        console.log(`API overloaded, retrying in ${delay/1000}s... (attempt ${i+1}/${retries})`);
+        analyseBtn.textContent = `⏳ Retrying... (${i+1}/${retries})`;
+        await new Promise(r => setTimeout(r, delay));
+        delay *= 1.5; // back off each retry
+        continue;
+      }
+      throw new Error(msg);
+    }
+  };
+
+  try {
+    const response = await fetchWithRetry();
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      const msg = errData.error?.message || `HTTP ${response.status}`;
+      throw new Error(msg);
+    }
+
+    const data = await response.json();
+    const rawText = (data.content || []).map(i => i.text || '').join('').trim();
+
+    let parsed;
+    try {
+      const clean = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+      parsed = JSON.parse(clean);
+    } catch {
+      parsed = { prompt: rawText, mood: '—', lighting: '—', features: '—' };
+    }
+
+    generatedPrompt = parsed.prompt || rawText;
+
+    analysisGrid.innerHTML = `
+      <div class="analysis-card">
+        <div class="ac-label">Mood</div>
+        <div class="ac-value">${parsed.mood || '—'}</div>
+      </div>
+      <div class="analysis-card">
+        <div class="ac-label">Lighting</div>
+        <div class="ac-value">${parsed.lighting || '—'}</div>
+      </div>
+      <div class="analysis-card full">
+        <div class="ac-label">Features detected</div>
+        <div class="ac-value">${parsed.features || '—'}</div>
+      </div>
+    `;
+
+    promptBox.value = generatedPrompt;
+    promptBox.removeAttribute('readonly');
+    document.getElementById('promptEditHint').style.display = 'inline';
+    promptBox.className = 'prompt-box';
+    statusDot.style.display = 'none';
+    actionRow.style.display = 'flex';
+
+    const genImgBtn = document.getElementById('generateImageBtn');
+    if (genImgBtn) genImgBtn.style.display = 'block';
+
+  } catch (err) {
+    promptBox.value = '';
+    promptBox.className = 'prompt-box';
+    statusDot.style.display = 'none';
+    resultArea.style.display = 'none';
+    errorMsg.textContent = '⚠ ' + (err.message || 'Something went wrong. Please try again.');
+    errorMsg.style.display = 'block';
+  }
+
+  generateBtn.disabled = false;
+  generateBtn.textContent = 'Analyse & Generate Prompt';
+  updateGenerateBtn();
+});
+
+// Copy
+document.getElementById('copyBtn').addEventListener('click', function() {
+  if (!generatedPrompt) return;
+  navigator.clipboard.writeText(generatedPrompt).then(() => {
+    this.textContent = '✓ Copied';
+    this.classList.add('copied');
+    setTimeout(() => {
+      this.textContent = '📋 Copy';
+      this.classList.remove('copied');
+    }, 2000);
+  });
+});
+
+// MJ format
+document.getElementById('mjBtn').addEventListener('click', function() {
+  if (!generatedPrompt) return;
+  const livePrompt = document.getElementById('promptBox').value || generatedPrompt;
+  const mjPrompt = `/imagine prompt: ${livePrompt} --ar 4:5 --v 6.1 --style raw --q 2`;
+  const mjTip = document.getElementById('mjTip');
+  mjTip.innerHTML = `<strong>Midjourney ready:</strong><br><br>${mjPrompt}<br><br><button onclick="navigator.clipboard.writeText(\`${mjPrompt.replace(/`/g,"'")}\`);this.textContent='✓ Copied';setTimeout(()=>this.textContent='Copy for Midjourney',2000)" style="margin-top:8px;background:rgba(200,240,90,0.1);border:0.5px solid rgba(200,240,90,0.3);border-radius:6px;padding:6px 14px;font-family:Syne,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#c8f05a;cursor:pointer">Copy for Midjourney</button>`;
+  mjTip.style.display = 'block';
+});
+
+// Reset
+// Generate image with fal.ai
+document.getElementById('generateImageBtn').addEventListener('click', async () => {
+  if (!generatedPrompt) return;
+
+  const imageArea = document.getElementById('imageArea');
+  const imageContainer = document.getElementById('imageContainer');
+  const imageLoading = document.getElementById('imageLoading');
+  const imageError = document.getElementById('imageError');
+  const imageSaveRow = document.getElementById('imageSaveRow');
+  const imageStatusDot = document.getElementById('imageStatusDot');
+
+  imageArea.style.display = 'block';
+  imageLoading.style.display = 'block';
+  imageError.style.display = 'none';
+  imageSaveRow.style.display = 'none';
+  imageStatusDot.style.display = 'inline-block';
+
+  // Remove any existing image
+  const existingImg = imageContainer.querySelector('img');
+  if (existingImg) existingImg.remove();
+
+  const btn = document.getElementById('generateImageBtn');
+  btn.textContent = '⏳ Generating your alter ego...';
+  btn.disabled = true;
+
+  try {
+    const response = await fetch('/api/image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: document.getElementById('promptBox').value || generatedPrompt,
+        imageBase64: uploadedImageBase64,
+        mediaType: uploadedMediaType,
+        style: selectedStyle
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.detail || data.error?.message || `Error ${response.status}`);
+    }
+
+    const imageUrl = data.images?.[0]?.url;
+    if (!imageUrl) {
+      const debugInfo = data.debug ? JSON.stringify(Object.keys(data.debug)) : 'no debug';
+      throw new Error((data.error?.message || 'No image returned') + ' | keys: ' + debugInfo);
+    }
+
+    imageLoading.style.display = 'none';
+    imageStatusDot.style.display = 'none';
+
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.style.cssText = 'width:100%;display:block;border-radius:10px';
+    imageContainer.appendChild(img);
+
+    // Deduct credit if logged in
+    if (currentUser) {
+      const { data: profile } = await sb.from('profiles').select('credits').eq('id', currentUser.id).single();
+      if (profile && profile.credits > 0) {
+        await sb.from('profiles').update({ 
+          credits: profile.credits - 1,
+          total_generations: (profile.total_generations || 0) + 1
+        }).eq('id', currentUser.id);
+        await loadProfile();
+      }
+    }
+
+    // Save to Supabase if logged in
+    saveGeneration(imageUrl, selectedStyle, generatedPrompt, 
+      document.querySelector('.analysis-card-value')?.textContent || '',
+      document.querySelectorAll('.analysis-card-value')[1]?.textContent || '',
+      document.querySelectorAll('.analysis-card-value')[2]?.textContent || ''
+    ).catch(() => {});
+
+    // Force download by fetching as blob
+    const dl = document.getElementById('imageDownload');
+    try {
+      const imgResp = await fetch(imageUrl);
+      const blob = await imgResp.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      dl.href = blobUrl;
+      dl.download = 'alter-ego-' + Date.now() + '.png';
+    } catch {
+      dl.href = imageUrl;
+      dl.download = 'alter-ego.png';
+    }
+    const isr = document.getElementById('imageSaveRow'); isr.style.display = 'block';
+
+  } catch (err) {
+    imageLoading.style.display = 'none';
+    imageStatusDot.style.display = 'none';
+    imageError.textContent = '⚠ ' + (err.message || 'Image generation failed');
+    imageError.style.display = 'block';
+  }
+
+  btn.textContent = '⚡ Generate Image';
+  btn.disabled = false;
+  // Reset file input so the same image can be re-selected / a new one triggers change event
+  document.getElementById('fileInput').value = '';
+});
+
+// Share with watermark
+document.getElementById('shareBtn').addEventListener('click', async () => {
+  const img = document.querySelector('#imageContainer img');
+  if (!img) return;
+
+  const btn = document.getElementById('shareBtn');
+  btn.textContent = 'Creating...';
+  btn.disabled = true;
+
+  try {
+    const canvas = document.getElementById('watermarkCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Load image onto canvas
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    image.onload = async () => {
+      canvas.width = image.width;
+      canvas.height = image.height;
+      ctx.drawImage(image, 0, 0);
+
+      // Watermark bar at bottom
+      const barH = Math.round(canvas.height * 0.07);
+      ctx.fillStyle = 'rgba(0,0,0,0.72)';
+      ctx.fillRect(0, canvas.height - barH, canvas.width, barH);
+
+      // ALTER.EGO text
+      const fontSize = Math.round(barH * 0.42);
+      ctx.font = `800 ${fontSize}px 'Arial Black', Arial, sans-serif`;
+      ctx.letterSpacing = '4px';
+      ctx.fillStyle = '#c8f05a';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('ALTER.EGO', Math.round(canvas.width * 0.04), canvas.height - barH / 2);
+
+      // URL
+      ctx.font = `${Math.round(fontSize * 0.65)}px 'Arial', sans-serif`;
+      ctx.fillStyle = 'rgba(240,237,230,0.5)';
+      ctx.textAlign = 'right';
+      ctx.fillText(window.location.hostname, canvas.width - Math.round(canvas.width * 0.04), canvas.height - barH / 2);
+
+      // Try native share first (mobile)
+      canvas.toBlob(async (blob) => {
+        const file = new File([blob], 'alter-ego.png', { type: 'image/png' });
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: 'My ALTER.EGO',
+              text: 'Generated my alter ego with ALTER.EGO ✦'
+            });
+          } catch (e) {
+            if (e.name !== 'AbortError') downloadWatermarked(blob);
+          }
+        } else {
+          downloadWatermarked(blob);
+        }
+        btn.textContent = '↗ Share';
+        btn.disabled = false;
+      }, 'image/png');
+    };
+
+    image.onerror = () => {
+      btn.textContent = '↗ Share';
+      btn.disabled = false;
+      alert('Could not process image for sharing');
+    };
+
+    image.src = img.src;
+
+  } catch (err) {
+    btn.textContent = '↗ Share';
+    btn.disabled = false;
+  }
+});
+
+function downloadWatermarked(blob) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'alter-ego-' + Date.now() + '.png';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  uploadedImageBase64 = null;
+  const img = uploadZone.querySelector('img.preview');
+  if (img) img.remove();
+  uploadZone.classList.remove('has-image');
+  document.getElementById('uploadText').textContent = 'Drop a selfie or click to upload';
+  document.getElementById('resultArea').style.display = 'none';
+  document.getElementById('errorMsg').style.display = 'none';
+  document.getElementById('mjTip').style.display = 'none';
+  document.getElementById('imageArea').style.display = 'none';
+  document.getElementById('generateImageBtn').style.display = 'none';
+  generatedPrompt = '';
+  updateGenerateBtn();
+});
+</script>
+</body>
+</html>

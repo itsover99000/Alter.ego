@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALTER.EGO — Become Someone Else</title>
+<meta name="description" content="Upload a selfie. Pick a style. Watch yourself transform into a cinematic, editorial, or sci-fi alter ego. Powered by AI.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --black:#0a0a0a; --white:#f5f3ee; --accent:#c8f05a; --mid:#888; --border:rgba(10,10,10,0.1); }
+  html { scroll-behavior: smooth; }
+  body { background:var(--white); color:var(--black); font-family:'DM Mono',monospace; overflow-x:hidden; }
+
+  nav { position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:20px 40px; }
+  .nav-logo { font-family:'Syne',sans-serif; font-size:14px; font-weight:800; letter-spacing:0.16em; text-transform:uppercase; color:var(--white); text-decoration:none; mix-blend-mode:difference; }
+  .nav-cta { font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--black); text-decoration:none; border-bottom:1px solid var(--black); padding-bottom:2px; transition:opacity 0.2s; background:var(--accent); padding:8px 16px; border:none; font-family:'Syne',sans-serif; font-weight:700; }
+  .nav-cta:hover { opacity:0.8; }
+
+  .hero { min-height:100vh; display:grid; grid-template-columns:1fr 1fr; }
+  .hero-left { background:var(--black); display:flex; flex-direction:column; justify-content:flex-end; padding:100px 48px 60px; position:relative; overflow:hidden; }
+  .hero-tag { font-size:9px; letter-spacing:0.16em; text-transform:uppercase; color:rgba(245,243,238,0.35); margin-bottom:20px; }
+  .hero-title { font-family:'Playfair Display',serif; font-size:clamp(52px,6vw,88px); font-weight:900; line-height:0.92; color:var(--white); margin-bottom:32px; }
+  .hero-title em { font-style:italic; color:var(--accent); }
+  .hero-desc { font-size:11px; line-height:1.8; color:rgba(245,243,238,0.5); max-width:320px; margin-bottom:40px; letter-spacing:0.02em; }
+  .hero-btn { display:inline-flex; align-items:center; gap:12px; background:var(--accent); color:var(--black); text-decoration:none; padding:16px 32px; font-family:'Syne',sans-serif; font-size:11px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; transition:all 0.2s; width:fit-content; }
+  .hero-btn:hover { background:#d4f570; transform:translateY(-2px); }
+
+  .hero-right { background:var(--white); display:flex; flex-direction:column; justify-content:flex-end; padding:100px 48px 60px; gap:40px; }
+  .hero-big-num { font-family:'Playfair Display',serif; font-size:clamp(100px,14vw,200px); font-weight:900; line-height:0.85; color:var(--black); opacity:0.04; position:absolute; top:80px; right:40px; pointer-events:none; }
+  .hero-right-inner { position:relative; }
+  .hero-sub { font-size:11px; letter-spacing:0.04em; color:var(--mid); line-height:1.7; max-width:300px; margin-bottom:32px; }
+  .pills { display:flex; flex-wrap:wrap; gap:8px; }
+  .pill { border:0.5px solid rgba(10,10,10,0.15); padding:8px 14px; font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:var(--mid); transition:all 0.2s; }
+  .pill:hover, .pill.on { border-color:var(--black); color:var(--black); background:var(--black); color:var(--white); }
+
+  .marquee-wrap { overflow:hidden; border-top:0.5px solid var(--border); border-bottom:0.5px solid var(--border); padding:12px 0; }
+  .marquee-track { display:flex; gap:48px; animation:marquee 22s linear infinite; white-space:nowrap; }
+  .marquee-item { font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:var(--mid); flex-shrink:0; }
+  .marquee-dot { color:var(--accent); }
+  @keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+  .gallery { padding:100px 40px; }
+  .section-eyebrow { font-size:9px; letter-spacing:0.18em; text-transform:uppercase; color:var(--mid); margin-bottom:12px; }
+  .section-title { font-family:'Playfair Display',serif; font-size:clamp(32px,4vw,52px); font-weight:700; line-height:1.1; color:var(--black); }
+  .gallery-header { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:48px; }
+  .gallery-link { font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--black); text-decoration:none; border-bottom:1px solid var(--black); padding-bottom:2px; }
+
+  .g-item { overflow:hidden; position:relative; background:#111; }
+  .g-item img { width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.6s ease; }
+  .g-item:hover img { transform:scale(1.04); }
+  .g-label { position:absolute; bottom:12px; left:12px; font-size:9px; letter-spacing:0.12em; text-transform:uppercase; color:rgba(245,243,238,0.85); background:rgba(10,10,10,0.6); padding:5px 12px; backdrop-filter:blur(6px); border-radius:2px; }
+
+  .how { padding:100px 40px; background:var(--black); color:var(--white); }
+  .how-header { display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-bottom:72px; align-items:end; }
+  .how-title { font-family:'Playfair Display',serif; font-size:clamp(36px,4vw,60px); font-weight:700; line-height:1.05; }
+  .how-title em { font-style:italic; color:var(--accent); }
+  .how-intro { font-size:11px; line-height:1.9; color:rgba(245,243,238,0.4); }
+  .steps { display:grid; grid-template-columns:repeat(3,1fr); background:rgba(245,243,238,0.06); gap:1px; }
+  .step { background:var(--black); padding:48px 36px; }
+  .step-num { font-family:'Playfair Display',serif; font-size:64px; font-weight:900; color:rgba(245,243,238,0.05); line-height:1; margin-bottom:20px; }
+  .step-icon { font-size:26px; margin-bottom:16px; display:block; }
+  .step-title { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--white); margin-bottom:10px; }
+  .step-desc { font-size:11px; line-height:1.8; color:rgba(245,243,238,0.4); }
+
+  .styles-sec { padding:100px 40px; }
+  .styles-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); margin-top:48px; }
+  .s-card { background:var(--white); padding:36px 28px; transition:background 0.2s; cursor:default; }
+  .s-card:hover { background:var(--black); }
+  .s-card:hover .s-name { color:var(--white); }
+  .s-card:hover .s-desc { color:rgba(245,243,238,0.4); }
+  .s-card:hover .s-num { color:rgba(245,243,238,0.04); }
+  .s-num { font-family:'Playfair Display',serif; font-size:44px; font-weight:900; color:rgba(10,10,10,0.04); line-height:1; margin-bottom:12px; transition:color 0.2s; }
+  .s-emoji { font-size:22px; margin-bottom:10px; display:block; }
+  .s-name { font-family:'Syne',sans-serif; font-size:12px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--black); margin-bottom:8px; transition:color 0.2s; }
+  .s-desc { font-size:10px; line-height:1.7; color:var(--mid); transition:color 0.2s; }
+
+  .cta-sec { background:var(--black); padding:120px 40px; text-align:center; position:relative; overflow:hidden; }
+  .cta-bg { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-family:'Playfair Display',serif; font-size:clamp(80px,16vw,240px); font-weight:900; color:rgba(245,243,238,0.02); white-space:nowrap; font-style:italic; pointer-events:none; }
+  .cta-eyebrow { font-size:9px; letter-spacing:0.18em; text-transform:uppercase; color:rgba(245,243,238,0.28); margin-bottom:24px; }
+  .cta-title { font-family:'Playfair Display',serif; font-size:clamp(44px,6vw,80px); font-weight:900; color:var(--white); line-height:1.05; margin-bottom:16px; position:relative; }
+  .cta-title em { font-style:italic; color:var(--accent); }
+  .cta-sub { font-size:11px; color:rgba(245,243,238,0.35); letter-spacing:0.04em; margin-bottom:48px; position:relative; }
+  .cta-btn { display:inline-flex; align-items:center; gap:14px; background:var(--accent); color:var(--black); text-decoration:none; padding:20px 48px; font-family:'Syne',sans-serif; font-size:12px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; transition:all 0.2s; position:relative; }
+  .cta-btn:hover { background:#d4f570; transform:translateY(-2px); }
+
+  footer { background:var(--black); border-top:0.5px solid rgba(245,243,238,0.07); padding:28px 40px; display:flex; align-items:center; justify-content:space-between; }
+  .f-logo { font-family:'Syne',sans-serif; font-size:12px; font-weight:800; letter-spacing:0.16em; text-transform:uppercase; color:var(--white); text-decoration:none; }
+  .f-logo span { color:var(--accent); }
+  .f-copy { font-size:9px; letter-spacing:0.08em; color:rgba(245,243,238,0.2); text-transform:uppercase; }
+
+  .fi { opacity:0; transform:translateY(20px); transition:opacity 0.65s ease,transform 0.65s ease; }
+  .fi.vis { opacity:1; transform:translateY(0); }
+
+  @media(max-width:768px){
+    nav{padding:16px 20px;}
+    .hero{grid-template-columns:1fr;}
+    .hero-left{min-height:70vh;padding:80px 24px 40px;}
+    .hero-right{padding:40px 24px;}
+    .gallery{padding:60px 20px;}
+    .gallery .fi > div { grid-template-columns:1fr !important; }
+    .g-item{min-height:260px;}
+    .how{padding:60px 20px;}
+    .how-header{grid-template-columns:1fr;}
+    .steps{grid-template-columns:1fr;}
+    .styles-sec{padding:60px 20px;}
+    .styles-grid{grid-template-columns:1fr 1fr;}
+    .cta-sec{padding:80px 20px;}
+    footer{padding:24px 20px;flex-direction:column;gap:10px;text-align:center;}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">Alter.Ego</a>
+  <a href="/app/" class="nav-cta">Sign In →</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-left">
+    <!-- Hero background image -->
+    <div style="position:absolute;inset:0;overflow:hidden">
+      <img src="/images/hero.png" alt="" style="width:100%;height:100%;object-fit:cover;opacity:0.35;filter:grayscale(20%);object-position:center top">
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,10,10,0.95) 0%,rgba(10,10,10,0.4) 60%,rgba(10,10,10,0.2) 100%)"></div>
+    </div>
+
+    <div class="fi">
+      <div class="hero-tag">AI Portrait Studio · alter-ego.photography</div>
+      <h1 class="hero-title">Become<br><em>Someone</em><br>Else.</h1>
+      <p class="hero-desc">Upload a selfie. Choose your aesthetic. Watch yourself transform into a cinematic, editorial, sci-fi, or fashion alter ego — in seconds.</p>
+      <a href="/app/" class="hero-btn">Create yours free <span>→</span></a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-right-inner fi" style="transition-delay:0.15s">
+      <p class="hero-sub">Eight distinct style directions. One selfie. Infinite versions of you.</p>
+      <div class="pills">
+        <div class="pill on">✦ Campaign</div>
+        <div class="pill">🖼️ Cover</div>
+        <div class="pill">✨ Glamour</div>
+        <div class="pill">🎬 Cinematic</div>
+        <div class="pill">⚡ Cyberpunk</div>
+        <div class="pill">🚀 Sci-Fi</div>
+        <div class="pill">🔥 Streetwear</div>
+        <div class="pill">🌸 Anime</div>
+        <div class="pill">🎨 Painterly</div>
+        <div class="pill">💼 Headshot</div>
+        <div class="pill">🌿 Acotar</div>
+        <div class="pill">⚽ Athlete</div>
+        <div class="pill">🎨 Warhol</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="marquee-item">AI Portrait Generation</span><span class="marquee-item marquee-dot">✦</span>
+    <span class="marquee-item">Fashion Editorial</span><span class="marquee-item marquee-dot">✦</span>
+    <span class="marquee-item">Cyberpunk</span><span class="marquee-item marquee-dot">✦</span>
+    <span class="marquee-item">Cinematic Film</span><span class="marquee-item marquee-dot">✦</span>
+    <span class="marquee-item">Sci-Fi</span><span class="marquee-item marquee-dot">✦</span>
+    <span class="marquee-item">Streetwear</span><span class="marquee-item marquee-dot">✦</span>
+    <span class="marquee-item">Painterly</span><span class="marquee-item marquee-dot">✦</span>
+    <span class="marquee-item">alter-ego.photography</span><span class="marquee-item marquee-dot">✦</span>
+    <span class="marquee-item">AI Portrait Generation</span><span class="marquee-item marquee-dot">✦</span>
+    <span class="marquee-item">Fashion Editorial</span><span class="marquee-item marquee-dot">✦</span>
+    <span class="marquee-item">Cyberpunk</span><span class="marquee-item marquee-dot">✦</span>
+    <span class="marquee-item">Cinematic Film</span><span class="marquee-item marquee-dot">✦</span>
+    <span class="marquee-item">Sci-Fi</span><span class="marquee-item marquee-dot">✦</span>
+    <span class="marquee-item">Streetwear</span><span class="marquee-item marquee-dot">✦</span>
+    <span class="marquee-item">Painterly</span><span class="marquee-item marquee-dot">✦</span>
+    <span class="marquee-item">alter-ego.photography</span><span class="marquee-item marquee-dot">✦</span>
+  </div>
+</div>
+
+<section class="gallery">
+  <div class="gallery-header fi">
+    <div>
+      <div class="section-eyebrow">The Work</div>
+      <h2 class="section-title">Your selfie.<br>Reimagined.</h2>
+    </div>
+    <a href="/app/" class="gallery-link">Try it free →</a>
+  </div>
+
+  <!-- Row 1: big left + 2 right -->
+  <div class="fi" style="transition-delay:0.1s">
+    <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:6px;margin-bottom:6px">
+
+      <!-- Hero — Fashion Editorial (tall, spans 2 rows) -->
+      <div class="g-item" style="min-height:580px;grid-row:span 2">
+        <img src="/images/fashion-3.png" alt="Fashion Editorial" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
+        <div class="g-label">Fashion</div>
+      </div>
+
+      <!-- Sci-Fi -->
+      <div class="g-item" style="min-height:280px">
+        <img src="/images/sci-fi.png" alt="Sci-Fi" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
+        <div class="g-label">Sci-Fi</div>
+      </div>
+
+      <!-- Male Fashion -->
+      <div class="g-item" style="min-height:280px">
+        <img src="/images/male-fashion.png" alt="Fashion" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
+        <div class="g-label">Fashion</div>
+      </div>
+
+    </div>
+
+    <!-- Row 2: 3 equal -->
+    <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:6px">
+
+      <!-- spacer for the tall hero -->
+      <div style="display:none"></div>
+
+      <!-- Cinematic -->
+      <div class="g-item" style="min-height:280px">
+        <img src="/images/cinematic.png" alt="Cinematic" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
+        <div class="g-label">Cinematic</div>
+      </div>
+
+      <!-- Anime -->
+      <div class="g-item" style="min-height:280px">
+        <img src="/images/anime.png" alt="Anime" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
+        <div class="g-label">Anime</div>
+      </div>
+
+    </div>
+
+    <!-- Row 3: cyberpunk full width + fashion-2 -->
+    <div style="margin-top:6px;display:grid;grid-template-columns:1.4fr 1fr;gap:6px">
+      <div class="g-item" style="min-height:360px">
+        <img src="/images/cyberpunk.jpg" alt="Cyberpunk" style="width:100%;height:100%;object-fit:cover;object-position:center 30%;display:block">
+        <div class="g-label">Cyberpunk</div>
+      </div>
+      <div class="g-item" style="min-height:360px">
+        <img src="/images/fashion-2.png" alt="Editorial" style="width:100%;height:100%;object-fit:cover;object-position:center 20%;display:block">
+        <div class="g-label">Editorial</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="how">
+  <div class="how-header fi">
+    <h2 class="how-title">Three steps.<br><em>Infinite you.</em></h2>
+    <p class="how-intro">No design skills. No prompting expertise. Just a selfie and a vision for who you could be.</p>
+  </div>
+  <div class="steps fi" style="transition-delay:0.1s">
+    <div class="step">
+      <div class="step-num">01</div>
+      <span class="step-icon">📷</span>
+      <div class="step-title">Upload a Selfie</div>
+      <p class="step-desc">Clear, well-lit, facing forward. Our AI reads your face and anchors the generation to you specifically.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <span class="step-icon">✦</span>
+      <div class="step-title">Pick Your Style</div>
+      <p class="step-desc">Choose from 8 curated aesthetic directions — each with 4 unique visual interpretations that rotate on every generation.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <span class="step-icon">⚡</span>
+      <div class="step-title">Generate & Share</div>
+      <p class="step-desc">AI creates your cinematic portrait in seconds. Edit the prompt, regenerate, then share directly to Instagram.</p>
+    </div>
+  </div>
+</section>
+
+<section class="styles-sec">
+  <div class="fi">
+    <div class="section-eyebrow">Style Directions</div>
+    <h2 class="section-title" style="margin-top:8px">Eight worlds.<br>All yours.</h2>
+  </div>
+  <div class="styles-grid fi" style="transition-delay:0.1s">
+    <div class="s-card"><div class="s-num">01</div><span class="s-emoji">🎬</span><div class="s-name">Cinematic</div><p class="s-desc">35mm film. Golden hour. Anamorphic lens. Kodak grain.</p></div>
+    <div class="s-card"><div class="s-num">02</div><span class="s-emoji">📸</span><div class="s-name">Editorial</div><p class="s-desc">High-fashion magazine. Studio lighting. Graphic composition.</p></div>
+    <div class="s-card"><div class="s-num">03</div><span class="s-emoji">⚡</span><div class="s-name">Cyberpunk</div><p class="s-desc">Blade Runner nights. Neon reflections. Electric colour.</p></div>
+    <div class="s-card"><div class="s-num">04</div><span class="s-emoji">✦</span><div class="s-name">Fashion</div><p class="s-desc">Vogue campaigns. Architectural sets. Luxury power.</p></div>
+    <div class="s-card"><div class="s-num">05</div><span class="s-emoji">🚀</span><div class="s-name">Sci-Fi</div><p class="s-desc">Deep space. Holographic armour. Epic cosmic scale.</p></div>
+    <div class="s-card"><div class="s-num">06</div><span class="s-emoji">🔥</span><div class="s-name">Streetwear</div><p class="s-desc">Urban rooftops. Golden hour. Raw candid energy.</p></div>
+    <div class="s-card"><div class="s-num">07</div><span class="s-emoji">🌸</span><div class="s-name">Anime</div><p class="s-desc">Ghibli meets cyberpunk. Cel-shaded. Detailed linework.</p></div>
+    <div class="s-card"><div class="s-num">08</div><span class="s-emoji">🎨</span><div class="s-name">Painterly</div><p class="s-desc">Old Masters. Rembrandt light. Museum-quality texture.</p></div>
+  </div>
+</section>
+
+<section class="cta-sec">
+  <div class="cta-bg">ALTER.EGO</div>
+  <div class="cta-eyebrow fi">Free to try · No account needed</div>
+  <h2 class="cta-title fi" style="transition-delay:0.08s">Who could<br><em>you</em> be?</h2>
+  <p class="cta-sub fi" style="transition-delay:0.14s">Upload a selfie. Results in under 30 seconds.</p>
+  <a href="/app/" class="cta-btn fi" style="transition-delay:0.2s">Create your alter ego →</a>
+</section>
+
+<footer>
+  <a href="/" class="f-logo">Alter<span>.</span>Ego</a>
+  <div class="f-copy">© 2026 alter-ego.photography · Powered by Claude & Flux AI</div>
+</footer>
+
+<script>
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('vis'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fi').forEach(el => obs.observe(el));
+
+// Trigger hero elements immediately
+document.querySelectorAll('.hero .fi').forEach(el => {
+  setTimeout(() => el.classList.add('vis'), 100);
+});
+</script>
+</body>
+</html>
