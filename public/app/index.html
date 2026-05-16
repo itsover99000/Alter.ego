@@ -680,6 +680,36 @@
   </div>
 </div>
 
+<!-- CREDITS MODAL -->
+<div class="credits-modal-overlay" id="creditsModal">
+  <div class="credits-modal">
+    <div class="credits-modal-title">Buy Credits</div>
+    <div class="credits-modal-sub">One credit = one generation. No subscription.</div>
+    <div class="pack-card" onclick="handleBuyCredits('price_1TXWyIHdibGBYkOdq8xDgdql')">
+      <div>
+        <div class="pack-name">Starter</div>
+        <div class="pack-credits">10 credits</div>
+      </div>
+      <div class="pack-price">A$9</div>
+    </div>
+    <div class="pack-card" onclick="handleBuyCredits('price_1TXX05HdibGBYkOdW5a0H0mN')">
+      <div>
+        <div class="pack-name">Creator</div>
+        <div class="pack-credits">30 credits</div>
+      </div>
+      <div class="pack-price">A$25</div>
+    </div>
+    <div class="pack-card" onclick="handleBuyCredits('price_1TXX0wHdibGBYkOddBgIC5oT')">
+      <div>
+        <div class="pack-name">Pro</div>
+        <div class="pack-credits">100 credits</div>
+      </div>
+      <div class="pack-price">A$69</div>
+    </div>
+    <button class="credits-modal-close" onclick="closeCreditsModal()">Cancel</button>
+  </div>
+</div>
+
 <div class="app" id="mainApp" style="display:none">
   <div class="header">
     <div class="logo">ALTER<span>.</span>EGO</div>
@@ -690,7 +720,7 @@
   <!-- USER BAR -->
 <div class="user-bar" id="userBar">
   <div class="user-email" id="userEmail">—</div>
-  <div class="user-credits" id="userCredits"></div>
+  <div class="user-credits" id="userCredits" onclick="openCreditsModal()" style="cursor:pointer;text-decoration:underline" title="Buy more credits">⚡ <span id="creditCount">0</span> credits</div>
   <button class="sign-out-btn" onclick="handleSignOut()">Sign out</button>
 </div>
 
@@ -846,6 +876,11 @@ async function initAuth() {
 async function onSignedIn(user) {
   currentUser = user;
   showMainApp();
+  if (window.__pendingPayment) {
+    const sid = window.__pendingPayment;
+    window.__pendingPayment = null;
+    await handlePaymentSuccess(sid);
+  }
   document.getElementById('userBar').classList.add('visible');
   document.getElementById('userEmail').textContent = user.email;
   await loadProfile();
@@ -855,7 +890,7 @@ async function onSignedIn(user) {
 function onSignedOut() {
   currentUser = null;
   document.getElementById('userBar').classList.remove('visible');
-  document.getElementById('userCredits').textContent = '';
+  const cc = document.getElementById('creditCount'); if(cc) cc.textContent = '0';
   document.getElementById('genGallery').classList.remove('visible');
   document.getElementById('genGrid').innerHTML = '';
 }
@@ -863,7 +898,7 @@ function onSignedOut() {
 async function loadProfile() {
   const { data } = await sb.from('profiles').select('credits, total_generations').eq('id', currentUser.id).single();
   if (data) {
-    document.getElementById('userCredits').textContent = `${data.credits} credits`;
+    document.getElementById('creditCount').textContent = data.credits ?? 0;
   }
 }
 
@@ -954,6 +989,46 @@ async function handleSignUp() {
   else showMsg(msg, 'success', 'Account created! Check your email to confirm.');
 }
 
+// ── STRIPE ────────────────────────────────────────────────
+function openCreditsModal() {
+  document.getElementById('creditsModal').classList.add('open');
+}
+function closeCreditsModal() {
+  document.getElementById('creditsModal').classList.remove('open');
+}
+async function handleBuyCredits(priceId) {
+  if (!currentUser) return;
+  closeCreditsModal();
+  try {
+    const res = await fetch('/api/stripe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'create_checkout', priceId, userId: currentUser.id, userEmail: currentUser.email })
+    });
+    const data = await res.json();
+    if (data.url) { window.location.href = data.url; }
+    else { alert('Payment error: ' + (data.error || 'Unknown')); }
+  } catch(e) { alert('Payment error: ' + e.message); }
+}
+async function handlePaymentSuccess(sessionId) {
+  try {
+    const res = await fetch('/api/stripe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'verify_payment', sessionId, userId: currentUser.id })
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('creditCount').textContent = data.credits;
+      const msg = document.createElement('div');
+      msg.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#c8f05a;color:#0a0a0a;padding:12px 24px;border-radius:8px;font-family:Syne,sans-serif;font-weight:700;font-size:12px;letter-spacing:0.08em;z-index:9999';
+      msg.textContent = `✓ ${data.added} credits added!`;
+      document.body.appendChild(msg);
+      setTimeout(() => msg.remove(), 4000);
+    }
+  } catch(e) { console.error('Verify error:', e); }
+}
+
 async function handleSignOut() {
   // Clear everything locally first — never rely on signOut() succeeding
   currentUser = null;
@@ -995,6 +1070,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('appLoader').style.display = 'none';
     document.getElementById('authGate').style.display = 'flex';
     return;
+  }
+
+  // Check if returning from Stripe
+  const __params = new URLSearchParams(window.location.search);
+  if (__params.get('payment') === 'success' && __params.get('session_id')) {
+    window.__pendingPayment = __params.get('session_id');
+    window.history.replaceState({}, '', '/app/');
   }
 
   initAuth()
