@@ -3,9 +3,9 @@ import { createClient } from '@supabase/supabase-js';
 const STRIPE_SECRET = process.env.Stripe_secret_key;
 
 const CREDIT_PACKS = {
-  'price_1TXWyIHdibGBYkOdq8xDgdql': 10,
-  'price_1TXX05HdibGBYkOdW5a0H0mN': 30,
-  'price_1TXX0wHdibGBYkOddBgIC5oT': 100,
+  'price_1TXaqMHrmvKRw6joRElli2MC': 10,  // Starter
+  'price_1TXaqNHrmvKRw6joLn6joNdC': 30,  // Creator
+  'price_1TXaqNHrmvKRw6jom0yKVc4h': 100, // Pro
 };
 
 async function stripeRequest(path, method = 'GET', body = null) {
