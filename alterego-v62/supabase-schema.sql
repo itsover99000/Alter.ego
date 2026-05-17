@@ -66,3 +66,27 @@ $$ language plpgsql security definer;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- ── PAYMENTS TABLE (duplicate payment prevention) ─────────────────────────
+-- Run this migration in Supabase SQL editor
+create table public.payments (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references public.profiles(id) on delete cascade,
+  stripe_session_id text unique not null,
+  price_id text not null,
+  credits_added integer not null,
+  amount_total integer,
+  currency text,
+  created_at timestamp with time zone default timezone('utc'::text, now())
+);
+
+-- Unique constraint prevents double-processing at DB level (belt + suspenders)
+create unique index payments_stripe_session_id_idx on public.payments(stripe_session_id);
+
+-- Enable RLS (service key bypasses this, anon key cannot touch payments)
+alter table public.payments enable row level security;
+
+-- Users can view their own payment history
+create policy "Users can view own payments"
+  on public.payments for select
+  using (auth.uid() = user_id);

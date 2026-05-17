@@ -64,6 +64,26 @@ export default async function handler(req, res) {
         process.env.SUPABASE_SERVICE_KEY
       );
 
+      // ── DUPLICATE PAYMENT PREVENTION ──────────────────
+      // Check if this session_id has already been processed
+      const { data: existingPayment } = await supabase
+        .from('payments')
+        .select('id, credits_added')
+        .eq('stripe_session_id', sessionId)
+        .single();
+
+      if (existingPayment) {
+        // Already processed — return current credits without adding again
+        const { data: profile } = await supabase
+          .from('profiles').select('credits').eq('id', uid).single();
+        return res.status(200).json({
+          success: true,
+          credits: profile?.credits || 0,
+          added: 0,
+          duplicate: true
+        });
+      }
+
       const { data: profile, error: fetchErr } = await supabase
         .from('profiles').select('credits').eq('id', uid).single();
       if (fetchErr) return res.status(500).json({ error: fetchErr.message });
@@ -72,6 +92,16 @@ export default async function handler(req, res) {
       const { error: updateErr } = await supabase
         .from('profiles').update({ credits: newCredits }).eq('id', uid);
       if (updateErr) return res.status(500).json({ error: updateErr.message });
+
+      // Record payment so it can't be replayed
+      await supabase.from('payments').insert({
+        user_id: uid,
+        stripe_session_id: sessionId,
+        price_id: pid,
+        credits_added: creditsToAdd,
+        amount_total: session.amount_total,
+        currency: session.currency,
+      });
 
       return res.status(200).json({ success: true, credits: newCredits, added: creditsToAdd });
     }

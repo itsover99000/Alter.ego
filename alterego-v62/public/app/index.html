@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ALTER.EGO — AI Selfie Generator</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -922,10 +923,11 @@ function showMainApp() {
 }
 
 async function initAuth() {
-  // Detect if returning from Google OAuth (token in URL hash)
-  const isOAuthReturn = window.location.hash.includes('access_token');
+  // PKCE returns with ?code= query param (not #access_token hash)
+  const urlParams = new URLSearchParams(window.location.search);
+  const isOAuthReturn = urlParams.has('code');
 
-  // Listen for auth changes FIRST so we catch the OAuth token processing
+  // Listen for auth changes FIRST so we catch the PKCE code exchange
   sb.auth.onAuthStateChange(async (event, session) => {
     console.log('Auth event:', event, session?.user?.email);
     if (event === 'SIGNED_IN' && session?.user) {
@@ -937,7 +939,7 @@ async function initAuth() {
       if (session?.user) {
         await onSignedIn(session.user);
       } else if (!isOAuthReturn) {
-        // Only show auth gate immediately if not waiting for OAuth token
+        // Only show auth gate if not waiting for PKCE code exchange
         showAuthGate();
       }
     }
@@ -1054,7 +1056,11 @@ async function handleGoogleSignIn() {
   const { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.href,
+      redirectTo: 'https://alter-ego.photography/app/',
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'consent',
+      },
     }
   });
   if (error) {
@@ -1167,7 +1173,7 @@ function showMsg(el, type, text) {
 document.addEventListener('DOMContentLoaded', () => {
   // Nuclear fallback: if ANYTHING hangs, force show auth gate
   // Use longer timeout when returning from OAuth redirect (access_token in hash)
-  const isOAuthReturn = window.location.hash.includes('access_token');
+  const isOAuthReturn = new URLSearchParams(window.location.search).has('code');
   const fallbackTimer = setTimeout(() => {
     console.warn('Auth timeout — forcing auth gate');
     document.getElementById('appLoader').style.display = 'none';
@@ -1176,7 +1182,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }, isOAuthReturn ? 15000 : 5000);
 
   try {
-    sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: {
+        flowType: 'pkce',
+        detectSessionInUrl: true,
+        persistSession: true,
+      }
+    });
   } catch(e) {
     console.error('Supabase init failed:', e);
     clearTimeout(fallbackTimer);
