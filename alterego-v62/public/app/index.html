@@ -1161,13 +1161,15 @@ function showMsg(el, type, text) {
 
 // Init on load — wait for DOM + add hard fallback
 document.addEventListener('DOMContentLoaded', () => {
-  // Nuclear fallback: if ANYTHING hangs for 5s, force show auth gate
+  // Nuclear fallback: if ANYTHING hangs, force show auth gate
+  // Use longer timeout when returning from OAuth redirect (access_token in hash)
+  const isOAuthReturn = window.location.hash.includes('access_token');
   const fallbackTimer = setTimeout(() => {
     console.warn('Auth timeout — forcing auth gate');
     document.getElementById('appLoader').style.display = 'none';
     document.getElementById('authGate').style.display = 'flex';
     document.getElementById('mainApp').style.display = 'none';
-  }, 5000);
+  }, isOAuthReturn ? 15000 : 5000);
 
   try {
     sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
