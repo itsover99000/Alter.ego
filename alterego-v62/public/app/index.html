@@ -922,30 +922,10 @@ function showMainApp() {
 }
 
 async function initAuth() {
-  // Check for existing session FIRST before setting up listener
-  // This prevents the listener firing before we know initial state
-  try {
-    const { data: { session }, error } = await sb.auth.getSession();
-    // If session exists but is expired or invalid, sign out cleanly
-    if (error || (session && !session.user)) {
-      await sb.auth.signOut({ scope: 'local' });
-      showAuthGate();
-      return;
-    }
-    if (session?.user) {
-      await onSignedIn(session.user);
-    } else {
-      showAuthGate();
-    }
-  } catch(e) {
-    console.error('initAuth error:', e);
-    // Clear potentially corrupt session and show auth gate
-    try { await sb.auth.signOut({ scope: 'local' }); } catch {}
-    showAuthGate();
-  }
+  // Detect if returning from Google OAuth (token in URL hash)
+  const isOAuthReturn = window.location.hash.includes('access_token');
 
-  // Listen for auth changes AFTER initial check
-  // Only act on definitive events — ignore TOKEN_REFRESHED to prevent flicker
+  // Listen for auth changes FIRST so we catch the OAuth token processing
   sb.auth.onAuthStateChange(async (event, session) => {
     console.log('Auth event:', event, session?.user?.email);
     if (event === 'SIGNED_IN' && session?.user) {
@@ -953,11 +933,35 @@ async function initAuth() {
     } else if (event === 'SIGNED_OUT') {
       onSignedOut();
       showAuthGate();
-    } else if (event === 'INITIAL_SESSION' && !session?.user) {
-      showAuthGate();
+    } else if (event === 'INITIAL_SESSION') {
+      if (session?.user) {
+        await onSignedIn(session.user);
+      } else if (!isOAuthReturn) {
+        // Only show auth gate immediately if not waiting for OAuth token
+        showAuthGate();
+      }
     }
     // Deliberately ignore: TOKEN_REFRESHED, USER_UPDATED
   });
+
+  // Also check existing session for non-OAuth returns
+  if (!isOAuthReturn) {
+    try {
+      const { data: { session }, error } = await sb.auth.getSession();
+      if (error || (session && !session.user)) {
+        await sb.auth.signOut({ scope: 'local' });
+        showAuthGate();
+        return;
+      }
+      if (session?.user) {
+        await onSignedIn(session.user);
+      }
+    } catch(e) {
+      console.error('initAuth error:', e);
+      try { await sb.auth.signOut({ scope: 'local' }); } catch {}
+      showAuthGate();
+    }
+  }
 }
 
 async function onSignedIn(user) {
