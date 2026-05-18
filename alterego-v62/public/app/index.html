@@ -988,18 +988,20 @@ function onSignedOut() {
   const grid = document.getElementById('genGrid'); if(grid) grid.innerHTML = '';
 }
 
-async function loadProfile(retries = 5) {
-  for (let i = 0; i < retries; i++) {
-    const { data, error } = await sb.from('profiles').select('credits, total_generations').eq('id', currentUser.id).single();
-    if (data) {
+async function loadProfile() {
+  try {
+    const res = await fetch('/api/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: currentUser.id })
+    });
+    const data = await res.json();
+    if (data.credits !== undefined) {
       document.getElementById('creditCount').textContent = data.credits ?? 0;
-      return;
     }
-    // Profile may not exist yet for new Google OAuth users — wait and retry
-    if (i < retries - 1) await new Promise(r => setTimeout(r, 1500));
+  } catch(e) {
+    console.error('loadProfile error:', e);
   }
-  // If still no profile after retries, show 0 (profile trigger may have failed)
-  document.getElementById('creditCount').textContent = '0';
 }
 
 async function loadGenerations() {
