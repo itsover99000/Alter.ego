@@ -1650,38 +1650,46 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
     img.style.cssText = 'width:100%;display:block;border-radius:10px';
     imageContainer.appendChild(img);
 
-    // Deduct credit if logged in
-    if (currentUser) {
-      const { data: profile } = await sb.from('profiles').select('credits').eq('id', currentUser.id).single();
-      if (profile && profile.credits > 0) {
-        await sb.from('profiles').update({ 
-          credits: profile.credits - 1,
-          total_generations: (profile.total_generations || 0) + 1
-        }).eq('id', currentUser.id);
-        await loadProfile();
-      }
-    }
+    // Show save row IMMEDIATELY — never block on credit deduction or blob fetch
+    const isr = document.getElementById('imageSaveRow');
+    isr.style.display = 'block';
+    document.getElementById('imageArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    // Save to Supabase if logged in
-    saveGeneration(imageUrl, selectedStyle, generatedPrompt, 
-      document.querySelector('.analysis-card-value')?.textContent || '',
-      document.querySelectorAll('.analysis-card-value')[1]?.textContent || '',
-      document.querySelectorAll('.analysis-card-value')[2]?.textContent || ''
-    ).catch(() => {});
-
-    // Force download by fetching as blob
+    // Force download link — best effort blob, fallback to direct URL
     const dl = document.getElementById('imageDownload');
-    try {
-      const imgResp = await fetch(imageUrl);
-      const blob = await imgResp.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      dl.href = blobUrl;
+    fetch(imageUrl).then(r => r.blob()).then(blob => {
+      dl.href = URL.createObjectURL(blob);
       dl.download = 'alter-ego-' + Date.now() + '.png';
-    } catch {
+    }).catch(() => {
       dl.href = imageUrl;
       dl.download = 'alter-ego.png';
+    });
+
+    // Deduct credit + save generation — fire and forget, never block UI
+    if (currentUser) {
+      (async () => {
+        try {
+          const res = await fetch('/api/profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: currentUser.id })
+          });
+          const profile = await res.json();
+          if (profile && profile.credits > 0) {
+            await sb.from('profiles').update({
+              credits: profile.credits - 1,
+              total_generations: (profile.total_generations || 0) + 1
+            }).eq('id', currentUser.id);
+            await loadProfile();
+          }
+        } catch(e) { console.error('credit deduct error:', e); }
+      })();
+      saveGeneration(imageUrl, selectedStyle, generatedPrompt,
+        document.querySelector('.ac-value')?.textContent || '',
+        document.querySelectorAll('.ac-value')[1]?.textContent || '',
+        document.querySelectorAll('.ac-value')[2]?.textContent || ''
+      ).catch(() => {});
     }
-    const isr = document.getElementById('imageSaveRow'); isr.style.display = 'block';
 
   } catch (err) {
     imageLoading.style.display = 'none';
