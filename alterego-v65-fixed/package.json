@@ -1,0 +1,11 @@
+{
+  "name": "alter-ego",
+  "version": "1.0.0",
+  "description": "ALTER.EGO — AI Selfie Generator",
+  "engines": {
+    "node": "24.x"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.0.0"
+  }
+}
