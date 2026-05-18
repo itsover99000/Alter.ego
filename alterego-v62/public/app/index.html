@@ -1518,7 +1518,7 @@ For all other styles: Describe the style, cut, colour and fabric of clothing onl
       if (response.status === 401) throw new Error('Invalid API key. Check your key at console.anthropic.com');
       if ((response.status === 529 || response.status === 500) && i < retries - 1) {
         console.log(`API overloaded, retrying in ${delay/1000}s... (attempt ${i+1}/${retries})`);
-        analyseBtn.textContent = `⏳ Retrying... (${i+1}/${retries})`;
+        generateBtn.textContent = `⏳ Retrying... (${i+1}/${retries})`;
         await new Promise(r => setTimeout(r, delay));
         delay *= 1.5; // back off each retry
         continue;
