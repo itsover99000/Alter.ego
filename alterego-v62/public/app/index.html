@@ -926,10 +926,6 @@ async function initAuth() {
   // PKCE returns with ?code= query param (not #access_token hash)
   const urlParams = new URLSearchParams(window.location.search);
   const isOAuthReturn = urlParams.has('code');
-  // Clean the URL immediately so ?code= doesn't linger after auth
-  if (isOAuthReturn) {
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }
 
   // Listen for auth changes FIRST so we catch the PKCE code exchange
   sb.auth.onAuthStateChange(async (event, session) => {
