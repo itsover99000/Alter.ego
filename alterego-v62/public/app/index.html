@@ -1155,25 +1155,21 @@ async function handlePaymentSuccess(sessionId) {
   } catch(e) { console.error('Verify error:', e); }
 }
 
-async function handleSignOut() {
-  // Clear all local state first
+// NOTE: this must NOT be async — await sb.auth.signOut() hangs when ?code= is in URL
+// causing the redirect to never fire. Always fire-and-forget signOut then redirect immediately.
+function handleSignOut() {
   currentUser = null;
-  // Wipe all supabase keys from localStorage
+  // Wipe localStorage
   Object.keys(localStorage).forEach(key => {
-    if (key.startsWith('sb-') || key.includes('supabase')) {
-      localStorage.removeItem(key);
-    }
+    if (key.startsWith('sb-') || key.includes('supabase')) localStorage.removeItem(key);
   });
-  // Wipe sessionStorage too (PKCE verifier lives here)
+  // Wipe sessionStorage (PKCE verifier lives here)
   Object.keys(sessionStorage).forEach(key => {
-    if (key.startsWith('sb-') || key.includes('supabase') || key.includes('pkce')) {
-      sessionStorage.removeItem(key);
-    }
+    if (key.startsWith('sb-') || key.includes('supabase') || key.includes('pkce')) sessionStorage.removeItem(key);
   });
-  // Tell Supabase to sign out (best effort)
-  try { await sb.auth.signOut({ scope: 'local' }); } catch(e) { console.log('signout error', e); }
-  // Force hard navigation away — breaks any PKCE redirect loop
-  window.location.href = 'https://alter-ego.photography/?bye=1';
+  // Fire signOut but do NOT await it — redirect immediately
+  try { sb.auth.signOut({ scope: 'local' }); } catch(e) {}
+  window.location.href = 'https://alter-ego.photography/';
 }
 
 
