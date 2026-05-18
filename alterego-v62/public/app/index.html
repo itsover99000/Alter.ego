@@ -1172,8 +1172,9 @@ async function handleSignOut() {
   });
   // Tell Supabase to sign out (best effort)
   try { await sb.auth.signOut({ scope: 'local' }); } catch(e) { console.log('signout error', e); }
-  // Hard redirect to landing — replace clears history so back button won't re-auth
-  window.location.href = '/?signedout=1';
+  // Clear URL params then reload to landing
+  window.history.replaceState({}, document.title, '/');
+  window.location.replace('/');
 }
 
 
