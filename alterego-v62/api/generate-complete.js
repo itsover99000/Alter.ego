@@ -14,20 +14,17 @@ export default async function handler(req, res) {
     process.env.SUPABASE_SERVICE_KEY
   );
 
-  // Get current credits
   const { data: profile } = await supabase
     .from('profiles').select('credits, total_generations').eq('id', userId).single();
 
   if (!profile) return res.status(404).json({ error: 'Profile not found' });
   if (profile.credits <= 0) return res.status(402).json({ error: 'No credits' });
 
-  // Deduct credit
   await supabase.from('profiles').update({
     credits: profile.credits - 1,
     total_generations: (profile.total_generations || 0) + 1
   }).eq('id', userId);
 
-  // Save generation
   await supabase.from('generations').insert({
     user_id: userId,
     image_url: imageUrl,
