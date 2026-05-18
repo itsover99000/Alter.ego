@@ -1172,9 +1172,8 @@ async function handleSignOut() {
   });
   // Tell Supabase to sign out (best effort)
   try { await sb.auth.signOut({ scope: 'local' }); } catch(e) { console.log('signout error', e); }
-  // Clear URL params then reload to landing
-  window.history.replaceState({}, document.title, '/');
-  window.location.replace('/');
+  // Force hard navigation away — breaks any PKCE redirect loop
+  window.location.href = 'https://alter-ego.photography/?bye=1';
 }
 
 
