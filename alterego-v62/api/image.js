@@ -1,3 +1,5 @@
+import { createClient } from '@supabase/supabase-js';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -10,7 +12,20 @@ export default async function handler(req, res) {
   if (!falKey) return res.status(500).json({ error: { message: 'Fal API key not configured' } });
 
   try {
-    const { prompt, imageBase64, mediaType, style } = req.body;
+    const { prompt, imageBase64, mediaType, style, userId } = req.body;
+
+    // ── CREDIT CHECK BEFORE GENERATION ──────────────────────────────
+    if (userId) {
+      const supabase = createClient(
+        process.env.SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_KEY
+      );
+      const { data: profile } = await supabase
+        .from('profiles').select('credits').eq('id', userId).single();
+      if (!profile || profile.credits <= 0) {
+        return res.status(402).json({ error: { message: 'No credits remaining. Please purchase more to continue.' } });
+      }
+    }
     const imageDataUrl = imageBase64 ? `data:${mediaType || 'image/jpeg'};base64,${imageBase64}` : null;
 
     const skinDetail = 'natural skin texture, visible pores, subtle skin imperfections, film grain on skin, NOT smooth, NOT airbrushed, NOT plastic skin';

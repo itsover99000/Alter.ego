@@ -926,6 +926,7 @@ async function initAuth() {
   // PKCE returns with ?code= query param (not #access_token hash)
   const urlParams = new URLSearchParams(window.location.search);
   const isOAuthReturn = urlParams.has('code');
+  // NOTE: do NOT replaceState here to clean ?code= — Supabase needs it for PKCE exchange
 
   // Listen for auth changes FIRST so we catch the PKCE code exchange
   sb.auth.onAuthStateChange(async (event, session) => {
@@ -1044,22 +1045,8 @@ function reuseGeneration(url, style) {
   document.getElementById('imageArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-async function saveGeneration(imageUrl, style, prompt, mood, lighting, features) {
-  if (!currentUser) return;
-  await sb.from('generations').insert({
-    user_id: currentUser.id,
-    image_url: imageUrl,
-    style: style,
-    prompt: prompt,
-    mood: mood,
-    lighting: lighting,
-    features: features
-  });
-  // Update total generations count
-  await sb.rpc('increment_generations', { user_id: currentUser.id }).catch(() => {});
-  await loadGenerations();
-  await loadProfile();
-}
+// saveGeneration is handled server-side by /api/generate-complete (bypasses RLS)
+async function saveGeneration() { return; }
 
 // Auth functions
 function switchTab(tab) {
@@ -1518,7 +1505,7 @@ For all other styles: Describe the style, cut, colour and fabric of clothing onl
       if (response.status === 401) throw new Error('Invalid API key. Check your key at console.anthropic.com');
       if ((response.status === 529 || response.status === 500) && i < retries - 1) {
         console.log(`API overloaded, retrying in ${delay/1000}s... (attempt ${i+1}/${retries})`);
-        generateBtn.textContent = `⏳ Retrying... (${i+1}/${retries})`;
+        analyseBtn.textContent = `⏳ Retrying... (${i+1}/${retries})`;
         await new Promise(r => setTimeout(r, delay));
         delay *= 1.5; // back off each retry
         continue;
@@ -1645,7 +1632,8 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
         prompt: document.getElementById('promptBox').value || generatedPrompt,
         imageBase64: uploadedImageBase64,
         mediaType: uploadedMediaType,
-        style: selectedStyle
+        style: selectedStyle,
+        userId: currentUser?.id || null
       })
     });
 
