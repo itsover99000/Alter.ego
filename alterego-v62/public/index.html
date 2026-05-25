@@ -435,8 +435,9 @@ nav {
 /* World stage — full-width immersive panel */
 .worlds-stage {
   position: relative;
-  height: 70vh;
-  min-height: 500px;
+  height: 56vh;
+  min-height: 420px;
+  max-height: 640px;
   overflow: hidden;
 }
 .world-slide {
@@ -449,9 +450,9 @@ nav {
 .world-slide img {
   width: 100%; height: 100%;
   object-fit: cover;
-  object-position: center top;
+  object-position: center 20%;
   display: block;
-  filter: brightness(0.65);
+  filter: brightness(0.72);
 }
 .world-slide-overlay {
   position: absolute;
@@ -1131,8 +1132,13 @@ function goTo(n) {
   current = n;
   slides[current].classList.add('active');
   pills[current].classList.add('active');
-  // Scroll pill into view
-  pills[current].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  // Scroll only within the nav strip — never the page
+  const nav = document.querySelector('.worlds-nav');
+  const pill = pills[current];
+  const pillLeft = pill.offsetLeft;
+  const pillWidth = pill.offsetWidth;
+  const navWidth = nav.offsetWidth;
+  nav.scrollLeft = pillLeft - (navWidth / 2) + (pillWidth / 2);
 }
 
 function next() { goTo((current + 1) % slides.length); }
