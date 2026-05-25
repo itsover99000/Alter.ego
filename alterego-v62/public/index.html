@@ -432,72 +432,84 @@ nav {
 }
 .sec-title em { font-style: italic; color: var(--accent); }
 
-/* World stage — full-width immersive panel */
+/* World stage — split portrait layout */
 .worlds-stage {
   position: relative;
-  height: 56vh;
-  min-height: 420px;
-  max-height: 640px;
+  padding: 0 40px 0;
   overflow: hidden;
+}
+.worlds-stage-inner {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 0;
+  align-items: stretch;
+  min-height: 560px;
+  position: relative;
+}
+.worlds-img-col {
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 .world-slide {
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity 0.8s ease;
+  transition: opacity 0.7s ease;
 }
 .world-slide.active { opacity: 1; }
 .world-slide img {
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  object-position: center 20%;
+  object-position: center top;
   display: block;
-  filter: brightness(0.72);
 }
-.world-slide-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(10,10,10,0.95) 0%,
-    rgba(10,10,10,0.4) 40%,
-    rgba(10,10,10,0.1) 100%
-  );
-}
-.world-slide-content {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  padding: 40px 52px;
+.worlds-content-col {
+  position: relative;
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 52px 52px 52px 56px;
+  background: linear-gradient(to right, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.4) 60%, transparent 100%);
+  border-left: 0.5px solid rgba(245,243,238,0.06);
+}
+.world-content-item {
+  display: none;
+  flex-direction: column;
+  gap: 20px;
+}
+.world-content-item.active { display: flex; }
+.world-slide-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 100px;
+  font-weight: 900;
+  color: rgba(245,243,238,0.04);
+  line-height: 1;
+  user-select: none;
+  margin-bottom: -16px;
 }
 .world-slide-name {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(40px, 5vw, 72px);
+  font-size: clamp(44px, 5.5vw, 80px);
   font-weight: 900;
   font-style: italic;
   color: var(--white);
-  line-height: 1;
+  line-height: 0.95;
 }
 .world-slide-desc {
   font-size: 11px;
   letter-spacing: 0.04em;
-  color: rgba(245,243,238,0.45);
-  max-width: 280px;
-  text-align: right;
-  line-height: 1.7;
+  color: rgba(245,243,238,0.4);
+  max-width: 320px;
+  line-height: 1.8;
 }
-.world-slide-num {
-  position: absolute;
-  top: 32px; right: 52px;
-  font-family: 'Playfair Display', serif;
-  font-size: 120px;
-  font-weight: 900;
-  color: rgba(245,243,238,0.04);
-  line-height: 1;
-  pointer-events: none;
-  user-select: none;
+.world-slide-tag {
+  font-size: 8px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-top: 8px;
 }
 
 /* World nav dots + style name pills */
@@ -757,11 +769,18 @@ footer {
 
   /* Worlds */
   .worlds-header { padding: 48px 20px 28px; flex-direction: column; align-items: flex-start; gap: 12px; }
-  .worlds-stage { height: 55vh; min-height: 380px; }
-  .world-slide-content { padding: 24px; flex-direction: column; align-items: flex-start; gap: 8px; }
-  .world-slide-name { font-size: clamp(32px, 8vw, 52px); }
-  .world-slide-desc { text-align: left; max-width: 100%; font-size: 10px; }
-  .world-slide-num { font-size: 72px; top: 16px; right: 16px; }
+  .worlds-stage { padding: 0; }
+  .worlds-stage-inner { grid-template-columns: 1fr; min-height: auto; }
+  .worlds-img-col { height: 65vw; min-height: 280px; max-height: 420px; position: relative; }
+  .worlds-content-col {
+    padding: 28px 20px 32px;
+    background: var(--black);
+    border-left: none;
+    border-top: 0.5px solid rgba(245,243,238,0.06);
+  }
+  .world-slide-num { font-size: 56px; }
+  .world-slide-name { font-size: clamp(36px, 10vw, 52px); }
+  .world-slide-desc { font-size: 11px; max-width: 100%; }
   .worlds-nav { padding: 16px 20px 28px; gap: 0; }
   .world-pill { padding: 6px 12px; font-size: 8px; }
 
@@ -897,151 +916,50 @@ footer {
     <a href="/app/" class="worlds-cta-link">Explore all styles →</a>
   </div>
 
-  <!-- Full-width world stage -->
+  <!-- Split portrait world stage -->
   <div class="worlds-stage">
-    <div class="world-slide active" data-index="0">
-      <img src="/images/cinematic_Girl_Model.png" alt="Cinematic">
-      <div class="world-slide-overlay"></div>
-      <div class="world-slide-num">01</div>
-      <div class="world-slide-content">
-        <div class="world-slide-name">Cinematic</div>
-        <div class="world-slide-desc">35mm film. Golden hour. Anamorphic lens. Kodak grain.</div>
+    <div class="worlds-stage-inner">
+
+      <!-- Left: portrait image column -->
+      <div class="worlds-img-col" id="worldsImgCol">
+        <div class="world-slide active" data-index="0"><img src="/images/cinematic_Girl_Model.png" alt="Cinematic"></div>
+        <div class="world-slide" data-index="1"><img src="/images/campaign-yellow.png" alt="Cover"></div>
+        <div class="world-slide" data-index="2"><img src="/images/cyberpunk-neon.jpg" alt="Cyberpunk"></div>
+        <div class="world-slide" data-index="3"><img src="/images/anime-golden.jpg" alt="Anime"></div>
+        <div class="world-slide" data-index="4"><img src="/images/PAINTERLY_man_in_study.png" alt="Painterly"></div>
+        <div class="world-slide" data-index="5"><img src="/images/campaign-red.png" alt="Campaign"></div>
+        <div class="world-slide" data-index="6"><img src="/images/sci-fi_man_in_Desert.png" alt="Sci-Fi"></div>
+        <div class="world-slide" data-index="7"><img src="/images/STREETWEAR_MALE_MODEL_BEANIE.png" alt="Streetwear"></div>
+        <div class="world-slide" data-index="8"><img src="/images/HEADSHOT_girl_Model.png" alt="Headshot"></div>
+        <div class="world-slide" data-index="9"><img src="/images/Headshot_fashionBW.png" alt="Glamour"></div>
+        <div class="world-slide" data-index="10"><img src="/images/acotar-fire.png" alt="Acotar"></div>
+        <div class="world-slide" data-index="11"><img src="/images/athlete-soccer.png" alt="Athlete"></div>
+        <div class="world-slide" data-index="12"><img src="/images/warhol-quad-2.png" alt="Warhol"></div>
+        <div class="world-slide" data-index="13"><img src="/images/riviera-yacht.png" alt="Riviera"></div>
+        <div class="world-slide" data-index="14"><img src="/images/bohemian.png" alt="Bohemian"></div>
+        <div class="world-slide" data-index="15"><img src="/images/sovereign-gold-purple.png" alt="Sovereign"></div>
       </div>
-    </div>
-    <div class="world-slide" data-index="1">
-      <img src="/images/campaign-yellow.png" alt="Cover">
-      <div class="world-slide-overlay"></div>
-      <div class="world-slide-num">02</div>
-      <div class="world-slide-content">
-        <div class="world-slide-name">Cover</div>
-        <div class="world-slide-desc">Vogue. Elle. GQ. Magazine cover quality, studio-lit perfection.</div>
+
+      <!-- Right: content column -->
+      <div class="worlds-content-col" id="worldsContentCol">
+        <div class="world-content-item active"><div class="world-slide-num">01</div><div class="world-slide-name">Cinematic</div><div class="world-slide-desc">35mm film. Golden hour. Anamorphic lens. Kodak grain.</div><div class="world-slide-tag">✦ Style direction</div></div>
+        <div class="world-content-item"><div class="world-slide-num">02</div><div class="world-slide-name">Cover</div><div class="world-slide-desc">Vogue. Elle. GQ. Magazine cover quality, studio-lit perfection.</div><div class="world-slide-tag">✦ Style direction</div></div>
+        <div class="world-content-item"><div class="world-slide-num">03</div><div class="world-slide-name">Cyberpunk</div><div class="world-slide-desc">Blade Runner nights. Neon reflections. Electric colour.</div><div class="world-slide-tag">✦ Style direction</div></div>
+        <div class="world-content-item"><div class="world-slide-num">04</div><div class="world-slide-name">Anime</div><div class="world-slide-desc">Ghibli meets cyberpunk. Cel-shaded. Detailed linework.</div><div class="world-slide-tag">✦ Style direction</div></div>
+        <div class="world-content-item"><div class="world-slide-num">05</div><div class="world-slide-name">Painterly</div><div class="world-slide-desc">Old Masters. Rembrandt light. Museum-quality texture.</div><div class="world-slide-tag">✦ Style direction</div></div>
+        <div class="world-content-item"><div class="world-slide-num">06</div><div class="world-slide-name">Campaign</div><div class="world-slide-desc">Luxury fashion campaigns. Architectural sets. Power dressing.</div><div class="world-slide-tag">✦ Style direction</div></div>
+        <div class="world-content-item"><div class="world-slide-num">07</div><div class="world-slide-name">Sci-Fi</div><div class="world-slide-desc">Deep space. Holographic armour. Epic cosmic scale.</div><div class="world-slide-tag">✦ Style direction</div></div>
+        <div class="world-content-item"><div class="world-slide-num">08</div><div class="world-slide-name">Streetwear</div><div class="world-slide-desc">Urban rooftops. Golden hour. Raw candid energy.</div><div class="world-slide-tag">✦ Style direction</div></div>
+        <div class="world-content-item"><div class="world-slide-num">09</div><div class="world-slide-name">Headshot</div><div class="world-slide-desc">Executive presence. Studio lighting. LinkedIn-ready polish.</div><div class="world-slide-tag">✦ Style direction</div></div>
+        <div class="world-content-item"><div class="world-slide-num">10</div><div class="world-slide-name">Glamour</div><div class="world-slide-desc">Old Hollywood. Smouldering intensity. Black and white drama.</div><div class="world-slide-tag">✦ Style direction</div></div>
+        <div class="world-content-item"><div class="world-slide-num">11</div><div class="world-slide-name">Acotar</div><div class="world-slide-desc">Illyrian battle leathers. Twin moons. Fae court power.</div><div class="world-slide-tag">✦ Style direction</div></div>
+        <div class="world-content-item"><div class="world-slide-num">12</div><div class="world-slide-name">Athlete</div><div class="world-slide-desc">Stadium lights. Championship energy. Sports campaign quality.</div><div class="world-slide-tag">✦ Style direction</div></div>
+        <div class="world-content-item"><div class="world-slide-num">13</div><div class="world-slide-name">Warhol</div><div class="world-slide-desc">Bold silkscreen. Factory pop art. Four-panel iconic treatment.</div><div class="world-slide-tag">✦ Style direction</div></div>
+        <div class="world-content-item"><div class="world-slide-num">14</div><div class="world-slide-name">Riviera</div><div class="world-slide-desc">Portofino harbour. Slim Aarons leisure. Kodachrome pastels.</div><div class="world-slide-tag">✦ Style direction</div></div>
+        <div class="world-content-item"><div class="world-slide-num">15</div><div class="world-slide-name">Bohemian</div><div class="world-slide-desc">Wildflower meadows. 1970s free spirit. Sun-soaked analogue.</div><div class="world-slide-tag">✦ Style direction</div></div>
+        <div class="world-content-item"><div class="world-slide-num">16</div><div class="world-slide-name">Sovereign</div><div class="world-slide-desc">Royal courts. Velvet and gold. Van Dyck portrait authority.</div><div class="world-slide-tag">✦ Style direction</div></div>
       </div>
-    </div>
-    <div class="world-slide" data-index="2">
-      <img src="/images/cyberpunk-neon.jpg" alt="Cyberpunk">
-      <div class="world-slide-overlay"></div>
-      <div class="world-slide-num">03</div>
-      <div class="world-slide-content">
-        <div class="world-slide-name">Cyberpunk</div>
-        <div class="world-slide-desc">Blade Runner nights. Neon reflections. Electric colour.</div>
-      </div>
-    </div>
-    <div class="world-slide" data-index="3">
-      <img src="/images/anime-golden.jpg" alt="Anime">
-      <div class="world-slide-overlay"></div>
-      <div class="world-slide-num">04</div>
-      <div class="world-slide-content">
-        <div class="world-slide-name">Anime</div>
-        <div class="world-slide-desc">Ghibli meets cyberpunk. Cel-shaded. Detailed linework.</div>
-      </div>
-    </div>
-    <div class="world-slide" data-index="4">
-      <img src="/images/PAINTERLY_man_in_study.png" alt="Painterly">
-      <div class="world-slide-overlay"></div>
-      <div class="world-slide-num">05</div>
-      <div class="world-slide-content">
-        <div class="world-slide-name">Painterly</div>
-        <div class="world-slide-desc">Old Masters. Rembrandt light. Museum-quality texture.</div>
-      </div>
-    </div>
-    <div class="world-slide" data-index="5">
-      <img src="/images/campaign-red.png" alt="Campaign">
-      <div class="world-slide-overlay"></div>
-      <div class="world-slide-num">06</div>
-      <div class="world-slide-content">
-        <div class="world-slide-name">Campaign</div>
-        <div class="world-slide-desc">Luxury fashion campaigns. Architectural sets. Power dressing.</div>
-      </div>
-    </div>
-    <div class="world-slide" data-index="6">
-      <img src="/images/sci-fi_man_in_Desert.png" alt="Sci-Fi">
-      <div class="world-slide-overlay"></div>
-      <div class="world-slide-num">07</div>
-      <div class="world-slide-content">
-        <div class="world-slide-name">Sci-Fi</div>
-        <div class="world-slide-desc">Deep space. Holographic armour. Epic cosmic scale.</div>
-      </div>
-    </div>
-    <div class="world-slide" data-index="7">
-      <img src="/images/STREETWEAR_MALE_MODEL_BEANIE.png" alt="Streetwear">
-      <div class="world-slide-overlay"></div>
-      <div class="world-slide-num">08</div>
-      <div class="world-slide-content">
-        <div class="world-slide-name">Streetwear</div>
-        <div class="world-slide-desc">Urban rooftops. Golden hour. Raw candid energy.</div>
-      </div>
-    </div>
-    <div class="world-slide" data-index="8">
-      <img src="/images/HEADSHOT_girl_Model.png" alt="Headshot">
-      <div class="world-slide-overlay"></div>
-      <div class="world-slide-num">09</div>
-      <div class="world-slide-content">
-        <div class="world-slide-name">Headshot</div>
-        <div class="world-slide-desc">Executive presence. Studio lighting. LinkedIn-ready polish.</div>
-      </div>
-    </div>
-    <div class="world-slide" data-index="9">
-      <img src="/images/Headshot_fashionBW.png" alt="Glamour">
-      <div class="world-slide-overlay"></div>
-      <div class="world-slide-num">10</div>
-      <div class="world-slide-content">
-        <div class="world-slide-name">Glamour</div>
-        <div class="world-slide-desc">Old Hollywood. Smouldering intensity. Black and white drama.</div>
-      </div>
-    </div>
-    <div class="world-slide" data-index="10">
-      <img src="/images/acotar-fire.png" alt="Acotar">
-      <div class="world-slide-overlay"></div>
-      <div class="world-slide-num">11</div>
-      <div class="world-slide-content">
-        <div class="world-slide-name">Acotar</div>
-        <div class="world-slide-desc">Illyrian battle leathers. Twin moons. Fae court power.</div>
-      </div>
-    </div>
-    <div class="world-slide" data-index="11">
-      <img src="/images/athlete-soccer.png" alt="Athlete">
-      <div class="world-slide-overlay"></div>
-      <div class="world-slide-num">12</div>
-      <div class="world-slide-content">
-        <div class="world-slide-name">Athlete</div>
-        <div class="world-slide-desc">Stadium lights. Championship energy. Sports campaign quality.</div>
-      </div>
-    </div>
-    <div class="world-slide" data-index="12">
-      <img src="/images/warhol-quad-2.png" alt="Warhol">
-      <div class="world-slide-overlay"></div>
-      <div class="world-slide-num">13</div>
-      <div class="world-slide-content">
-        <div class="world-slide-name">Warhol</div>
-        <div class="world-slide-desc">Bold silkscreen. Factory pop art. Four-panel iconic treatment.</div>
-      </div>
-    </div>
-    <div class="world-slide" data-index="13">
-      <img src="/images/riviera-yacht.png" alt="Riviera">
-      <div class="world-slide-overlay"></div>
-      <div class="world-slide-num">14</div>
-      <div class="world-slide-content">
-        <div class="world-slide-name">Riviera</div>
-        <div class="world-slide-desc">Portofino harbour. Slim Aarons leisure. Kodachrome pastels.</div>
-      </div>
-    </div>
-    <div class="world-slide" data-index="14">
-      <img src="/images/bohemian.png" alt="Bohemian">
-      <div class="world-slide-overlay"></div>
-      <div class="world-slide-num">15</div>
-      <div class="world-slide-content">
-        <div class="world-slide-name">Bohemian</div>
-        <div class="world-slide-desc">Wildflower meadows. 1970s free spirit. Sun-soaked analogue.</div>
-      </div>
-    </div>
-    <div class="world-slide" data-index="15">
-      <img src="/images/sovereign-gold-purple.png" alt="Sovereign">
-      <div class="world-slide-overlay"></div>
-      <div class="world-slide-num">16</div>
-      <div class="world-slide-content">
-        <div class="world-slide-name">Sovereign</div>
-        <div class="world-slide-desc">Royal courts. Velvet and gold. Van Dyck portrait authority.</div>
-      </div>
+
     </div>
   </div>
 
@@ -1121,24 +1039,24 @@ footer {
 
 <script>
 // ══ WORLDS CYCLING ══
-const slides = document.querySelectorAll('.world-slide');
-const pills  = document.querySelectorAll('.world-pill');
-let current  = 0;
-let timer    = null;
+const slides   = document.querySelectorAll('.worlds-img-col .world-slide');
+const contents = document.querySelectorAll('.world-content-item');
+const pills    = document.querySelectorAll('.world-pill');
+let current    = 0;
+let timer      = null;
 
 function goTo(n) {
   slides[current].classList.remove('active');
+  contents[current].classList.remove('active');
   pills[current].classList.remove('active');
   current = n;
   slides[current].classList.add('active');
+  contents[current].classList.add('active');
   pills[current].classList.add('active');
   // Scroll only within the nav strip — never the page
   const nav = document.querySelector('.worlds-nav');
   const pill = pills[current];
-  const pillLeft = pill.offsetLeft;
-  const pillWidth = pill.offsetWidth;
-  const navWidth = nav.offsetWidth;
-  nav.scrollLeft = pillLeft - (navWidth / 2) + (pillWidth / 2);
+  nav.scrollLeft = pill.offsetLeft - (nav.offsetWidth / 2) + (pill.offsetWidth / 2);
 }
 
 function next() { goTo((current + 1) % slides.length); }
