@@ -999,7 +999,7 @@ if (window.innerWidth > 768) {
   window.addEventListener('scroll', () => {
     const y = window.scrollY;
     if (portrait && y < window.innerHeight) {
-      portrait.style.transform = `translateX(42%) translateY(${y * 0.1}px)`;
+      portrait.style.transform = `translateY(${y * 0.1}px)`;
     }
   }, { passive: true });
 }
