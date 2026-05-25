@@ -333,12 +333,12 @@ nav {
   position: absolute;
   inset: 0;
   background-size: cover;
-  background-position: center;
+  background-position: center top;
   opacity: 0;
   transition: opacity 0.4s;
   z-index: 0;
 }
-.s-card:hover::before { opacity: 1; }
+.s-card:hover::before { opacity: 0.85; }
 .s-card:hover { background: var(--black); }
 .s-card:hover .s-name, .s-card:hover .s-num { color: var(--white); }
 .s-card:hover .s-desc { color: rgba(245,243,238,0.4); }
@@ -898,7 +898,7 @@ footer {
     <div class="s-card" style="--world-bg:url('/images/campaign-red.png')"><div class="s-num">02</div><span class="s-emoji">📸</span><div class="s-name">Cover</div><p class="s-desc">Vogue. Elle. GQ. Magazine cover quality.</p></div>
     <div class="s-card" style="--world-bg:url('/images/cyberpunk-neon.jpg')"><div class="s-num">03</div><span class="s-emoji">⚡</span><div class="s-name">Cyberpunk</div><p class="s-desc">Blade Runner nights. Neon reflections.</p></div>
     <div class="s-card" style="--world-bg:url('/images/anime-golden.jpg')"><div class="s-num">04</div><span class="s-emoji">🌸</span><div class="s-name">Anime</div><p class="s-desc">Ghibli meets cyberpunk. Cel-shaded.</p></div>
-    <div class="s-card" style="--world-bg:url('/images/glamour-bw.png')><div class="s-num">05</div><span class="s-emoji">🎨</span><div class="s-name">Painterly</div><p class="s-desc">Old Masters. Rembrandt light.</p></div>
+    <div class="s-card" style="--world-bg:url('/images/glamour-bw.png')"><div class="s-num">05</div><span class="s-emoji">🎨</span><div class="s-name">Painterly</div><p class="s-desc">Old Masters. Rembrandt light.</p></div>
     <div class="s-card" style="--world-bg:url('/images/campaign-red.png')"><div class="s-num">06</div><span class="s-emoji">✦</span><div class="s-name">Campaign</div><p class="s-desc">Luxury fashion campaigns. Power dressing.</p></div>
     <div class="s-card" style="--world-bg:url('/images/cyberpunk-green.png')"><div class="s-num">07</div><span class="s-emoji">🚀</span><div class="s-name">Sci-Fi</div><p class="s-desc">Deep space. Holographic armour.</p></div>
     <div class="s-card" style="--world-bg:url('/images/MSSmdbcC_vWu36DxFqN3-.png')"><div class="s-num">08</div><span class="s-emoji">🔥</span><div class="s-name">Streetwear</div><p class="s-desc">Urban rooftops. Golden hour. Raw energy.</p></div>
@@ -988,9 +988,18 @@ const styleCardBgs = [
 ];
 const styleEl = document.createElement('style');
 styleCardBgs.forEach((bg, i) => {
-  styleEl.textContent += `.styles-grid .s-card:nth-child(${i+1})::before { background-image: url('${bg}'); }`;
+  styleEl.textContent += `.styles-grid .s-card:nth-child(${i+1})::before { background-image: url('${bg}') !important; }`;
 });
 document.head.appendChild(styleEl);
+
+// Also set background directly on mobile cards
+document.querySelectorAll('.styles-grid .s-card').forEach((card, i) => {
+  if (styleCardBgs[i]) {
+    card.style.backgroundImage = `url('${styleCardBgs[i]}')`;
+    card.style.backgroundSize = 'cover';
+    card.style.backgroundPosition = 'center top';
+  }
+});
 
 // Scroll reveal
 const obs = new IntersectionObserver(entries => {
