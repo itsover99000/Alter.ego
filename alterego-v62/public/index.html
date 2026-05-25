@@ -73,8 +73,8 @@ nav {
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-auto-rows: calc(100vh / 3);
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: calc(100vh / 2);
   gap: 2px;
   z-index: 0;
 }
@@ -745,15 +745,14 @@ footer {
   <!-- Background gallery grid (desktop only) -->
   <div class="hero-right">
     <!-- Slot names: rename any file to lp-hero-grid-N.jpg to swap -->
-    <div class="hg-item"><img src="/images/acotar-fire.png" alt="Acotar"><div class="hg-label">Acotar</div></div>
-    <div class="hg-item"><img src="/images/cyberpunk-neon.jpg" alt="Cyberpunk"><div class="hg-label">Cyberpunk</div></div>
     <div class="hg-item"><img src="/images/sovereign-king.png" alt="Sovereign"><div class="hg-label">Sovereign</div></div>
-    <div class="hg-item"><img src="/images/warhol-quad-2.png" alt="Warhol"><div class="hg-label">Warhol</div></div>
-    <div class="hg-item"><img src="/images/campaign-red.png" alt="Campaign"><div class="hg-label">Campaign</div></div>
-    <div class="hg-item"><img src="/images/glamour-bw.png" alt="Glamour"><div class="hg-label">Glamour</div></div>
+    <div class="hg-item"><img src="/images/cyberpunk-neon.jpg" alt="Cyberpunk"><div class="hg-label">Cyberpunk</div></div>
+    <div class="hg-item"><img src="/images/alter-ego-1778884630965.png" alt="Cover"><div class="hg-label">Cover</div></div>
     <div class="hg-item"><img src="/images/anime-golden.jpg" alt="Anime"><div class="hg-label">Anime</div></div>
-    <div class="hg-item"><img src="/images/bohemian.png" alt="Bohemian"><div class="hg-label">Bohemian</div></div>
-    <div class="hg-item"><img src="/images/cinematic-window.png" alt="Cinematic"><div class="hg-label">Cinematic</div></div>
+    <div class="hg-item"><img src="/images/acotar-fire.png" alt="Acotar"><div class="hg-label">Acotar</div></div>
+    <div class="hg-item"><img src="/images/glamour-bw.png" alt="Glamour"><div class="hg-label">Glamour</div></div>
+    <div class="hg-item"><img src="/images/campaign-red.png" alt="Campaign"><div class="hg-label">Campaign</div></div>
+    <div class="hg-item"><img src="/images/warhol-quad-2.png" alt="Warhol"><div class="hg-label">Warhol</div></div>
   </div>
 
   <div class="hero-gallery-overlay"></div>
@@ -969,22 +968,22 @@ footer {
 <script>
 // Style card backgrounds injected via JS
 const styleCardBgs = [
-  '/images/cinematic-window.png',
-  '/images/alter-ego-1778884630965.png',
-  '/images/cyberpunk-neon.jpg',
-  '/images/anime-golden.jpg',
-  '/images/acotar-fire.png',
-  '/images/campaign-red.png',
-  '/images/cyberpunk-green.png',
-  '/images/MSSmdbcC_vWu36DxFqN3-.png',
-  '/images/alter-ego-1778883871382.png',
-  '/images/glamour-bw.png',
-  '/images/acotar-flowers.png',
-  '/images/alter-ego-1779671790672.png',
-  '/images/warhol-quad-2.png',
-  '/images/riviera-yacht.png',
-  '/images/bohemian.png',
-  '/images/sovereign-king.png'
+  '/images/cinematic-window.png',           // 01 Cinematic
+  '/images/alter-ego-1778884630965.png',    // 02 Cover - yellow suit
+  '/images/cyberpunk-neon.jpg',             // 03 Cyberpunk
+  '/images/anime-golden.jpg',               // 04 Anime
+  '/images/acotar-fire.png',               // 05 Painterly - fire/painterly feel
+  '/images/campaign-red.png',              // 06 Campaign - red campaign
+  '/images/cyberpunk-green.png',           // 07 Sci-Fi
+  '/images/MSSmdbcC_vWu36DxFqN3-.png',    // 08 Streetwear - cyberpunk hoodie
+  '/images/alter-ego-1778883871382.png',   // 09 Headshot
+  '/images/glamour-bw.png',               // 10 Glamour - BW hat man
+  '/images/acotar-flowers.png',           // 11 Acotar - flowers
+  '/images/alter-ego-1779671790672.png',  // 12 Athlete - soccer
+  '/images/warhol-quad-2.png',            // 13 Warhol
+  '/images/riviera-yacht.png',            // 14 Riviera
+  '/images/bohemian.png',                 // 15 Bohemian
+  '/images/sovereign-king.png'            // 16 Sovereign - royal robes
 ];
 const styleEl = document.createElement('style');
 styleCardBgs.forEach((bg, i) => {
