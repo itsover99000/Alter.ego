@@ -3,150 +3,776 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ALTER.EGO — Become Someone Else</title>
-<meta name="description" content="Upload a selfie. Pick a style. Watch yourself transform into a cinematic, editorial, or sci-fi alter ego. Powered by AI.">
+<title>ALTER.EGO — One Selfie. Infinite Lives.</title>
+<meta name="description" content="Upload a selfie. Step into any world. AI portrait studio with 16 cinematic style directions.">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root { --black:#0a0a0a; --white:#f5f3ee; --accent:#c8f05a; --mid:#888; --border:rgba(10,10,10,0.1); }
-  html { scroll-behavior: smooth; }
-  body { background:var(--white); color:var(--black); font-family:'DM Mono',monospace; overflow-x:hidden; }
-  nav { position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:20px 40px; }
-  .nav-logo { font-family:'Syne',sans-serif; font-size:14px; font-weight:800; letter-spacing:0.16em; text-transform:uppercase; color:var(--white); text-decoration:none; mix-blend-mode:difference; }
-  .nav-cta { font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--black); text-decoration:none; background:var(--accent); padding:8px 16px; border:none; font-family:'Syne',sans-serif; font-weight:700; }
-  .nav-cta:hover { opacity:0.8; }
-  .hero { min-height:100vh; display:grid; grid-template-columns:1fr 1fr; }
-  .hero-left { background:var(--black); display:flex; flex-direction:column; justify-content:flex-end; padding:100px 48px 60px; position:relative; overflow:hidden; }
-  .hero-tag { font-size:9px; letter-spacing:0.16em; text-transform:uppercase; color:rgba(245,243,238,0.35); margin-bottom:20px; }
-  .hero-title { font-family:'Playfair Display',serif; font-size:clamp(52px,6vw,88px); font-weight:900; line-height:0.92; color:var(--white); margin-bottom:32px; }
-  .hero-title em { font-style:italic; color:var(--accent); }
-  .hero-desc { font-size:11px; line-height:1.8; color:rgba(245,243,238,0.5); max-width:320px; margin-bottom:40px; letter-spacing:0.02em; }
-  .hero-btn { display:inline-flex; align-items:center; gap:12px; background:var(--accent); color:var(--black); text-decoration:none; padding:16px 32px; font-family:'Syne',sans-serif; font-size:11px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; transition:all 0.2s; width:fit-content; }
-  .hero-btn:hover { background:#d4f570; transform:translateY(-2px); }
-  .hero-right { background:var(--white); display:flex; flex-direction:column; justify-content:flex-end; padding:100px 48px 60px; gap:40px; }
-  .hero-right-inner { position:relative; }
-  .hero-sub { font-size:11px; letter-spacing:0.04em; color:var(--mid); line-height:1.7; max-width:300px; margin-bottom:32px; }
-  .pills { display:flex; flex-wrap:wrap; gap:8px; }
-  .pill { border:0.5px solid rgba(10,10,10,0.15); padding:8px 14px; font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:var(--mid); transition:all 0.2s; }
-  .pill:hover, .pill.on { border-color:var(--black); color:var(--white); background:var(--black); }
-  .marquee-wrap { overflow:hidden; border-top:0.5px solid var(--border); border-bottom:0.5px solid var(--border); padding:12px 0; }
-  .marquee-track { display:flex; gap:48px; animation:marquee 28s linear infinite; white-space:nowrap; }
-  .marquee-item { font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:var(--mid); flex-shrink:0; }
-  .marquee-dot { color:var(--accent); }
-  @keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
-  .gallery { padding:100px 40px; }
-  .section-eyebrow { font-size:9px; letter-spacing:0.18em; text-transform:uppercase; color:var(--mid); margin-bottom:12px; }
-  .section-title { font-family:'Playfair Display',serif; font-size:clamp(32px,4vw,52px); font-weight:700; line-height:1.1; color:var(--black); }
-  .gallery-header { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:48px; }
-  .gallery-link { font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--black); text-decoration:none; border-bottom:1px solid var(--black); padding-bottom:2px; }
-  .g-item { overflow:hidden; position:relative; background:#111; }
-  .g-item img { width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.6s ease; }
-  .g-item:hover img { transform:scale(1.04); }
-  .g-label { position:absolute; bottom:12px; left:12px; font-size:9px; letter-spacing:0.12em; text-transform:uppercase; color:rgba(245,243,238,0.85); background:rgba(10,10,10,0.6); padding:5px 12px; backdrop-filter:blur(6px); border-radius:2px; }
-  .how { padding:100px 40px; background:var(--black); color:var(--white); }
-  .how-header { display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-bottom:72px; align-items:end; }
-  .how-title { font-family:'Playfair Display',serif; font-size:clamp(36px,4vw,60px); font-weight:700; line-height:1.05; }
-  .how-title em { font-style:italic; color:var(--accent); }
-  .how-intro { font-size:11px; line-height:1.9; color:rgba(245,243,238,0.4); }
-  .steps { display:grid; grid-template-columns:repeat(3,1fr); background:rgba(245,243,238,0.06); gap:1px; }
-  .step { background:var(--black); padding:48px 36px; }
-  .step-num { font-family:'Playfair Display',serif; font-size:64px; font-weight:900; color:rgba(245,243,238,0.05); line-height:1; margin-bottom:20px; }
-  .step-icon { font-size:26px; margin-bottom:16px; display:block; }
-  .step-title { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--white); margin-bottom:10px; }
-  .step-desc { font-size:11px; line-height:1.8; color:rgba(245,243,238,0.4); }
-  .styles-sec { padding:100px 40px; }
-  .styles-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); margin-top:48px; }
-  .s-card { background:var(--white); padding:36px 28px; transition:background 0.2s; cursor:default; }
-  .s-card:hover { background:var(--black); }
-  .s-card:hover .s-name { color:var(--white); }
-  .s-card:hover .s-desc { color:rgba(245,243,238,0.4); }
-  .s-card:hover .s-num { color:rgba(245,243,238,0.04); }
-  .s-num { font-family:'Playfair Display',serif; font-size:44px; font-weight:900; color:rgba(10,10,10,0.04); line-height:1; margin-bottom:12px; transition:color 0.2s; }
-  .s-emoji { font-size:22px; margin-bottom:10px; display:block; }
-  .s-name { font-family:'Syne',sans-serif; font-size:12px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--black); margin-bottom:8px; transition:color 0.2s; }
-  .s-desc { font-size:10px; line-height:1.7; color:var(--mid); transition:color 0.2s; }
-  .cta-sec { background:var(--black); padding:120px 40px; text-align:center; position:relative; overflow:hidden; }
-  .cta-bg { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-family:'Playfair Display',serif; font-size:clamp(80px,16vw,240px); font-weight:900; color:rgba(245,243,238,0.02); white-space:nowrap; font-style:italic; pointer-events:none; }
-  .cta-eyebrow { font-size:9px; letter-spacing:0.18em; text-transform:uppercase; color:rgba(245,243,238,0.28); margin-bottom:24px; }
-  .cta-title { font-family:'Playfair Display',serif; font-size:clamp(44px,6vw,80px); font-weight:900; color:var(--white); line-height:1.05; margin-bottom:16px; position:relative; }
-  .cta-title em { font-style:italic; color:var(--accent); }
-  .cta-sub { font-size:11px; color:rgba(245,243,238,0.35); letter-spacing:0.04em; margin-bottom:48px; position:relative; }
-  .cta-btn { display:inline-flex; align-items:center; gap:14px; background:var(--accent); color:var(--black); text-decoration:none; padding:20px 48px; font-family:'Syne',sans-serif; font-size:12px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; transition:all 0.2s; position:relative; }
-  .cta-btn:hover { background:#d4f570; transform:translateY(-2px); }
-  footer { background:var(--black); border-top:0.5px solid rgba(245,243,238,0.07); padding:28px 40px; display:flex; align-items:center; justify-content:space-between; }
-  .f-logo { font-family:'Syne',sans-serif; font-size:12px; font-weight:800; letter-spacing:0.16em; text-transform:uppercase; color:var(--white); text-decoration:none; }
-  .f-logo span { color:var(--accent); }
-  .f-copy { font-size:9px; letter-spacing:0.08em; color:rgba(245,243,238,0.2); text-transform:uppercase; }
-  .fi { opacity:0; transform:translateY(20px); transition:opacity 0.65s ease,transform 0.65s ease; }
-  .fi.vis { opacity:1; transform:translateY(0); }
-  @media(max-width:768px){
-    nav{padding:16px 20px;}
-    .hero{grid-template-columns:1fr;}
-    .hero-left{min-height:70vh;padding:80px 24px 40px;}
-    .hero-right{padding:40px 24px;}
-    .gallery{padding:60px 20px;}
-    .g-item{min-height:260px;}
-    .how{padding:60px 20px;}
-    .how-header{grid-template-columns:1fr;}
-    .steps{grid-template-columns:1fr;}
-    .styles-sec{padding:60px 20px;}
-    .styles-grid{grid-template-columns:1fr 1fr;}
-    .cta-sec{padding:80px 20px;}
-    footer{padding:24px 20px;flex-direction:column;gap:10px;text-align:center;}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --black: #0a0a0a;
+  --white: #f5f3ee;
+  --accent: #c8f05a;
+  --mid: #888;
+  --border: rgba(10,10,10,0.1);
+}
+html { scroll-behavior: smooth; }
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: 'DM Mono', monospace;
+  overflow-x: hidden;
+}
+
+/* ─── NAV ─── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 40px;
+  pointer-events: none;
+}
+.nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--white);
+  text-decoration: none;
+  pointer-events: all;
+  transition: opacity 0.2s;
+}
+.nav-logo span { color: var(--accent); }
+.nav-logo:hover { opacity: 0.7; }
+.nav-signin {
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--black);
+  background: var(--white);
+  text-decoration: none;
+  padding: 9px 20px;
+  pointer-events: all;
+  transition: background 0.2s, color 0.2s;
+}
+.nav-signin:hover { background: var(--accent); }
+
+/* ─── HERO — DESKTOP SPLIT ─── */
+.hero {
+  display: grid;
+  grid-template-columns: 40% 60%;
+  height: 100vh;
+  min-height: 700px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* LEFT PANEL */
+.hero-left {
+  position: relative;
+  background: var(--black);
+  overflow: hidden;
+  z-index: 2;
+}
+.hero-portrait {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+.hero-portrait img {
+  width: 100%;
+  height: 115%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  filter: grayscale(15%);
+  opacity: 0.75;
+}
+.hero-portrait-grad {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(10,10,10,1) 0%,
+    rgba(10,10,10,0.55) 40%,
+    rgba(10,10,10,0.1) 80%,
+    rgba(10,10,10,0) 100%
+  );
+}
+.hero-left-content {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 0 48px 56px;
+  z-index: 10;
+  will-change: transform;
+}
+.hero-tag {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(245,243,238,0.3);
+  margin-bottom: 18px;
+}
+.hero-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(48px, 5.5vw, 82px);
+  font-weight: 900;
+  line-height: 0.93;
+  color: var(--white);
+  margin-bottom: 28px;
+  letter-spacing: -0.01em;
+}
+.hero-title em {
+  font-style: italic;
+  color: var(--accent);
+}
+.hero-sub {
+  font-size: 11px;
+  line-height: 1.85;
+  color: rgba(245,243,238,0.45);
+  max-width: 300px;
+  margin-bottom: 36px;
+  letter-spacing: 0.02em;
+}
+.hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--accent);
+  color: var(--black);
+  text-decoration: none;
+  padding: 16px 32px;
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: background 0.2s, transform 0.2s;
+}
+.hero-cta:hover { background: #d4f570; transform: translateY(-2px); }
+.hero-cta-arrow {
+  display: inline-block;
+  transition: transform 0.2s;
+}
+.hero-cta:hover .hero-cta-arrow { transform: translateX(4px); }
+
+/* RIGHT PANEL — GALLERY GRID */
+.hero-right {
+  position: relative;
+  overflow: hidden;
+}
+.hero-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  height: 115%;
+  width: 100%;
+  gap: 3px;
+  will-change: transform;
+}
+.hg-item {
+  position: relative;
+  overflow: hidden;
+  background: #111;
+}
+.hg-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  transition: transform 0.8s ease;
+  filter: brightness(0.88);
+}
+.hg-item:hover img { transform: scale(1.05); filter: brightness(1); }
+.hg-label {
+  position: absolute;
+  bottom: 10px; left: 10px;
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(245,243,238,0.7);
+  background: rgba(10,10,10,0.55);
+  padding: 4px 10px;
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+}
+/* subtle dark veil on the right grid edge near left panel */
+.hero-right::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 60px;
+  background: linear-gradient(to right, rgba(10,10,10,0.7), transparent);
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* ─── MARQUEE ─── */
+.marquee-wrap {
+  overflow: hidden;
+  border-top: 0.5px solid rgba(245,243,238,0.08);
+  border-bottom: 0.5px solid rgba(245,243,238,0.08);
+  padding: 13px 0;
+  background: var(--black);
+}
+.marquee-track {
+  display: flex;
+  gap: 48px;
+  animation: marquee 32s linear infinite;
+  white-space: nowrap;
+}
+.marquee-item {
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(245,243,238,0.28);
+  flex-shrink: 0;
+}
+.marquee-dot { color: var(--accent); }
+@keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+/* ─── GALLERY SECTION ─── */
+.gallery-sec {
+  padding: 100px 40px;
+  background: var(--black);
+}
+.sec-eyebrow {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(245,243,238,0.25);
+  margin-bottom: 10px;
+}
+.sec-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(32px, 4vw, 54px);
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--white);
+}
+.sec-title em { font-style: italic; color: var(--accent); }
+.gallery-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 48px;
+}
+.gallery-link {
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--white);
+  text-decoration: none;
+  border-bottom: 0.5px solid rgba(245,243,238,0.35);
+  padding-bottom: 3px;
+  transition: color 0.2s, border-color 0.2s;
+}
+.gallery-link:hover { color: var(--accent); border-color: var(--accent); }
+.g-item {
+  overflow: hidden;
+  position: relative;
+  background: #111;
+}
+.g-item img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  transition: transform 0.7s ease, filter 0.4s ease;
+  filter: brightness(0.9);
+}
+.g-item:hover img { transform: scale(1.04); filter: brightness(1); }
+.g-label {
+  position: absolute;
+  bottom: 12px; left: 12px;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(245,243,238,0.85);
+  background: rgba(10,10,10,0.55);
+  padding: 5px 12px;
+  backdrop-filter: blur(6px);
+}
+
+/* ─── HOW IT WORKS ─── */
+.how-sec {
+  padding: 100px 40px;
+  background: #0e0e0e;
+  border-top: 0.5px solid rgba(245,243,238,0.06);
+}
+.how-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 72px;
+  align-items: end;
+}
+.how-intro {
+  font-size: 11px;
+  line-height: 1.9;
+  color: rgba(245,243,238,0.35);
+  align-self: flex-end;
+}
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border: 0.5px solid rgba(245,243,238,0.06);
+}
+.step {
+  padding: 52px 40px;
+  border-right: 0.5px solid rgba(245,243,238,0.06);
+  position: relative;
+}
+.step:last-child { border-right: none; }
+.step-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 72px;
+  font-weight: 900;
+  color: rgba(245,243,238,0.03);
+  line-height: 1;
+  margin-bottom: 24px;
+  user-select: none;
+}
+.step-icon {
+  font-size: 24px;
+  margin-bottom: 16px;
+  display: block;
+}
+.step-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--white);
+  margin-bottom: 12px;
+}
+.step-desc {
+  font-size: 11px;
+  line-height: 1.85;
+  color: rgba(245,243,238,0.35);
+}
+.step-accent-line {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(to right, var(--accent), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.step:hover .step-accent-line { opacity: 1; }
+
+/* ─── STYLES SECTION ─── */
+.styles-sec {
+  padding: 100px 40px;
+  background: var(--black);
+  border-top: 0.5px solid rgba(245,243,238,0.06);
+}
+.styles-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border: 0.5px solid rgba(245,243,238,0.06);
+  margin-top: 56px;
+}
+.s-card {
+  padding: 36px 28px;
+  border-right: 0.5px solid rgba(245,243,238,0.06);
+  border-bottom: 0.5px solid rgba(245,243,238,0.06);
+  cursor: default;
+  transition: background 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+.s-card:hover { background: rgba(245,243,238,0.04); }
+.s-card:nth-child(4n) { border-right: none; }
+.s-card:nth-child(n+13) { border-bottom: none; }
+.s-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 42px;
+  font-weight: 900;
+  color: rgba(245,243,238,0.04);
+  line-height: 1;
+  margin-bottom: 12px;
+  transition: color 0.2s;
+}
+.s-emoji { font-size: 20px; margin-bottom: 10px; display: block; }
+.s-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--white);
+  margin-bottom: 8px;
+}
+.s-desc {
+  font-size: 10px;
+  line-height: 1.7;
+  color: rgba(245,243,238,0.3);
+}
+.s-card:hover .s-desc { color: rgba(245,243,238,0.5); }
+.s-card:hover .s-num { color: rgba(245,243,238,0.07); }
+
+/* ─── PRICING ─── */
+.pricing-sec {
+  padding: 100px 40px;
+  background: #0e0e0e;
+  border-top: 0.5px solid rgba(245,243,238,0.06);
+}
+.pricing-header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: rgba(245,243,238,0.06);
+  max-width: 900px;
+  margin: 0 auto;
+}
+.p-card {
+  background: #0e0e0e;
+  padding: 48px 40px;
+  position: relative;
+}
+.p-card.featured {
+  background: var(--black);
+  border-top: 2px solid var(--accent);
+}
+.p-badge {
+  font-family: 'Syne', sans-serif;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--black);
+  background: var(--accent);
+  padding: 4px 10px;
+  display: inline-block;
+  margin-bottom: 24px;
+}
+.p-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(245,243,238,0.4);
+  margin-bottom: 12px;
+}
+.p-price {
+  font-family: 'Playfair Display', serif;
+  font-size: 52px;
+  font-weight: 900;
+  color: var(--white);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.p-price sup {
+  font-size: 20px;
+  vertical-align: super;
+  font-weight: 400;
+  font-style: italic;
+}
+.p-credits {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: rgba(245,243,238,0.3);
+  margin-bottom: 36px;
+}
+.p-credits strong { color: var(--accent); }
+.p-cta {
+  display: block;
+  text-align: center;
+  background: transparent;
+  border: 0.5px solid rgba(245,243,238,0.2);
+  color: var(--white);
+  text-decoration: none;
+  padding: 13px 24px;
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.p-card.featured .p-cta {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--black);
+}
+.p-cta:hover { background: var(--accent); border-color: var(--accent); color: var(--black); }
+
+/* ─── FINAL CTA ─── */
+.cta-sec {
+  background: var(--black);
+  padding: 140px 40px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  border-top: 0.5px solid rgba(245,243,238,0.06);
+}
+.cta-bg-text {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(80px, 18vw, 260px);
+  font-weight: 900;
+  font-style: italic;
+  color: rgba(245,243,238,0.025);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+.cta-eyebrow {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(245,243,238,0.2);
+  margin-bottom: 24px;
+  position: relative;
+}
+.cta-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(48px, 7vw, 96px);
+  font-weight: 900;
+  color: var(--white);
+  line-height: 1;
+  margin-bottom: 20px;
+  position: relative;
+}
+.cta-title em { font-style: italic; color: var(--accent); }
+.cta-sub {
+  font-size: 11px;
+  color: rgba(245,243,238,0.3);
+  letter-spacing: 0.04em;
+  margin-bottom: 52px;
+  position: relative;
+}
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--accent);
+  color: var(--black);
+  text-decoration: none;
+  padding: 20px 52px;
+  font-family: 'Syne', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: background 0.2s, transform 0.2s;
+  position: relative;
+}
+.cta-btn:hover { background: #d4f570; transform: translateY(-2px); }
+.cta-note {
+  margin-top: 28px;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: rgba(245,243,238,0.15);
+  text-transform: uppercase;
+  position: relative;
+}
+
+/* ─── FOOTER ─── */
+footer {
+  background: #050505;
+  border-top: 0.5px solid rgba(245,243,238,0.06);
+  padding: 28px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.f-logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--white);
+  text-decoration: none;
+}
+.f-logo span { color: var(--accent); }
+.f-copy {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: rgba(245,243,238,0.15);
+  text-transform: uppercase;
+}
+.f-links {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+.f-link {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: rgba(245,243,238,0.25);
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.f-link:hover { color: var(--accent); }
+
+/* ─── SCROLL REVEAL ─── */
+.fi {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.fi.vis {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── MOBILE ─── */
+@media (max-width: 768px) {
+  .hero {
+    display: block;
+    height: 100svh;
+    min-height: 100svh;
   }
+  .hero-left {
+    position: relative;
+    height: 100svh;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .hero-portrait img {
+    height: 100%;
+    object-position: 35% top;
+    filter: grayscale(40%) brightness(0.65);
+  }
+  .hero-portrait-grad {
+    background: linear-gradient(
+      to top,
+      rgba(10,10,10,1) 0%,
+      rgba(10,10,10,0.75) 35%,
+      rgba(10,10,10,0.2) 70%,
+      rgba(10,10,10,0) 100%
+    );
+  }
+  .hero-left-content {
+    padding: 0 24px 48px;
+  }
+  .hero-title { font-size: clamp(44px, 12vw, 64px); }
+  .hero-right { display: none; }
+
+  nav { padding: 18px 20px; }
+  .nav-logo { font-size: 12px; }
+
+  .gallery-sec, .how-sec, .styles-sec, .pricing-sec, .cta-sec { padding: 64px 20px; }
+  .gallery-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .g-item { min-height: 240px !important; }
+
+  .how-header { grid-template-columns: 1fr; gap: 16px; }
+  .steps { grid-template-columns: 1fr; }
+  .step { border-right: none; border-bottom: 0.5px solid rgba(245,243,238,0.06); }
+  .step:last-child { border-bottom: none; }
+
+  .styles-grid { grid-template-columns: repeat(2, 1fr); }
+  .s-card:nth-child(4n) { border-right: 0.5px solid rgba(245,243,238,0.06); }
+  .s-card:nth-child(2n) { border-right: none; }
+  .s-card:nth-child(n+15) { border-bottom: none; }
+
+  .pricing-grid { grid-template-columns: 1fr; }
+
+  footer { flex-direction: column; padding: 24px 20px; text-align: center; gap: 12px; }
+  .f-links { gap: 16px; }
+}
 </style>
 </head>
 <body>
 
+<!-- NAV -->
 <nav>
-  <a href="/" class="nav-logo">Alter.Ego</a>
-  <a href="/app/" class="nav-cta">Sign In →</a>
+  <a href="/" class="nav-logo">Alter<span>.</span>Ego</a>
+  <a href="/app/" class="nav-signin">Sign In →</a>
 </nav>
 
+<!-- HERO -->
 <section class="hero">
+
+  <!-- LEFT: Portrait + Copy -->
   <div class="hero-left">
-    <div style="position:absolute;inset:0;overflow:hidden">
-      <img src="/images/hero.png" alt="" style="width:100%;height:100%;object-fit:cover;opacity:0.35;filter:grayscale(20%);object-position:center top">
-      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,10,10,0.95) 0%,rgba(10,10,10,0.4) 60%,rgba(10,10,10,0.2) 100%)"></div>
+    <div class="hero-portrait" id="heroPortrait">
+      <img src="/images/riviera-yacht.png" alt="ALTER.EGO AI Portrait">
+      <div class="hero-portrait-grad"></div>
     </div>
-    <div class="fi">
-      <div class="hero-tag">AI Portrait Studio · alter-ego.photography</div>
-      <h1 class="hero-title">Become<br><em>Someone</em><br>Else.</h1>
-      <p class="hero-desc">Upload a selfie. Choose your aesthetic. Watch yourself transform into a cinematic, editorial, sci-fi, or fantasy alter ego — in seconds.</p>
-      <a href="/app/" class="hero-btn">Create yours free <span>→</span></a>
+    <div class="hero-left-content" id="heroContent">
+      <div class="hero-tag fi">AI Portrait Studio · alter-ego.photography</div>
+      <h1 class="hero-title fi" style="transition-delay:0.07s">One selfie.<br><em>Infinite</em><br>lives.</h1>
+      <p class="hero-sub fi" style="transition-delay:0.14s">Upload a photo. Step into any world.</p>
+      <a href="/app/" class="hero-cta fi" style="transition-delay:0.21s">Start your first life free <span class="hero-cta-arrow">→</span></a>
     </div>
   </div>
+
+  <!-- RIGHT: Gallery Grid -->
   <div class="hero-right">
-    <div class="hero-right-inner fi" style="transition-delay:0.15s">
-      <p class="hero-sub">Sixteen distinct style directions. One selfie. Infinite versions of you.</p>
-      <div class="pills">
-        <div class="pill on">✦ Campaign</div>
-        <div class="pill">🎬 Cinematic</div>
-        <div class="pill">📸 Cover</div>
-        <div class="pill">✨ Glamour</div>
-        <div class="pill">⚡ Cyberpunk</div>
-        <div class="pill">🚀 Sci-Fi</div>
-        <div class="pill">🔥 Streetwear</div>
-        <div class="pill">🌸 Anime</div>
-        <div class="pill">🎨 Painterly</div>
-        <div class="pill">💼 Headshot</div>
-        <div class="pill">🌿 Acotar</div>
-        <div class="pill">⚡ Athlete</div>
-        <div class="pill">🎨 Warhol</div>
-        <div class="pill">🌴 Riviera</div>
-        <div class="pill">🌻 Bohemian</div>
-        <div class="pill">👑 Sovereign</div>
+    <div class="hero-grid" id="heroGrid">
+      <div class="hg-item">
+        <img src="/images/acotar-fire.png" alt="Acotar">
+        <div class="hg-label">Acotar</div>
+      </div>
+      <div class="hg-item">
+        <img src="/images/cyberpunk-neon.jpg" alt="Cyberpunk">
+        <div class="hg-label">Cyberpunk</div>
+      </div>
+      <div class="hg-item">
+        <img src="/images/sovereign-king.png" alt="Sovereign">
+        <div class="hg-label">Sovereign</div>
+      </div>
+      <div class="hg-item">
+        <img src="/images/warhol-quad-2.png" alt="Warhol">
+        <div class="hg-label">Warhol</div>
+      </div>
+      <div class="hg-item">
+        <img src="/images/campaign-red.png" alt="Campaign">
+        <div class="hg-label">Campaign</div>
+      </div>
+      <div class="hg-item">
+        <img src="/images/glamour-bw.png" alt="Glamour">
+        <div class="hg-label">Glamour</div>
+      </div>
+      <div class="hg-item">
+        <img src="/images/anime-golden.jpg" alt="Anime">
+        <div class="hg-label">Anime</div>
+      </div>
+      <div class="hg-item">
+        <img src="/images/bohemian.png" alt="Bohemian">
+        <div class="hg-label">Bohemian</div>
+      </div>
+      <div class="hg-item">
+        <img src="/images/cinematic-window.png" alt="Cinematic">
+        <div class="hg-label">Cinematic</div>
       </div>
     </div>
   </div>
+
 </section>
 
+<!-- MARQUEE -->
 <div class="marquee-wrap">
   <div class="marquee-track">
     <span class="marquee-item">AI Portrait Generation</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Fashion Editorial</span><span class="marquee-item marquee-dot">✦</span>
+    <span class="marquee-item">16 Style Directions</span><span class="marquee-item marquee-dot">✦</span>
     <span class="marquee-item">Cyberpunk</span><span class="marquee-item marquee-dot">✦</span>
     <span class="marquee-item">Cinematic Film</span><span class="marquee-item marquee-dot">✦</span>
     <span class="marquee-item">ACOTAR Fantasy</span><span class="marquee-item marquee-dot">✦</span>
@@ -156,126 +782,129 @@
     <span class="marquee-item">Sci-Fi</span><span class="marquee-item marquee-dot">✦</span>
     <span class="marquee-item">Streetwear</span><span class="marquee-item marquee-dot">✦</span>
     <span class="marquee-item">Warhol Pop Art</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Athlete</span><span class="marquee-item marquee-dot">✦</span>
     <span class="marquee-item">alter-ego.photography</span><span class="marquee-item marquee-dot">✦</span>
     <span class="marquee-item">AI Portrait Generation</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Fashion Editorial</span><span class="marquee-item marquee-dot">✦</span>
+    <span class="marquee-item">16 Style Directions</span><span class="marquee-item marquee-dot">✦</span>
     <span class="marquee-item">Cyberpunk</span><span class="marquee-item marquee-dot">✦</span>
     <span class="marquee-item">Cinematic Film</span><span class="marquee-item marquee-dot">✦</span>
     <span class="marquee-item">ACOTAR Fantasy</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Riviera Lifestyle</span><span class="marquee-item marquee-dot">✦</span>
     <span class="marquee-item">alter-ego.photography</span><span class="marquee-item marquee-dot">✦</span>
   </div>
 </div>
 
-<section class="gallery">
+<!-- GALLERY -->
+<section class="gallery-sec">
   <div class="gallery-header fi">
     <div>
-      <div class="section-eyebrow">The Work</div>
-      <h2 class="section-title">Your selfie.<br>Reimagined.</h2>
+      <div class="sec-eyebrow">The Work</div>
+      <h2 class="sec-title">Your selfie.<br><em>Reimagined.</em></h2>
     </div>
     <a href="/app/" class="gallery-link">Try it free →</a>
   </div>
-
-  <div class="fi" style="transition-delay:0.1s">
-    <!-- Row 1: ACOTAR fire (tall hero) + Warhol + Cyberpunk neon -->
-    <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:6px;margin-bottom:6px">
-      <div class="g-item" style="min-height:620px">
-        <img src="/images/acotar-fire.png" alt="Acotar" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
+  <div class="fi" style="transition-delay:0.08s">
+    <!-- Row 1 -->
+    <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:4px;margin-bottom:4px">
+      <div class="g-item" style="min-height:600px">
+        <img src="/images/acotar-fire.png" alt="Acotar" style="object-position:center top">
         <div class="g-label">Acotar</div>
       </div>
-      <div class="g-item" style="min-height:620px">
-        <img src="/images/warhol-quad-2.png" alt="Warhol" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
+      <div class="g-item" style="min-height:600px">
+        <img src="/images/warhol-quad-2.png" alt="Warhol" style="object-position:center top">
         <div class="g-label">Warhol</div>
       </div>
-      <div class="g-item" style="min-height:620px">
-        <img src="/images/cyberpunk-neon.jpg" alt="Cyberpunk" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
+      <div class="g-item" style="min-height:600px">
+        <img src="/images/cyberpunk-neon.jpg" alt="Cyberpunk" style="object-position:center top">
         <div class="g-label">Cyberpunk</div>
       </div>
     </div>
-    <!-- Row 2: Bohemian + Athlete + Anime -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
-      <div class="g-item" style="min-height:420px">
-        <img src="/images/bohemian.png" alt="Bohemian" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
+    <!-- Row 2 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:4px">
+      <div class="g-item" style="min-height:400px">
+        <img src="/images/bohemian.png" alt="Bohemian" style="object-position:center top">
         <div class="g-label">Bohemian</div>
       </div>
-      <div class="g-item" style="min-height:420px">
-        <img src="/images/athlete-track.png" alt="Athlete" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
+      <div class="g-item" style="min-height:400px">
+        <img src="/images/athlete-track.png" alt="Athlete" style="object-position:center top">
         <div class="g-label">Athlete</div>
       </div>
-      <div class="g-item" style="min-height:420px">
-        <img src="/images/anime-golden.jpg" alt="Anime" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
+      <div class="g-item" style="min-height:400px">
+        <img src="/images/anime-golden.jpg" alt="Anime" style="object-position:center top">
         <div class="g-label">Anime</div>
       </div>
     </div>
-    <!-- Row 3: Cinematic + Glamour BW + Cyberpunk Green -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
+    <!-- Row 3 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:4px">
       <div class="g-item" style="min-height:380px">
-        <img src="/images/cinematic-window.png" alt="Cinematic" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
+        <img src="/images/cinematic-window.png" alt="Cinematic" style="object-position:center top">
         <div class="g-label">Cinematic</div>
       </div>
       <div class="g-item" style="min-height:380px">
-        <img src="/images/glamour-bw.png" alt="Glamour" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
+        <img src="/images/glamour-bw.png" alt="Glamour" style="object-position:center top">
         <div class="g-label">Glamour</div>
       </div>
       <div class="g-item" style="min-height:380px">
-        <img src="/images/cyberpunk-green.png" alt="Cyberpunk" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
-        <div class="g-label">Cyberpunk</div>
+        <img src="/images/cyberpunk-green.png" alt="Cyberpunk" style="object-position:center top">
+        <div class="g-label">Cyberpunk Green</div>
       </div>
     </div>
-    <!-- Row 4: ACOTAR flowers + Sovereign + Campaign red + Riviera -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px">
-      <div class="g-item" style="min-height:320px">
-        <img src="/images/acotar-flowers.png" alt="Acotar" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
+    <!-- Row 4 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px">
+      <div class="g-item" style="min-height:300px">
+        <img src="/images/acotar-flowers.png" alt="Acotar" style="object-position:center top">
         <div class="g-label">Acotar</div>
       </div>
-      <div class="g-item" style="min-height:320px">
-        <img src="/images/sovereign-king.png" alt="Sovereign" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
+      <div class="g-item" style="min-height:300px">
+        <img src="/images/sovereign-king.png" alt="Sovereign" style="object-position:center top">
         <div class="g-label">Sovereign</div>
       </div>
-      <div class="g-item" style="min-height:320px">
-        <img src="/images/campaign-red.png" alt="Campaign" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
+      <div class="g-item" style="min-height:300px">
+        <img src="/images/campaign-red.png" alt="Campaign" style="object-position:center top">
         <div class="g-label">Campaign</div>
       </div>
-      <div class="g-item" style="min-height:320px">
-        <img src="/images/riviera-yacht.png" alt="Riviera" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
+      <div class="g-item" style="min-height:300px">
+        <img src="/images/riviera-yacht.png" alt="Riviera" style="object-position:center top">
         <div class="g-label">Riviera</div>
       </div>
     </div>
   </div>
 </section>
 
-<section class="how">
+<!-- HOW IT WORKS -->
+<section class="how-sec">
   <div class="how-header fi">
-    <h2 class="how-title">Three steps.<br><em>Infinite you.</em></h2>
-    <p class="how-intro">No design skills. No prompting expertise. Just a selfie and a vision for who you could be.</p>
+    <h2 class="sec-title">Three steps.<br><em>Infinite you.</em></h2>
+    <p class="how-intro">No design skills. No prompting expertise.<br>Just a selfie and a vision for who you could be.</p>
   </div>
   <div class="steps fi" style="transition-delay:0.1s">
     <div class="step">
+      <div class="step-accent-line"></div>
       <div class="step-num">01</div>
       <span class="step-icon">📷</span>
       <div class="step-title">Upload a Selfie</div>
-      <p class="step-desc">Clear, well-lit, facing forward. Our AI reads your face and anchors the generation to you specifically.</p>
+      <p class="step-desc">Clear, well-lit, facing forward. Our AI reads your face and anchors the generation specifically to you.</p>
     </div>
     <div class="step">
+      <div class="step-accent-line"></div>
       <div class="step-num">02</div>
       <span class="step-icon">✦</span>
       <div class="step-title">Pick Your Style</div>
       <p class="step-desc">Choose from 16 curated aesthetic directions — each with 4 unique visual interpretations that rotate on every generation.</p>
     </div>
     <div class="step">
+      <div class="step-accent-line"></div>
       <div class="step-num">03</div>
       <span class="step-icon">⚡</span>
       <div class="step-title">Generate & Share</div>
-      <p class="step-desc">AI creates your cinematic portrait in seconds. Edit the prompt, regenerate, then share directly to Instagram.</p>
+      <p class="step-desc">Your cinematic portrait is ready in seconds. Edit the prompt, regenerate, then share directly to Instagram.</p>
     </div>
   </div>
 </section>
 
+<!-- 16 STYLES -->
 <section class="styles-sec">
   <div class="fi">
-    <div class="section-eyebrow">Style Directions</div>
-    <h2 class="section-title" style="margin-top:8px">Sixteen worlds.<br>All yours.</h2>
+    <div class="sec-eyebrow">Style Directions</div>
+    <h2 class="sec-title" style="margin-top:8px">Sixteen worlds.<br><em>All yours.</em></h2>
   </div>
   <div class="styles-grid fi" style="transition-delay:0.1s">
     <div class="s-card"><div class="s-num">01</div><span class="s-emoji">🎬</span><div class="s-name">Cinematic</div><p class="s-desc">35mm film. Golden hour. Anamorphic lens. Kodak grain.</p></div>
@@ -297,33 +926,97 @@
   </div>
 </section>
 
-<section class="cta-sec">
-  <div class="cta-bg">ALTER.EGO</div>
-  <div class="cta-eyebrow fi">Free to try · No account needed</div>
-  <h2 class="cta-title fi" style="transition-delay:0.08s">Who could<br><em>you</em> be?</h2>
-  <p class="cta-sub fi" style="transition-delay:0.14s">Upload a selfie. Results in under 30 seconds.</p>
-  <a href="/app/" class="cta-btn fi" style="transition-delay:0.2s">Create your alter ego →</a>
-  <p class="fi" style="transition-delay:0.26s;margin-top:24px;font-size:10px;letter-spacing:0.08em;color:rgba(245,243,238,0.2);text-transform:uppercase">✦ Your face. Your images. Always.</p>
+<!-- PRICING -->
+<section class="pricing-sec">
+  <div class="pricing-header fi">
+    <div class="sec-eyebrow" style="text-align:center;margin-bottom:10px">Credits</div>
+    <h2 class="sec-title" style="color:var(--white);text-align:center">Pay once.<br><em>Use forever.</em></h2>
+    <p style="font-size:11px;color:rgba(245,243,238,0.3);margin-top:16px;letter-spacing:0.04em">Credits never expire. One credit = one generation.</p>
+  </div>
+  <div class="pricing-grid fi" style="transition-delay:0.1s">
+    <div class="p-card">
+      <div class="p-name">Starter</div>
+      <div class="p-price"><sup>A$</sup>9</div>
+      <div class="p-credits"><strong>10 credits</strong> · A$0.90 per image</div>
+      <a href="/app/" class="p-cta">Get Started →</a>
+    </div>
+    <div class="p-card featured">
+      <div class="p-badge">Most Popular</div>
+      <div class="p-name">Creator</div>
+      <div class="p-price"><sup>A$</sup>25</div>
+      <div class="p-credits"><strong>30 credits</strong> · A$0.83 per image</div>
+      <a href="/app/" class="p-cta">Get Creator →</a>
+    </div>
+    <div class="p-card">
+      <div class="p-name">Pro</div>
+      <div class="p-price"><sup>A$</sup>75</div>
+      <div class="p-credits"><strong>100 credits</strong> · A$0.75 per image</div>
+      <a href="/app/" class="p-cta">Go Pro →</a>
+    </div>
+  </div>
+  <p class="fi" style="text-align:center;margin-top:28px;font-size:9px;letter-spacing:0.1em;color:rgba(245,243,238,0.15);text-transform:uppercase;transition-delay:0.2s">✦ First generation free · No subscription · Credits never expire</p>
 </section>
 
+<!-- FINAL CTA -->
+<section class="cta-sec">
+  <div class="cta-bg-text">ALTER.EGO</div>
+  <div class="cta-eyebrow fi">Free to try · No account needed to start</div>
+  <h2 class="cta-title fi" style="transition-delay:0.08s">Who could<br><em>you</em> be?</h2>
+  <p class="cta-sub fi" style="transition-delay:0.14s">Upload a selfie. Results in under 30 seconds.</p>
+  <a href="/app/" class="cta-btn fi" style="transition-delay:0.2s">Create your alter ego <span>→</span></a>
+  <p class="cta-note fi" style="transition-delay:0.26s">✦ Your face. Your images. Always yours.</p>
+</section>
+
+<!-- FOOTER -->
 <footer>
   <a href="/" class="f-logo">Alter<span>.</span>Ego</a>
   <div class="f-copy">© 2026 alter-ego.photography · Powered by Claude & Flux AI</div>
-  <div style="display:flex;gap:20px;align-items:center">
-    <a href="mailto:contact@inhausmedia.com.au" style="font-size:9px;letter-spacing:0.08em;color:rgba(245,243,238,0.35);text-transform:uppercase;text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='#c8f05a'" onmouseout="this.style.color='rgba(245,243,238,0.35)'">contact@inhausmedia.com.au</a>
-    <a href="/terms" style="font-size:9px;letter-spacing:0.08em;color:rgba(245,243,238,0.35);text-transform:uppercase;text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='#c8f05a'" onmouseout="this.style.color='rgba(245,243,238,0.35)'">Terms of Use</a>
-    <a href="/privacy" style="font-size:9px;letter-spacing:0.08em;color:rgba(245,243,238,0.35);text-transform:uppercase;text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='#c8f05a'" onmouseout="this.style.color='rgba(245,243,238,0.35)'">Privacy Policy</a>
+  <div class="f-links">
+    <a href="mailto:contact@inhausmedia.com.au" class="f-link">contact@inhausmedia.com.au</a>
+    <a href="/terms" class="f-link">Terms</a>
+    <a href="/privacy" class="f-link">Privacy</a>
   </div>
 </footer>
 
 <script>
+// ─── SCROLL REVEAL ───
 const obs = new IntersectionObserver(entries => {
-  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('vis'); });
-}, { threshold: 0.08 });
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('vis'); });
+}, { threshold: 0.06 });
 document.querySelectorAll('.fi').forEach(el => obs.observe(el));
-document.querySelectorAll('.hero .fi').forEach(el => {
-  setTimeout(() => el.classList.add('vis'), 100);
-});
+// Hero fires immediately
+setTimeout(() => {
+  document.querySelectorAll('.hero .fi').forEach(el => el.classList.add('vis'));
+}, 80);
+
+// ─── PARALLAX ───
+(function() {
+  const portrait = document.getElementById('heroPortrait');
+  const content  = document.getElementById('heroContent');
+  const grid     = document.getElementById('heroGrid');
+  let ticking    = false;
+
+  function onScroll() {
+    if (ticking) return;
+    requestAnimationFrame(() => {
+      const sy = window.scrollY;
+      // Portrait scrolls up slower than page (sticky feel)
+      if (portrait) portrait.style.transform = `translateY(${sy * 0.25}px)`;
+      // Copy scrolls up faster (lifts away)
+      if (content) content.style.transform = `translateY(${sy * -0.12}px)`;
+      // Grid scrolls slightly down (depth separation from portrait)
+      if (grid) grid.style.transform = `translateY(${sy * 0.18}px)`;
+      ticking = false;
+    });
+    ticking = true;
+  }
+
+  // Only run parallax on desktop
+  if (window.innerWidth > 768) {
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+})();
 </script>
+
 </body>
 </html>
