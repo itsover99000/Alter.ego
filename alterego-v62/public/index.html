@@ -1,329 +1,1036 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ALTER.EGO — Become Someone Else</title>
-<meta name="description" content="Upload a selfie. Pick a style. Watch yourself transform into a cinematic, editorial, or sci-fi alter ego. Powered by AI.">
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;700;800&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root { --black:#0a0a0a; --white:#f5f3ee; --accent:#c8f05a; --mid:#888; --border:rgba(10,10,10,0.1); }
-  html { scroll-behavior: smooth; }
-  body { background:var(--white); color:var(--black); font-family:'DM Mono',monospace; overflow-x:hidden; }
-  nav { position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:20px 40px; }
-  .nav-logo { font-family:'Syne',sans-serif; font-size:14px; font-weight:800; letter-spacing:0.16em; text-transform:uppercase; color:var(--white); text-decoration:none; mix-blend-mode:difference; }
-  .nav-cta { font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--black); text-decoration:none; background:var(--accent); padding:8px 16px; border:none; font-family:'Syne',sans-serif; font-weight:700; }
-  .nav-cta:hover { opacity:0.8; }
-  .hero { min-height:100vh; display:grid; grid-template-columns:1fr 1fr; }
-  .hero-left { background:var(--black); display:flex; flex-direction:column; justify-content:flex-end; padding:100px 48px 60px; position:relative; overflow:hidden; }
-  .hero-tag { font-size:9px; letter-spacing:0.16em; text-transform:uppercase; color:rgba(245,243,238,0.35); margin-bottom:20px; }
-  .hero-title { font-family:'Playfair Display',serif; font-size:clamp(52px,6vw,88px); font-weight:900; line-height:0.92; color:var(--white); margin-bottom:32px; }
-  .hero-title em { font-style:italic; color:var(--accent); }
-  .hero-desc { font-size:11px; line-height:1.8; color:rgba(245,243,238,0.5); max-width:320px; margin-bottom:40px; letter-spacing:0.02em; }
-  .hero-btn { display:inline-flex; align-items:center; gap:12px; background:var(--accent); color:var(--black); text-decoration:none; padding:16px 32px; font-family:'Syne',sans-serif; font-size:11px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; transition:all 0.2s; width:fit-content; }
-  .hero-btn:hover { background:#d4f570; transform:translateY(-2px); }
-  .hero-right { background:var(--white); display:flex; flex-direction:column; justify-content:flex-end; padding:100px 48px 60px; gap:40px; }
-  .hero-right-inner { position:relative; }
-  .hero-sub { font-size:11px; letter-spacing:0.04em; color:var(--mid); line-height:1.7; max-width:300px; margin-bottom:32px; }
-  .pills { display:flex; flex-wrap:wrap; gap:8px; }
-  .pill { border:0.5px solid rgba(10,10,10,0.15); padding:8px 14px; font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:var(--mid); transition:all 0.2s; }
-  .pill:hover, .pill.on { border-color:var(--black); color:var(--white); background:var(--black); }
-  .marquee-wrap { overflow:hidden; border-top:0.5px solid var(--border); border-bottom:0.5px solid var(--border); padding:12px 0; }
-  .marquee-track { display:flex; gap:48px; animation:marquee 28s linear infinite; white-space:nowrap; }
-  .marquee-item { font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:var(--mid); flex-shrink:0; }
-  .marquee-dot { color:var(--accent); }
-  @keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
-  .gallery { padding:100px 40px; }
-  .section-eyebrow { font-size:9px; letter-spacing:0.18em; text-transform:uppercase; color:var(--mid); margin-bottom:12px; }
-  .section-title { font-family:'Playfair Display',serif; font-size:clamp(32px,4vw,52px); font-weight:700; line-height:1.1; color:var(--black); }
-  .gallery-header { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:48px; }
-  .gallery-link { font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--black); text-decoration:none; border-bottom:1px solid var(--black); padding-bottom:2px; }
-  .g-item { overflow:hidden; position:relative; background:#111; }
-  .g-item img { width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.6s ease; }
-  .g-item:hover img { transform:scale(1.04); }
-  .g-label { position:absolute; bottom:12px; left:12px; font-size:9px; letter-spacing:0.12em; text-transform:uppercase; color:rgba(245,243,238,0.85); background:rgba(10,10,10,0.6); padding:5px 12px; backdrop-filter:blur(6px); border-radius:2px; }
-  .how { padding:100px 40px; background:var(--black); color:var(--white); }
-  .how-header { display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-bottom:72px; align-items:end; }
-  .how-title { font-family:'Playfair Display',serif; font-size:clamp(36px,4vw,60px); font-weight:700; line-height:1.05; }
-  .how-title em { font-style:italic; color:var(--accent); }
-  .how-intro { font-size:11px; line-height:1.9; color:rgba(245,243,238,0.4); }
-  .steps { display:grid; grid-template-columns:repeat(3,1fr); background:rgba(245,243,238,0.06); gap:1px; }
-  .step { background:var(--black); padding:48px 36px; }
-  .step-num { font-family:'Playfair Display',serif; font-size:64px; font-weight:900; color:rgba(245,243,238,0.05); line-height:1; margin-bottom:20px; }
-  .step-icon { font-size:26px; margin-bottom:16px; display:block; }
-  .step-title { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--white); margin-bottom:10px; }
-  .step-desc { font-size:11px; line-height:1.8; color:rgba(245,243,238,0.4); }
-  .styles-sec { padding:100px 40px; }
-  .styles-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); margin-top:48px; }
-  .s-card { background:var(--white); padding:36px 28px; transition:background 0.2s; cursor:default; }
-  .s-card:hover { background:var(--black); }
-  .s-card:hover .s-name { color:var(--white); }
-  .s-card:hover .s-desc { color:rgba(245,243,238,0.4); }
-  .s-card:hover .s-num { color:rgba(245,243,238,0.04); }
-  .s-num { font-family:'Playfair Display',serif; font-size:44px; font-weight:900; color:rgba(10,10,10,0.04); line-height:1; margin-bottom:12px; transition:color 0.2s; }
-  .s-emoji { font-size:22px; margin-bottom:10px; display:block; }
-  .s-name { font-family:'Syne',sans-serif; font-size:12px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--black); margin-bottom:8px; transition:color 0.2s; }
-  .s-desc { font-size:10px; line-height:1.7; color:var(--mid); transition:color 0.2s; }
-  .cta-sec { background:var(--black); padding:120px 40px; text-align:center; position:relative; overflow:hidden; }
-  .cta-bg { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-family:'Playfair Display',serif; font-size:clamp(80px,16vw,240px); font-weight:900; color:rgba(245,243,238,0.02); white-space:nowrap; font-style:italic; pointer-events:none; }
-  .cta-eyebrow { font-size:9px; letter-spacing:0.18em; text-transform:uppercase; color:rgba(245,243,238,0.28); margin-bottom:24px; }
-  .cta-title { font-family:'Playfair Display',serif; font-size:clamp(44px,6vw,80px); font-weight:900; color:var(--white); line-height:1.05; margin-bottom:16px; position:relative; }
-  .cta-title em { font-style:italic; color:var(--accent); }
-  .cta-sub { font-size:11px; color:rgba(245,243,238,0.35); letter-spacing:0.04em; margin-bottom:48px; position:relative; }
-  .cta-btn { display:inline-flex; align-items:center; gap:14px; background:var(--accent); color:var(--black); text-decoration:none; padding:20px 48px; font-family:'Syne',sans-serif; font-size:12px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; transition:all 0.2s; position:relative; }
-  .cta-btn:hover { background:#d4f570; transform:translateY(-2px); }
-  footer { background:var(--black); border-top:0.5px solid rgba(245,243,238,0.07); padding:28px 40px; display:flex; align-items:center; justify-content:space-between; }
-  .f-logo { font-family:'Syne',sans-serif; font-size:12px; font-weight:800; letter-spacing:0.16em; text-transform:uppercase; color:var(--white); text-decoration:none; }
-  .f-logo span { color:var(--accent); }
-  .f-copy { font-size:9px; letter-spacing:0.08em; color:rgba(245,243,238,0.2); text-transform:uppercase; }
-  .fi { opacity:0; transform:translateY(20px); transition:opacity 0.65s ease,transform 0.65s ease; }
-  .fi.vis { opacity:1; transform:translateY(0); }
-  @media(max-width:768px){
-    nav{padding:16px 20px;}
-    .hero{grid-template-columns:1fr;}
-    .hero-left{min-height:70vh;padding:80px 24px 40px;}
-    .hero-right{padding:40px 24px;}
-    .gallery{padding:60px 20px;}
-    .g-item{min-height:260px;}
-    .how{padding:60px 20px;}
-    .how-header{grid-template-columns:1fr;}
-    .steps{grid-template-columns:1fr;}
-    .styles-sec{padding:60px 20px;}
-    .styles-grid{grid-template-columns:1fr 1fr;}
-    .cta-sec{padding:80px 20px;}
-    footer{padding:24px 20px;flex-direction:column;gap:10px;text-align:center;}
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ALTER.EGO — One selfie. Infinite lives.</title>
+  <meta name="description" content="Upload a photo. Step into any world. 16 cinematic styles powered by AI." />
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #0a0a0a;
+      --white: #f5f3ee;
+      --accent: #c8f05a;
+      --mid: #888;
+      --border: rgba(10,10,10,0.1);
+      --cream: #f0ede6;
+
+      --muted: #888880;
+      --border: rgba(255,255,255,0.08);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'DM Mono', monospace;
+      font-weight: 300;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 40px;
+      background: linear-gradient(to bottom, rgba(10,10,10,0.7) 0%, transparent 100%);
+    }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--white);
+      text-decoration: none;
+    }
+
+    .nav-logo span {
+      color: var(--accent);
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+
+    .nav-link {
+      font-family: 'Syne', sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.65);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-link:hover { color: var(--white); }
+
+    .nav-cta {
+      font-family: 'Syne', sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--black);
+      background: var(--accent);
+      padding: 9px 20px;
+      text-decoration: none;
+      font-weight: 700;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .nav-cta:hover {
+      background: #d4f570;
+      transform: translateY(-1px);
+    }
+
+    /* ── HERO — DESKTOP SPLIT ── */
+    .hero {
+      position: relative;
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Right: Gallery grid — full bleed base layer */
+    .hero-gallery {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-auto-rows: calc(100vh / 4);
+      gap: 2px;
+      z-index: 0;
+    }
+
+    .hero-gallery-item {
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero-gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+      transition: transform 6s ease;
+      transform: scale(1.05);
+    }
+
+    .hero-gallery-item:hover img {
+      transform: scale(1.1);
+    }
+
+    /* Dark gradient over gallery — stronger on left */
+    .hero-gallery-overlay {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(to right,
+          rgba(10,10,10,0.97) 0%,
+          rgba(10,10,10,0.85) 30%,
+          rgba(10,10,10,0.45) 55%,
+          rgba(10,10,10,0.15) 100%
+        );
+      z-index: 1;
+    }
+
+    /* Left: Hero copy panel */
+    .hero-copy {
+      position: relative;
+      z-index: 2;
+      width: 48%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 56px 72px 56px;
+    }
+
+    /* Hero portrait — overlapping the split */
+    .hero-portrait {
+      position: absolute;
+      right: 50%;
+      bottom: 0;
+      transform: translateX(40%);
+      height: 92%;
+      width: auto;
+      z-index: 3;
+      object-fit: contain;
+      object-position: bottom;
+      /* subtle shadow to separate from gallery */
+      filter: drop-shadow(-40px 0 80px rgba(10,10,10,0.9));
+      pointer-events: none;
+    }
+
+    .hero-eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+      font-weight: 400;
+    }
+
+    .hero-headline {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(52px, 5.5vw, 84px);
+      line-height: 1.05;
+      font-weight: 900;
+      color: var(--white);
+      margin-bottom: 24px;
+    }
+
+    .hero-headline em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero-sub {
+      font-family: 'DM Mono', monospace;
+      font-size: clamp(18px, 1.8vw, 24px);
+      font-weight: 300;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 40px;
+      letter-spacing: 0.02em;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .btn-primary {
+      display: inline-block;
+      background: var(--accent);
+      color: var(--black);
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 500;
+      padding: 16px 36px;
+      text-decoration: none;
+      transition: background 0.25s, transform 0.25s;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .btn-primary:hover {
+      background: #d4f570;
+      transform: translateY(-2px);
+    }
+
+    .btn-ghost {
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      padding-bottom: 2px;
+      transition: color 0.2s, border-color 0.2s;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .btn-ghost:hover {
+      color: var(--white);
+      border-color: var(--white);
+    }
+
+    .hero-scroll-hint {
+      position: absolute;
+      bottom: 32px;
+      right: 48px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: 0.35;
+    }
+
+    .hero-scroll-hint span {
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      writing-mode: vertical-rl;
+    }
+
+    .scroll-line {
+      width: 1px;
+      height: 48px;
+      background: linear-gradient(to bottom, var(--white), transparent);
+      animation: scrollPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.3; transform: scaleY(1); }
+      50% { opacity: 0.7; transform: scaleY(0.6); }
+    }
+
+    /* ── STYLES SECTION ── */
+    .styles-section {
+      padding: 120px 0;
+      position: relative;
+    }
+
+    .section-label {
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(32px, 4vw, 56px);
+      font-weight: 700;
+      text-align: center;
+      color: var(--white);
+      margin-bottom: 12px;
+    }
+
+    .section-sub {
+      font-family: 'DM Mono', monospace;
+      font-size: 20px;
+      font-weight: 300;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 72px;
+    }
+
+    /* World backgrounds for styles section */
+    .styles-world-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .styles-world-bg .world-layer {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+
+    .styles-world-bg .world-layer.active {
+      opacity: 0.12;
+    }
+
+    .styles-world-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, var(--black) 0%, transparent 30%, transparent 70%, var(--black) 100%);
+      z-index: 1;
+    }
+
+    .styles-content {
+      position: relative;
+      z-index: 2;
+    }
+
+    .styles-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 2px;
+      padding: 0 2px;
+      max-width: 100%;
+    }
+
+    @media (max-width: 1200px) {
+      .styles-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    .style-card {
+      position: relative;
+      aspect-ratio: 3/4;
+      overflow: hidden;
+      cursor: pointer;
+      group: true;
+    }
+
+    .style-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      filter: grayscale(30%) brightness(0.75);
+    }
+
+    .style-card:hover img {
+      transform: scale(1.08);
+      filter: grayscale(0%) brightness(0.9);
+    }
+
+    .style-card-label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 20px 12px 12px;
+      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.8);
+      font-family: 'DM Mono', monospace;
+      font-weight: 400;
+      transform: translateY(4px);
+      transition: transform 0.3s, color 0.3s;
+    }
+
+    .style-card:hover .style-card-label {
+      color: #d4f570;
+      transform: translateY(0);
+    }
+
+    /* ── HOW IT WORKS ── */
+    .how-section {
+      padding: 120px 56px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      margin-top: 72px;
+    }
+
+    .step {
+      padding: 48px 40px;
+      border: 1px solid var(--border);
+      position: relative;
+      transition: border-color 0.3s;
+    }
+
+    .step:hover {
+      border-color: rgba(201, 169, 110, 0.3);
+    }
+
+    .step-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 72px;
+      font-weight: 900;
+      color: rgba(201,169,110,0.12);
+      line-height: 1;
+      margin-bottom: 24px;
+      display: block;
+    }
+
+    .step-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 12px;
+    }
+
+    .step-desc {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    /* ── PRICING ── */
+    .pricing-section {
+      padding: 120px 56px;
+      background: #0e0d0b;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      max-width: 900px;
+      margin: 72px auto 0;
+    }
+
+    .price-card {
+      padding: 48px 36px;
+      border: 1px solid var(--border);
+      position: relative;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+
+    .price-card.featured {
+      border-color: rgba(201,169,110,0.5);
+      background: rgba(201,169,110,0.04);
+    }
+
+    .price-card.featured::before {
+      content: 'Most Popular';
+      position: absolute;
+      top: -1px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: var(--black);
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 500;
+      padding: 5px 16px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .price-card:hover {
+      border-color: rgba(201,169,110,0.4);
+      transform: translateY(-4px);
+    }
+
+    .price-name {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+
+    .price-amount {
+      font-family: 'Playfair Display', serif;
+      font-size: 48px;
+      font-weight: 900;
+      color: var(--white);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .price-credits {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 32px;
+    }
+
+    .price-btn {
+      display: block;
+      text-align: center;
+      padding: 14px;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 500;
+      text-decoration: none;
+      font-family: 'DM Mono', monospace;
+      transition: all 0.25s;
+    }
+
+    .price-card.featured .price-btn {
+      background: var(--accent);
+      color: var(--black);
+    }
+
+    .price-card.featured .price-btn:hover {
+      background: #d4f570;
+    }
+
+    .price-card:not(.featured) .price-btn {
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.6);
+    }
+
+    .price-card:not(.featured) .price-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ── CTA BANNER ── */
+    .cta-section {
+      position: relative;
+      height: 60vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cta-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('/images/acotar-fire.png');
+      background-size: cover;
+      background-position: center 20%;
+      filter: brightness(0.35) saturate(0.7);
+      transform: scale(1.05);
+      transition: transform 8s ease;
+    }
+
+    .cta-section:hover .cta-bg {
+      transform: scale(1.0);
+    }
+
+    .cta-section::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom,
+        var(--black) 0%,
+        transparent 20%,
+        transparent 80%,
+        var(--black) 100%
+      );
+    }
+
+    .cta-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+    }
+
+    .cta-content h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(40px, 6vw, 80px);
+      font-weight: 900;
+      line-height: 1.05;
+      margin-bottom: 24px;
+    }
+
+    .cta-content h2 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .cta-content p {
+      font-family: 'DM Mono', monospace;
+      font-size: 20px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 40px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 48px 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .footer-logo span { color: var(--accent); }
+
+    .footer-links {
+      display: flex;
+      gap: 32px;
+    }
+
+    .footer-links a {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: rgba(255,255,255,0.7); }
+
+    .footer-copy {
+      font-size: 11px;
+      color: rgba(255,255,255,0.2);
+    }
+
+    /* ── MOBILE ── */
+    @media (max-width: 768px) {
+      nav { padding: 20px 24px; }
+
+      .hero {
+        height: 100svh;
+        flex-direction: column;
+      }
+
+      .hero-gallery {
+        grid-template-columns: repeat(3, 1fr);
+        grid-auto-rows: calc(100svh / 5);
+      }
+
+      .hero-gallery-overlay {
+        background: linear-gradient(to bottom,
+          rgba(10,10,10,0.5) 0%,
+          rgba(10,10,10,0.3) 40%,
+          rgba(10,10,10,0.8) 75%,
+          rgba(10,10,10,0.98) 100%
+        );
+      }
+
+      .hero-portrait {
+        right: 50%;
+        transform: translateX(50%);
+        height: 65%;
+        bottom: 38%;
+        filter: drop-shadow(0 20px 60px rgba(10,10,10,0.9));
+      }
+
+      .hero-copy {
+        width: 100%;
+        padding: 0 24px 48px;
+        justify-content: flex-end;
+        text-align: left;
+      }
+
+      .hero-headline { font-size: 44px; }
+
+      .hero-scroll-hint { display: none; }
+
+      .styles-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .steps {
+        grid-template-columns: 1fr;
+        gap: 2px;
+      }
+
+      .pricing-grid {
+        grid-template-columns: 1fr;
+        gap: 2px;
+      }
+
+      .how-section, .pricing-section { padding: 80px 24px; }
+
+      footer {
+        flex-direction: column;
+        gap: 24px;
+        text-align: center;
+        padding: 40px 24px;
+      }
+
+      .footer-links { flex-wrap: wrap; justify-content: center; }
+
+      .cta-content h2 { font-size: 40px; }
+    }
+
+    /* ── ANIMATIONS ── */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .fade-up-delay-1 { transition-delay: 0.1s; }
+    .fade-up-delay-2 { transition-delay: 0.2s; }
+    .fade-up-delay-3 { transition-delay: 0.3s; }
+    .fade-up-delay-4 { transition-delay: 0.4s; }
+    .fade-up-delay-5 { transition-delay: 0.5s; }
+
+    /* initial hero animation */
+    @keyframes heroFadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-eyebrow  { animation: heroFadeIn 1s ease 0.3s both; }
+    .hero-headline { animation: heroFadeIn 1s ease 0.5s both; }
+    .hero-sub      { animation: heroFadeIn 1s ease 0.7s both; }
+    .hero-actions  { animation: heroFadeIn 1s ease 0.9s both; }
+    .hero-portrait { animation: heroFadeIn 1.2s ease 0.2s both; }
+
+  </style>
 </head>
 <body>
 
-<nav>
-  <a href="/" class="nav-logo">Alter.Ego</a>
-  <a href="/app/" class="nav-cta">Sign In →</a>
-</nav>
+  <!-- NAV -->
+  <nav>
+    <a href="/" class="nav-logo">ALTER<span>.</span>EGO</a>
+    <div class="nav-right">
+      <a href="#how" class="nav-link">How it works</a>
+      <a href="#pricing" class="nav-link">Pricing</a>
+      <a href="/app/" class="nav-cta">Sign In</a>
+    </div>
+  </nav>
 
-<section class="hero">
-  <div class="hero-left">
-    <div style="position:absolute;inset:0;overflow:hidden">
-      <img src="/images/hero.png" alt="" style="width:100%;height:100%;object-fit:cover;opacity:0.35;filter:grayscale(20%);object-position:center top">
-      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,10,10,0.95) 0%,rgba(10,10,10,0.4) 60%,rgba(10,10,10,0.2) 100%)"></div>
-    </div>
-    <div class="fi">
-      <div class="hero-tag">AI Portrait Studio · alter-ego.photography</div>
-      <h1 class="hero-title">Become<br><em>Someone</em><br>Else.</h1>
-      <p class="hero-desc">Upload a selfie. Choose your aesthetic. Watch yourself transform into a cinematic, editorial, sci-fi, or fantasy alter ego — in seconds.</p>
-      <a href="/app/" class="hero-btn">Create yours free <span>→</span></a>
-    </div>
-  </div>
-  <div class="hero-right">
-    <div class="hero-right-inner fi" style="transition-delay:0.15s">
-      <p class="hero-sub">Sixteen distinct style directions. One selfie. Infinite versions of you.</p>
-      <div class="pills">
-        <div class="pill on">✦ Campaign</div>
-        <div class="pill">🎬 Cinematic</div>
-        <div class="pill">📸 Cover</div>
-        <div class="pill">✨ Glamour</div>
-        <div class="pill">⚡ Cyberpunk</div>
-        <div class="pill">🚀 Sci-Fi</div>
-        <div class="pill">🔥 Streetwear</div>
-        <div class="pill">🌸 Anime</div>
-        <div class="pill">🎨 Painterly</div>
-        <div class="pill">💼 Headshot</div>
-        <div class="pill">🌿 Acotar</div>
-        <div class="pill">⚡ Athlete</div>
-        <div class="pill">🎨 Warhol</div>
-        <div class="pill">🌴 Riviera</div>
-        <div class="pill">🌻 Bohemian</div>
-        <div class="pill">👑 Sovereign</div>
-      </div>
-    </div>
-  </div>
-</section>
+  <!-- HERO -->
+  <section class="hero">
 
-<div class="marquee-wrap">
-  <div class="marquee-track">
-    <span class="marquee-item">AI Portrait Generation</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Fashion Editorial</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Cyberpunk</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Cinematic Film</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">ACOTAR Fantasy</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Riviera Lifestyle</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Sovereign Royal</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Bohemian</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Sci-Fi</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Streetwear</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Warhol Pop Art</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Athlete</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">alter-ego.photography</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">AI Portrait Generation</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Fashion Editorial</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Cyberpunk</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Cinematic Film</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">ACOTAR Fantasy</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Riviera Lifestyle</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">alter-ego.photography</span><span class="marquee-item marquee-dot">✦</span>
-  </div>
-</div>
+    <!-- Gallery grid — base layer -->
+    <div class="hero-gallery">
+      <div class="hero-gallery-item"><img src="/images/alter-ego-1779536910282.jpg" alt="" loading="eager" /></div>
+      <div class="hero-gallery-item"><img src="/images/cyberpunk-neon.jpg" alt="" loading="eager" /></div>
+      <div class="hero-gallery-item"><img src="/images/NqqHJO_iF_9UFG7EeNKCm.png" alt="" loading="eager" /></div>
+      <div class="hero-gallery-item"><img src="/images/alter-ego-1778884630965.png" alt="" loading="eager" /></div>
+      <div class="hero-gallery-item"><img src="/images/anime4.jpg" alt="" loading="eager" /></div>
+      <div class="hero-gallery-item"><img src="/images/alter-ego-1778883871382.png" alt="" loading="eager" /></div>
+      <div class="hero-gallery-item"><img src="/images/fashion-3.png" alt="" loading="eager" /></div>
+      <div class="hero-gallery-item"><img src="/images/alter-ego-1779671790672.png" alt="" loading="eager" /></div>
+      <div class="hero-gallery-item"><img src="/images/acotar-fire.png" alt="" loading="eager" /></div>
+      <div class="hero-gallery-item"><img src="/images/cyberpunk-neon.jpg" alt="" loading="eager" /></div>
+      <div class="hero-gallery-item"><img src="/images/warhol-quad-2.png" alt="" loading="eager" /></div>
+      <div class="hero-gallery-item"><img src="/images/campaign-red.png" alt="" loading="eager" /></div>
+    </div>
 
-<section class="gallery">
-  <div class="gallery-header fi">
-    <div>
-      <div class="section-eyebrow">The Work</div>
-      <h2 class="section-title">Your selfie.<br>Reimagined.</h2>
-    </div>
-    <a href="/app/" class="gallery-link">Try it free →</a>
-  </div>
+    <!-- Gradient overlay -->
+    <div class="hero-gallery-overlay"></div>
 
-  <div class="fi" style="transition-delay:0.1s">
-    <!-- Row 1: ACOTAR fire (tall hero) + Warhol + Cyberpunk neon -->
-    <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:6px;margin-bottom:6px">
-      <div class="g-item" style="min-height:620px">
-        <img src="/images/acotar-fire.png" alt="Acotar" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
-        <div class="g-label">Acotar</div>
-      </div>
-      <div class="g-item" style="min-height:620px">
-        <img src="/images/warhol-quad-2.png" alt="Warhol" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
-        <div class="g-label">Warhol</div>
-      </div>
-      <div class="g-item" style="min-height:620px">
-        <img src="/images/cyberpunk-neon.jpg" alt="Cyberpunk" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
-        <div class="g-label">Cyberpunk</div>
-      </div>
-    </div>
-    <!-- Row 2: Bohemian + Athlete + Anime -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
-      <div class="g-item" style="min-height:420px">
-        <img src="/images/bohemian.png" alt="Bohemian" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
-        <div class="g-label">Bohemian</div>
-      </div>
-      <div class="g-item" style="min-height:420px">
-        <img src="/images/athlete-track.png" alt="Athlete" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
-        <div class="g-label">Athlete</div>
-      </div>
-      <div class="g-item" style="min-height:420px">
-        <img src="/images/anime-golden.jpg" alt="Anime" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
-        <div class="g-label">Anime</div>
-      </div>
-    </div>
-    <!-- Row 3: Cinematic + Glamour BW + Cyberpunk Green -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
-      <div class="g-item" style="min-height:380px">
-        <img src="/images/cinematic-window.png" alt="Cinematic" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
-        <div class="g-label">Cinematic</div>
-      </div>
-      <div class="g-item" style="min-height:380px">
-        <img src="/images/glamour-bw.png" alt="Glamour" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
-        <div class="g-label">Glamour</div>
-      </div>
-      <div class="g-item" style="min-height:380px">
-        <img src="/images/cyberpunk-green.png" alt="Cyberpunk" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
-        <div class="g-label">Cyberpunk</div>
-      </div>
-    </div>
-    <!-- Row 4: ACOTAR flowers + Sovereign + Campaign red + Riviera -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px">
-      <div class="g-item" style="min-height:320px">
-        <img src="/images/acotar-flowers.png" alt="Acotar" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
-        <div class="g-label">Acotar</div>
-      </div>
-      <div class="g-item" style="min-height:320px">
-        <img src="/images/sovereign-king.png" alt="Sovereign" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
-        <div class="g-label">Sovereign</div>
-      </div>
-      <div class="g-item" style="min-height:320px">
-        <img src="/images/campaign-red.png" alt="Campaign" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
-        <div class="g-label">Campaign</div>
-      </div>
-      <div class="g-item" style="min-height:320px">
-        <img src="/images/riviera-yacht.png" alt="Riviera" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
-        <div class="g-label">Riviera</div>
-      </div>
-    </div>
-  </div>
-</section>
+    <!-- Hero portrait floating over the split -->
+    <img
+      class="hero-portrait"
+      src="/images/riviera-yacht.png"
+      alt="ALTER.EGO example — Riviera style"
+    />
 
-<section class="how">
-  <div class="how-header fi">
-    <h2 class="how-title">Three steps.<br><em>Infinite you.</em></h2>
-    <p class="how-intro">No design skills. No prompting expertise. Just a selfie and a vision for who you could be.</p>
-  </div>
-  <div class="steps fi" style="transition-delay:0.1s">
-    <div class="step">
-      <div class="step-num">01</div>
-      <span class="step-icon">📷</span>
-      <div class="step-title">Upload a Selfie</div>
-      <p class="step-desc">Clear, well-lit, facing forward. Our AI reads your face and anchors the generation to you specifically.</p>
+    <!-- Copy panel -->
+    <div class="hero-copy">
+      <p class="hero-eyebrow">AI Portrait Transformation</p>
+      <h1 class="hero-headline">
+        One selfie.<br><em>Infinite</em> lives.
+      </h1>
+      <p class="hero-sub">Upload a photo. Step into any world.</p>
+      <div class="hero-actions">
+        <a href="/app/" class="btn-primary">Start your first life free →</a>
+        <a href="#how" class="btn-ghost">See how it works</a>
+      </div>
     </div>
-    <div class="step">
-      <div class="step-num">02</div>
-      <span class="step-icon">✦</span>
-      <div class="step-title">Pick Your Style</div>
-      <p class="step-desc">Choose from 16 curated aesthetic directions — each with 4 unique visual interpretations that rotate on every generation.</p>
+
+    <!-- Scroll hint -->
+    <div class="hero-scroll-hint">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
     </div>
-    <div class="step">
-      <div class="step-num">03</div>
-      <span class="step-icon">⚡</span>
-      <div class="step-title">Generate & Share</div>
-      <p class="step-desc">AI creates your cinematic portrait in seconds. Edit the prompt, regenerate, then share directly to Instagram.</p>
+
+  </section>
+
+  <!-- 16 STYLES -->
+  <section class="styles-section" id="styles">
+
+    <!-- World backgrounds -->
+    <div class="styles-world-bg">
+      <div class="world-layer" data-world="riviera" style="background-image: url('/images/world-riviera-bg.jpg')"></div>
+      <div class="world-layer" data-world="sovereign" style="background-image: url('/images/NqqHJO_iF_9UFG7EeNKCm.png')"></div>
+      <div class="world-layer" data-world="cyberpunk" style="background-image: url('/images/world-cyberpunk-bg.jpg')"></div>
+      <div class="world-layer" data-world="dreamy" style="background-image: url('/images/world-dreamy-bg.jpg')"></div>
+      <div class="world-layer" data-world="fashion" style="background-image: url('/images/world-fashion-bg.jpg')"></div>
     </div>
-  </div>
-</section>
 
-<section class="styles-sec">
-  <div class="fi">
-    <div class="section-eyebrow">Style Directions</div>
-    <h2 class="section-title" style="margin-top:8px">Sixteen worlds.<br>All yours.</h2>
-  </div>
-  <div class="styles-grid fi" style="transition-delay:0.1s">
-    <div class="s-card"><div class="s-num">01</div><span class="s-emoji">🎬</span><div class="s-name">Cinematic</div><p class="s-desc">35mm film. Golden hour. Anamorphic lens. Kodak grain.</p></div>
-    <div class="s-card"><div class="s-num">02</div><span class="s-emoji">📸</span><div class="s-name">Cover</div><p class="s-desc">Vogue. Elle. GQ. Magazine cover quality, studio-lit perfection.</p></div>
-    <div class="s-card"><div class="s-num">03</div><span class="s-emoji">⚡</span><div class="s-name">Cyberpunk</div><p class="s-desc">Blade Runner nights. Neon reflections. Electric colour.</p></div>
-    <div class="s-card"><div class="s-num">04</div><span class="s-emoji">🌸</span><div class="s-name">Anime</div><p class="s-desc">Ghibli meets cyberpunk. Cel-shaded. Detailed linework.</p></div>
-    <div class="s-card"><div class="s-num">05</div><span class="s-emoji">🎨</span><div class="s-name">Painterly</div><p class="s-desc">Old Masters. Rembrandt light. Museum-quality texture.</p></div>
-    <div class="s-card"><div class="s-num">06</div><span class="s-emoji">✦</span><div class="s-name">Campaign</div><p class="s-desc">Luxury fashion campaigns. Architectural sets. Power dressing.</p></div>
-    <div class="s-card"><div class="s-num">07</div><span class="s-emoji">🚀</span><div class="s-name">Sci-Fi</div><p class="s-desc">Deep space. Holographic armour. Epic cosmic scale.</p></div>
-    <div class="s-card"><div class="s-num">08</div><span class="s-emoji">🔥</span><div class="s-name">Streetwear</div><p class="s-desc">Urban rooftops. Golden hour. Raw candid energy.</p></div>
-    <div class="s-card"><div class="s-num">09</div><span class="s-emoji">💼</span><div class="s-name">Headshot</div><p class="s-desc">Executive presence. Studio lighting. LinkedIn-ready polish.</p></div>
-    <div class="s-card"><div class="s-num">10</div><span class="s-emoji">✨</span><div class="s-name">Glamour</div><p class="s-desc">Old Hollywood. Smouldering intensity. Black and white drama.</p></div>
-    <div class="s-card"><div class="s-num">11</div><span class="s-emoji">🌿</span><div class="s-name">Acotar</div><p class="s-desc">Illyrian battle leathers. Twin moons. Fae court power.</p></div>
-    <div class="s-card"><div class="s-num">12</div><span class="s-emoji">⚡</span><div class="s-name">Athlete</div><p class="s-desc">Stadium lights. Championship energy. Sports campaign quality.</p></div>
-    <div class="s-card"><div class="s-num">13</div><span class="s-emoji">🎨</span><div class="s-name">Warhol</div><p class="s-desc">Bold silkscreen. Factory pop art. Four-panel iconic treatment.</p></div>
-    <div class="s-card"><div class="s-num">14</div><span class="s-emoji">🌴</span><div class="s-name">Riviera</div><p class="s-desc">Portofino harbour. Slim Aarons leisure. Kodachrome pastels.</p></div>
-    <div class="s-card"><div class="s-num">15</div><span class="s-emoji">🌻</span><div class="s-name">Bohemian</div><p class="s-desc">Wildflower meadows. 1970s free spirit. Sun-soaked analogue.</p></div>
-    <div class="s-card"><div class="s-num">16</div><span class="s-emoji">👑</span><div class="s-name">Sovereign</div><p class="s-desc">Royal courts. Velvet and gold. Van Dyck portrait authority.</p></div>
-  </div>
-</section>
+    <div class="styles-content">
+      <p class="section-label fade-up">16 Worlds to inhabit</p>
+      <h2 class="section-title fade-up fade-up-delay-1">Every version of you,<br>finally visible.</h2>
+      <p class="section-sub fade-up fade-up-delay-2">Cinematic. Fantasy. Editorial. Athletic. All yours.</p>
 
-<section class="cta-sec">
-  <div class="cta-bg">ALTER.EGO</div>
-  <div class="cta-eyebrow fi">Free to try · No account needed</div>
-  <h2 class="cta-title fi" style="transition-delay:0.08s">Who could<br><em>you</em> be?</h2>
-  <p class="cta-sub fi" style="transition-delay:0.14s">Upload a selfie. Results in under 30 seconds.</p>
-  <a href="/app/" class="cta-btn fi" style="transition-delay:0.2s">Create your alter ego →</a>
-  <p class="fi" style="transition-delay:0.26s;margin-top:24px;font-size:10px;letter-spacing:0.08em;color:rgba(245,243,238,0.2);text-transform:uppercase">✦ Your face. Your images. Always.</p>
-</section>
+      <div class="styles-grid">
+        <div class="style-card" data-world="fashion">
+          <img src="/images/alter-ego-1779536910282.jpg" alt="Cinematic" loading="lazy" />
+          <div class="style-card-label">Cinematic</div>
+        </div>
+        <div class="style-card" data-world="fashion">
+          <img src="/images/fashion-3.png" alt="Campaign" loading="lazy" />
+          <div class="style-card-label">Campaign</div>
+        </div>
+        <div class="style-card" data-world="cyberpunk">
+          <img src="/images/cyberpunk-neon.jpg" alt="Cyberpunk" loading="lazy" />
+          <div class="style-card-label">Cyberpunk</div>
+        </div>
+        <div class="style-card" data-world="dreamy">
+          <img src="/images/anime4.jpg" alt="Anime" loading="lazy" />
+          <div class="style-card-label">Anime</div>
+        </div>
+        <div class="style-card" data-world="dreamy">
+          <img src="/images/bohemian.png" alt="Painterly" loading="lazy" />
+          <div class="style-card-label">Painterly</div>
+        </div>
+        <div class="style-card" data-world="sovereign">
+          <img src="/images/alter-ego-1778883871382.png" alt="Acotar" loading="lazy" />
+          <div class="style-card-label">Acotar</div>
+        </div>
+        <div class="style-card" data-world="cyberpunk">
+          <img src="/images/cyberpunk-neon.jpg" alt="Sci-Fi" loading="lazy" />
+          <div class="style-card-label">Sci-Fi</div>
+        </div>
+        <div class="style-card" data-world="fashion">
+          <img src="/images/glamour-bw.png" alt="Streetwear" loading="lazy" />
+          <div class="style-card-label">Streetwear</div>
+        </div>
+        <div class="style-card" data-world="fashion">
+          <img src="/images/cinematic-window.png" alt="Headshot" loading="lazy" />
+          <div class="style-card-label">Headshot</div>
+        </div>
+        <div class="style-card" data-world="fashion">
+          <img src="/images/campaign-red.png" alt="Glamour" loading="lazy" />
+          <div class="style-card-label">Glamour</div>
+        </div>
+        <div class="style-card" data-world="riviera">
+          <img src="/images/riviera-yacht.png" alt="Riviera" loading="lazy" />
+          <div class="style-card-label">Riviera</div>
+        </div>
+        <div class="style-card" data-world="sovereign">
+          <img src="/images/sovereign-king.png" alt="Sovereign" loading="lazy" />
+          <div class="style-card-label">Sovereign</div>
+        </div>
+        <div class="style-card" data-world="dreamy">
+          <img src="/images/acotar-flowers.png" alt="Bohemian" loading="lazy" />
+          <div class="style-card-label">Bohemian</div>
+        </div>
+        <div class="style-card" data-world="fashion">
+          <img src="/images/alter-ego-1779671790672.png" alt="Athlete" loading="lazy" />
+          <div class="style-card-label">Athlete</div>
+        </div>
+        <div class="style-card" data-world="fashion">
+          <img src="/images/alter-ego-1778884630965.png" alt="Warhol" loading="lazy" />
+          <div class="style-card-label">Warhol</div>
+        </div>
+        <div class="style-card" data-world="fashion">
+          <img src="/images/anime-golden.jpg" alt="Cover" loading="lazy" />
+          <div class="style-card-label">Cover</div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<footer>
-  <a href="/" class="f-logo">Alter<span>.</span>Ego</a>
-  <div class="f-copy">© 2026 alter-ego.photography · Powered by Claude & Flux AI</div>
-  <div style="display:flex;gap:20px;align-items:center">
-    <a href="mailto:contact@inhausmedia.com.au" style="font-size:9px;letter-spacing:0.08em;color:rgba(245,243,238,0.35);text-transform:uppercase;text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='#c8f05a'" onmouseout="this.style.color='rgba(245,243,238,0.35)'">contact@inhausmedia.com.au</a>
-    <a href="/terms" style="font-size:9px;letter-spacing:0.08em;color:rgba(245,243,238,0.35);text-transform:uppercase;text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='#c8f05a'" onmouseout="this.style.color='rgba(245,243,238,0.35)'">Terms of Use</a>
-    <a href="/privacy" style="font-size:9px;letter-spacing:0.08em;color:rgba(245,243,238,0.35);text-transform:uppercase;text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='#c8f05a'" onmouseout="this.style.color='rgba(245,243,238,0.35)'">Privacy Policy</a>
-  </div>
-</footer>
+  <!-- HOW IT WORKS -->
+  <section class="how-section" id="how">
+    <p class="section-label fade-up">Simple as it gets</p>
+    <h2 class="section-title fade-up fade-up-delay-1">Three steps.<br>One transformation.</h2>
 
-<script>
-const obs = new IntersectionObserver(entries => {
-  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('vis'); });
-}, { threshold: 0.08 });
-document.querySelectorAll('.fi').forEach(el => obs.observe(el));
-document.querySelectorAll('.hero .fi').forEach(el => {
-  setTimeout(() => el.classList.add('vis'), 100);
-});
-</script>
+    <div class="steps">
+      <div class="step fade-up fade-up-delay-2">
+        <span class="step-number">01</span>
+        <h3 class="step-title">Upload your selfie</h3>
+        <p class="step-desc">Any well-lit photo works. Front-facing, clear background, natural expression. The more detail, the more faithful the result.</p>
+      </div>
+      <div class="step fade-up fade-up-delay-3">
+        <span class="step-number">02</span>
+        <h3 class="step-title">Choose your world</h3>
+        <p class="step-desc">16 cinematic styles from Acotar fae warrior to Riviera elite. Each one a fully realised alternate reality waiting for you to step in.</p>
+      </div>
+      <div class="step fade-up fade-up-delay-4">
+        <span class="step-number">03</span>
+        <h3 class="step-title">Download & share</h3>
+        <p class="step-desc">Gallery-quality portrait, ready in seconds. Download full resolution or share directly. Your alternate lives, ready to post.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="pricing-section" id="pricing">
+    <p class="section-label fade-up">Simple pricing</p>
+    <h2 class="section-title fade-up fade-up-delay-1">Pay once. No subscription.</h2>
+    <p class="section-sub fade-up fade-up-delay-2">Credits never expire. Use them whenever you want.</p>
+
+    <div class="pricing-grid">
+      <div class="price-card fade-up fade-up-delay-2">
+        <p class="price-name">Starter</p>
+        <p class="price-amount">$9</p>
+        <p class="price-credits">10 credits · $0.90 per generation</p>
+        <a href="/app/" class="price-btn">Get started</a>
+      </div>
+      <div class="price-card featured fade-up fade-up-delay-3">
+        <p class="price-name">Creator</p>
+        <p class="price-amount">$19</p>
+        <p class="price-credits">30 credits · $0.63 per generation</p>
+        <a href="/app/" class="price-btn">Get started</a>
+      </div>
+      <div class="price-card fade-up fade-up-delay-4">
+        <p class="price-name">Pro</p>
+        <p class="price-amount">$49</p>
+        <p class="price-credits">100 credits · $0.49 per generation</p>
+        <a href="/app/" class="price-btn">Get started</a>
+      </div>
+    </div>
+
+    <p style="text-align:center; margin-top: 32px; font-size: 13px; color: var(--muted);">
+      First generation is free. No credit card required to try.
+    </p>
+  </section>
+
+  <!-- CTA BANNER -->
+  <section class="cta-section">
+    <div class="cta-bg"></div>
+    <div class="cta-content fade-up">
+      <h2>Step into your<br><em>next life.</em></h2>
+      <p>Your selfie. Every world. Start free today.</p>
+      <a href="/app/" class="btn-primary">Create yours free →</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">ALTER<span>.</span>EGO</div>
+    <div class="footer-links">
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="mailto:contact@inhausmedia.com.au">Contact</a>
+      <a href="https://instagram.com/alter_ego.photography" target="_blank">Instagram</a>
+    </div>
+    <p class="footer-copy">© 2025 Inhaus Media. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // Scroll reveal
+    const fadeEls = document.querySelectorAll('.fade-up');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+    fadeEls.forEach(el => observer.observe(el));
+
+    // World bg switcher for styles section
+    const styleCards = document.querySelectorAll('.style-card[data-world]');
+    const worldLayers = document.querySelectorAll('.styles-world-bg .world-layer');
+
+    styleCards.forEach(card => {
+      card.addEventListener('mouseenter', () => {
+        const world = card.dataset.world;
+        worldLayers.forEach(layer => {
+          layer.classList.toggle('active', layer.dataset.world === world);
+        });
+      });
+      card.addEventListener('mouseleave', () => {
+        worldLayers.forEach(layer => layer.classList.remove('active'));
+      });
+    });
+
+    // Parallax on hero portrait — subtle
+    const portrait = document.querySelector('.hero-portrait');
+    window.addEventListener('scroll', () => {
+      const y = window.scrollY;
+      if (portrait && y < window.innerHeight) {
+        portrait.style.transform = `translateX(40%) translateY(${y * 0.12}px)`;
+      }
+    }, { passive: true });
+
+    // Slow auto-cycle gallery images on mobile (optional atmosphere)
+    // Already handled by CSS transitions on load
+  </script>
+
 </body>
 </html>
