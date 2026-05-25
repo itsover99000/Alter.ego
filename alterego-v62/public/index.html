@@ -237,9 +237,8 @@ nav {
 .g-item img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  object-position: center;
-  background: #111;
+  object-fit: cover;
+  object-position: center 20%;
   display: block;
   transition: transform 0.6s ease;
 }
@@ -968,23 +967,30 @@ footer {
 </footer>
 
 <script>
-// Style card world backgrounds via CSS custom property
-document.querySelectorAll('.s-card').forEach(card => {
-  const bg = card.style.getPropertyValue('--world-bg');
-  if (bg) card.style.setProperty('--world-bg', bg);
-  card.style.cssText += `;--world-bg:${bg}`;
+// Style card backgrounds injected via JS
+const styleCardBgs = [
+  '/images/cinematic-window.png',
+  '/images/campaign-red.png',
+  '/images/cyberpunk-neon.jpg',
+  '/images/anime-golden.jpg',
+  '/images/glamour-bw.png',
+  '/images/campaign-red.png',
+  '/images/cyberpunk-green.png',
+  '/images/MSSmdbcC_vWu36DxFqN3-.png',
+  '/images/cinematic-window.png',
+  '/images/glamour-bw.png',
+  '/images/acotar-flowers.png',
+  '/images/alter-ego-1779671790672.png',
+  '/images/warhol-quad-2.png',
+  '/images/riviera-yacht.png',
+  '/images/bohemian.png',
+  '/images/sovereign-king.png'
+];
+const styleEl = document.createElement('style');
+styleCardBgs.forEach((bg, i) => {
+  styleEl.textContent += `.styles-grid .s-card:nth-child(${i+1})::before { background-image: url('${bg}'); }`;
 });
-
-// Apply world bg to ::before via data attribute
-document.querySelectorAll('.s-card').forEach(card => {
-  const bg = getComputedStyle(card).getPropertyValue('--world-bg').trim();
-  if (bg) {
-    const style = document.createElement('style');
-    const idx = Array.from(card.parentNode.children).indexOf(card);
-    style.textContent = `.styles-grid .s-card:nth-child(${idx + 1})::before { background-image: ${bg}; }`;
-    document.head.appendChild(style);
-  }
-});
+document.head.appendChild(styleEl);
 
 // Scroll reveal
 const obs = new IntersectionObserver(entries => {
