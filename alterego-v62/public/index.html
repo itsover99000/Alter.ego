@@ -1,1036 +1,1500 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ALTER.EGO — One selfie. Infinite lives.</title>
-  <meta name="description" content="Upload a photo. Step into any world. 16 cinematic styles powered by AI." />
-  <link rel="icon" href="/favicon.ico" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;700;800&display=swap" rel="stylesheet">
-
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --black: #0a0a0a;
-      --white: #f5f3ee;
-      --accent: #c8f05a;
-      --mid: #888;
-      --border: rgba(10,10,10,0.1);
-      --cream: #f0ede6;
-
-      --muted: #888880;
-      --border: rgba(255,255,255,0.08);
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      background: var(--black);
-      color: var(--white);
-      font-family: 'DM Mono', monospace;
-      font-weight: 300;
-      overflow-x: hidden;
-    }
-
-    /* ── NAV ── */
-    nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 24px 40px;
-      background: linear-gradient(to bottom, rgba(10,10,10,0.7) 0%, transparent 100%);
-    }
-
-    .nav-logo {
-      font-family: 'Syne', sans-serif;
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--white);
-      text-decoration: none;
-    }
-
-    .nav-logo span {
-      color: var(--accent);
-    }
-
-    .nav-right {
-      display: flex;
-      align-items: center;
-      gap: 32px;
-    }
-
-    .nav-link {
-      font-family: 'Syne', sans-serif;
-      font-size: 10px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.65);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
-    .nav-link:hover { color: var(--white); }
-
-    .nav-cta {
-      font-family: 'Syne', sans-serif;
-      font-size: 10px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--black);
-      background: var(--accent);
-      padding: 9px 20px;
-      text-decoration: none;
-      font-weight: 700;
-      transition: background 0.2s, transform 0.2s;
-    }
-
-    .nav-cta:hover {
-      background: #d4f570;
-      transform: translateY(-1px);
-    }
-
-    /* ── HERO — DESKTOP SPLIT ── */
-    .hero {
-      position: relative;
-      height: 100vh;
-      display: flex;
-      overflow: hidden;
-    }
-
-    /* Right: Gallery grid — full bleed base layer */
-    .hero-gallery {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      grid-auto-rows: calc(100vh / 4);
-      gap: 2px;
-      z-index: 0;
-    }
-
-    .hero-gallery-item {
-      overflow: hidden;
-      position: relative;
-    }
-
-    .hero-gallery-item img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center top;
-      display: block;
-      transition: transform 6s ease;
-      transform: scale(1.05);
-    }
-
-    .hero-gallery-item:hover img {
-      transform: scale(1.1);
-    }
-
-    /* Dark gradient over gallery — stronger on left */
-    .hero-gallery-overlay {
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(to right,
-          rgba(10,10,10,0.97) 0%,
-          rgba(10,10,10,0.85) 30%,
-          rgba(10,10,10,0.45) 55%,
-          rgba(10,10,10,0.15) 100%
-        );
-      z-index: 1;
-    }
-
-    /* Left: Hero copy panel */
-    .hero-copy {
-      position: relative;
-      z-index: 2;
-      width: 48%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 0 56px 72px 56px;
-    }
-
-    /* Hero portrait — overlapping the split */
-    .hero-portrait {
-      position: absolute;
-      right: 50%;
-      bottom: 0;
-      transform: translateX(40%);
-      height: 92%;
-      width: auto;
-      z-index: 3;
-      object-fit: contain;
-      object-position: bottom;
-      /* subtle shadow to separate from gallery */
-      filter: drop-shadow(-40px 0 80px rgba(10,10,10,0.9));
-      pointer-events: none;
-    }
-
-    .hero-eyebrow {
-      font-size: 10px;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 20px;
-      font-weight: 400;
-    }
-
-    .hero-headline {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(52px, 5.5vw, 84px);
-      line-height: 1.05;
-      font-weight: 900;
-      color: var(--white);
-      margin-bottom: 24px;
-    }
-
-    .hero-headline em {
-      font-style: italic;
-      color: var(--accent);
-    }
-
-    .hero-sub {
-      font-family: 'DM Mono', monospace;
-      font-size: clamp(18px, 1.8vw, 24px);
-      font-weight: 300;
-      color: rgba(255,255,255,0.55);
-      margin-bottom: 40px;
-      letter-spacing: 0.02em;
-    }
-
-    .hero-actions {
-      display: flex;
-      align-items: center;
-      gap: 24px;
-    }
-
-    .btn-primary {
-      display: inline-block;
-      background: var(--accent);
-      color: var(--black);
-      font-size: 12px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      font-weight: 500;
-      padding: 16px 36px;
-      text-decoration: none;
-      transition: background 0.25s, transform 0.25s;
-      font-family: 'DM Mono', monospace;
-    }
-
-    .btn-primary:hover {
-      background: #d4f570;
-      transform: translateY(-2px);
-    }
-
-    .btn-ghost {
-      font-size: 12px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.45);
-      text-decoration: none;
-      border-bottom: 1px solid rgba(255,255,255,0.2);
-      padding-bottom: 2px;
-      transition: color 0.2s, border-color 0.2s;
-      font-family: 'DM Mono', monospace;
-    }
-
-    .btn-ghost:hover {
-      color: var(--white);
-      border-color: var(--white);
-    }
-
-    .hero-scroll-hint {
-      position: absolute;
-      bottom: 32px;
-      right: 48px;
-      z-index: 10;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      opacity: 0.35;
-    }
-
-    .hero-scroll-hint span {
-      font-size: 9px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      writing-mode: vertical-rl;
-    }
-
-    .scroll-line {
-      width: 1px;
-      height: 48px;
-      background: linear-gradient(to bottom, var(--white), transparent);
-      animation: scrollPulse 2s ease-in-out infinite;
-    }
-
-    @keyframes scrollPulse {
-      0%, 100% { opacity: 0.3; transform: scaleY(1); }
-      50% { opacity: 0.7; transform: scaleY(0.6); }
-    }
-
-    /* ── STYLES SECTION ── */
-    .styles-section {
-      padding: 120px 0;
-      position: relative;
-    }
-
-    .section-label {
-      font-size: 10px;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: var(--accent);
-      text-align: center;
-      margin-bottom: 16px;
-    }
-
-    .section-title {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(32px, 4vw, 56px);
-      font-weight: 700;
-      text-align: center;
-      color: var(--white);
-      margin-bottom: 12px;
-    }
-
-    .section-sub {
-      font-family: 'DM Mono', monospace;
-      font-size: 20px;
-      font-weight: 300;
-      color: var(--muted);
-      text-align: center;
-      margin-bottom: 72px;
-    }
-
-    /* World backgrounds for styles section */
-    .styles-world-bg {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-      overflow: hidden;
-    }
-
-    .styles-world-bg .world-layer {
-      position: absolute;
-      inset: 0;
-      background-size: cover;
-      background-position: center;
-      opacity: 0;
-      transition: opacity 0.8s ease;
-    }
-
-    .styles-world-bg .world-layer.active {
-      opacity: 0.12;
-    }
-
-    .styles-world-bg::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to bottom, var(--black) 0%, transparent 30%, transparent 70%, var(--black) 100%);
-      z-index: 1;
-    }
-
-    .styles-content {
-      position: relative;
-      z-index: 2;
-    }
-
-    .styles-grid {
-      display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      gap: 2px;
-      padding: 0 2px;
-      max-width: 100%;
-    }
-
-    @media (max-width: 1200px) {
-      .styles-grid { grid-template-columns: repeat(4, 1fr); }
-    }
-
-    .style-card {
-      position: relative;
-      aspect-ratio: 3/4;
-      overflow: hidden;
-      cursor: pointer;
-      group: true;
-    }
-
-    .style-card img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center top;
-      transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      filter: grayscale(30%) brightness(0.75);
-    }
-
-    .style-card:hover img {
-      transform: scale(1.08);
-      filter: grayscale(0%) brightness(0.9);
-    }
-
-    .style-card-label {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 20px 12px 12px;
-      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
-      font-size: 10px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.8);
-      font-family: 'DM Mono', monospace;
-      font-weight: 400;
-      transform: translateY(4px);
-      transition: transform 0.3s, color 0.3s;
-    }
-
-    .style-card:hover .style-card-label {
-      color: #d4f570;
-      transform: translateY(0);
-    }
-
-    /* ── HOW IT WORKS ── */
-    .how-section {
-      padding: 120px 56px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 2px;
-      margin-top: 72px;
-    }
-
-    .step {
-      padding: 48px 40px;
-      border: 1px solid var(--border);
-      position: relative;
-      transition: border-color 0.3s;
-    }
-
-    .step:hover {
-      border-color: rgba(201, 169, 110, 0.3);
-    }
-
-    .step-number {
-      font-family: 'Playfair Display', serif;
-      font-size: 72px;
-      font-weight: 900;
-      color: rgba(201,169,110,0.12);
-      line-height: 1;
-      margin-bottom: 24px;
-      display: block;
-    }
-
-    .step-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--white);
-      margin-bottom: 12px;
-    }
-
-    .step-desc {
-      font-size: 14px;
-      line-height: 1.7;
-      color: var(--muted);
-      font-weight: 300;
-    }
-
-    /* ── PRICING ── */
-    .pricing-section {
-      padding: 120px 56px;
-      background: #0e0d0b;
-    }
-
-    .pricing-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 2px;
-      max-width: 900px;
-      margin: 72px auto 0;
-    }
-
-    .price-card {
-      padding: 48px 36px;
-      border: 1px solid var(--border);
-      position: relative;
-      transition: border-color 0.3s, transform 0.3s;
-    }
-
-    .price-card.featured {
-      border-color: rgba(201,169,110,0.5);
-      background: rgba(201,169,110,0.04);
-    }
-
-    .price-card.featured::before {
-      content: 'Most Popular';
-      position: absolute;
-      top: -1px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--accent);
-      color: var(--black);
-      font-size: 9px;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      font-weight: 500;
-      padding: 5px 16px;
-      font-family: 'DM Mono', monospace;
-    }
-
-    .price-card:hover {
-      border-color: rgba(201,169,110,0.4);
-      transform: translateY(-4px);
-    }
-
-    .price-name {
-      font-size: 10px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 20px;
-    }
-
-    .price-amount {
-      font-family: 'Playfair Display', serif;
-      font-size: 48px;
-      font-weight: 900;
-      color: var(--white);
-      line-height: 1;
-      margin-bottom: 4px;
-    }
-
-    .price-credits {
-      font-size: 13px;
-      color: var(--muted);
-      margin-bottom: 32px;
-    }
-
-    .price-btn {
-      display: block;
-      text-align: center;
-      padding: 14px;
-      font-size: 11px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      font-weight: 500;
-      text-decoration: none;
-      font-family: 'DM Mono', monospace;
-      transition: all 0.25s;
-    }
-
-    .price-card.featured .price-btn {
-      background: var(--accent);
-      color: var(--black);
-    }
-
-    .price-card.featured .price-btn:hover {
-      background: #d4f570;
-    }
-
-    .price-card:not(.featured) .price-btn {
-      border: 1px solid rgba(255,255,255,0.15);
-      color: rgba(255,255,255,0.6);
-    }
-
-    .price-card:not(.featured) .price-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    /* ── CTA BANNER ── */
-    .cta-section {
-      position: relative;
-      height: 60vh;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .cta-bg {
-      position: absolute;
-      inset: 0;
-      background-image: url('/images/acotar-fire.png');
-      background-size: cover;
-      background-position: center 20%;
-      filter: brightness(0.35) saturate(0.7);
-      transform: scale(1.05);
-      transition: transform 8s ease;
-    }
-
-    .cta-section:hover .cta-bg {
-      transform: scale(1.0);
-    }
-
-    .cta-section::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to bottom,
-        var(--black) 0%,
-        transparent 20%,
-        transparent 80%,
-        var(--black) 100%
-      );
-    }
-
-    .cta-content {
-      position: relative;
-      z-index: 2;
-      text-align: center;
-    }
-
-    .cta-content h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(40px, 6vw, 80px);
-      font-weight: 900;
-      line-height: 1.05;
-      margin-bottom: 24px;
-    }
-
-    .cta-content h2 em {
-      font-style: italic;
-      color: var(--accent);
-    }
-
-    .cta-content p {
-      font-family: 'DM Mono', monospace;
-      font-size: 20px;
-      font-weight: 300;
-      color: rgba(255,255,255,0.55);
-      margin-bottom: 40px;
-    }
-
-    /* ── FOOTER ── */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 48px 56px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .footer-logo {
-      font-family: 'Playfair Display', serif;
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.4);
-    }
-
-    .footer-logo span { color: var(--accent); }
-
-    .footer-links {
-      display: flex;
-      gap: 32px;
-    }
-
-    .footer-links a {
-      font-size: 11px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.3);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
-    .footer-links a:hover { color: rgba(255,255,255,0.7); }
-
-    .footer-copy {
-      font-size: 11px;
-      color: rgba(255,255,255,0.2);
-    }
-
-    /* ── MOBILE ── */
-    @media (max-width: 768px) {
-      nav { padding: 20px 24px; }
-
-      .hero {
-        height: 100svh;
-        flex-direction: column;
-      }
-
-      .hero-gallery {
-        grid-template-columns: repeat(3, 1fr);
-        grid-auto-rows: calc(100svh / 5);
-      }
-
-      .hero-gallery-overlay {
-        background: linear-gradient(to bottom,
-          rgba(10,10,10,0.5) 0%,
-          rgba(10,10,10,0.3) 40%,
-          rgba(10,10,10,0.8) 75%,
-          rgba(10,10,10,0.98) 100%
-        );
-      }
-
-      .hero-portrait {
-        right: 50%;
-        transform: translateX(50%);
-        height: 65%;
-        bottom: 38%;
-        filter: drop-shadow(0 20px 60px rgba(10,10,10,0.9));
-      }
-
-      .hero-copy {
-        width: 100%;
-        padding: 0 24px 48px;
-        justify-content: flex-end;
-        text-align: left;
-      }
-
-      .hero-headline { font-size: 44px; }
-
-      .hero-scroll-hint { display: none; }
-
-      .styles-grid {
-        grid-template-columns: repeat(4, 1fr);
-      }
-
-      .steps {
-        grid-template-columns: 1fr;
-        gap: 2px;
-      }
-
-      .pricing-grid {
-        grid-template-columns: 1fr;
-        gap: 2px;
-      }
-
-      .how-section, .pricing-section { padding: 80px 24px; }
-
-      footer {
-        flex-direction: column;
-        gap: 24px;
-        text-align: center;
-        padding: 40px 24px;
-      }
-
-      .footer-links { flex-wrap: wrap; justify-content: center; }
-
-      .cta-content h2 { font-size: 40px; }
-    }
-
-    /* ── ANIMATIONS ── */
-    .fade-up {
-      opacity: 0;
-      transform: translateY(32px);
-      transition: opacity 0.8s ease, transform 0.8s ease;
-    }
-
-    .fade-up.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .fade-up-delay-1 { transition-delay: 0.1s; }
-    .fade-up-delay-2 { transition-delay: 0.2s; }
-    .fade-up-delay-3 { transition-delay: 0.3s; }
-    .fade-up-delay-4 { transition-delay: 0.4s; }
-    .fade-up-delay-5 { transition-delay: 0.5s; }
-
-    /* initial hero animation */
-    @keyframes heroFadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .hero-eyebrow  { animation: heroFadeIn 1s ease 0.3s both; }
-    .hero-headline { animation: heroFadeIn 1s ease 0.5s both; }
-    .hero-sub      { animation: heroFadeIn 1s ease 0.7s both; }
-    .hero-actions  { animation: heroFadeIn 1s ease 0.9s both; }
-    .hero-portrait { animation: heroFadeIn 1.2s ease 0.2s both; }
-
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALTER.EGO — AI Selfie Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent: #c8f05a;
+    --accent-hover: #d4f570;
+    --bg: #0a0a0a;
+    --surface: rgba(240,237,230,0.04);
+    --border: rgba(240,237,230,0.1);
+    --border-hover: rgba(240,237,230,0.25);
+    --text: #f0ede6;
+    --text-muted: rgba(240,237,230,0.5);
+    --text-faint: rgba(240,237,230,0.3);
+    --error-bg: rgba(240,149,149,0.06);
+    --error-border: rgba(240,149,149,0.25);
+    --error-text: #f09595;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 16px 80px;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 480px;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+
+  .logo {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .logo span { color: var(--accent); }
+
+  .badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    border: 0.5px solid rgba(240,237,230,0.15);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  /* API Key */
+  .api-section {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 24px;
+  }
+
+  .api-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+  }
+
+  .api-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .api-input {
+    flex: 1;
+    background: rgba(240,237,230,0.04);
+    border: 0.5px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .api-input:focus { border-color: rgba(200,240,90,0.4); }
+  .api-input::placeholder { color: var(--text-faint); }
+
+  .api-save {
+    background: rgba(200,240,90,0.12);
+    border: 0.5px solid rgba(200,240,90,0.3);
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .api-save:hover { background: rgba(200,240,90,0.2); }
+
+  .api-hint {
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  .api-hint a { color: var(--accent); text-decoration: none; }
+  .api-hint a:hover { text-decoration: underline; }
+
+  .api-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    margin-top: 6px;
+  }
+
+  .api-status.ok { color: var(--accent); }
+  .api-status.empty { color: var(--text-faint); }
+
+  .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  /* Upload */
+  .upload-zone {
+    border: 1px dashed rgba(240,237,230,0.18);
+    border-radius: 12px;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    background: rgba(240,237,230,0.015);
+    margin-bottom: 20px;
+  }
+
+  .upload-zone:hover {
+    border-color: rgba(200,240,90,0.4);
+    background: rgba(200,240,90,0.025);
+  }
+
+  .upload-zone.has-image {
+    border-style: solid;
+    border-color: rgba(200,240,90,0.35);
+    min-height: 240px;
+  }
+
+  .upload-zone img.preview {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.5;
+    border-radius: 11px;
+  }
+
+  .upload-label {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .upload-icon {
+    font-size: 32px;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+  }
+
+  .upload-zone.has-image .upload-icon {
+    color: rgba(200,240,90,0.7);
+    text-shadow: 0 0 20px rgba(200,240,90,0.3);
+  }
+
+  .upload-text { font-size: 13px; color: var(--text-muted); letter-spacing: 0.04em; }
+  .upload-zone.has-image .upload-text { color: var(--text); font-weight: 600; }
+
+  input[type=file] { display: none; }
+
+  /* Divider */
+  .divider { height: 0.5px; background: rgba(240,237,230,0.07); margin: 20px 0; }
+
+  /* Styles */
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 10px;
+  }
+
+  .styles-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .style-btn {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 6px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .style-btn:hover {
+    background: rgba(240,237,230,0.07);
+    border-color: var(--border-hover);
+  }
+
+  .style-btn.active {
+    background: rgba(200,240,90,0.08);
+    border-color: rgba(200,240,90,0.45);
+  }
+
+  .style-emoji { font-size: 18px; display: block; margin-bottom: 4px; }
+
+  .style-name {
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .style-btn.active .style-name { color: var(--accent); }
+
+  /* Generate button */
+  .generate-btn {
+    width: 100%;
+    padding: 15px;
+    background: var(--accent);
+    color: #0a0a0a;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .generate-btn:hover:not(:disabled) { background: var(--accent-hover); transform: translateY(-1px); }
+  .generate-btn:active:not(:disabled) { transform: translateY(0); }
+
+  .generate-btn:disabled {
+    background: rgba(240,237,230,0.07);
+    color: rgba(240,237,230,0.2);
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Error */
+  .error-msg {
+    display: none;
+    font-size: 11px;
+    color: var(--error-text);
+    font-family: 'DM Mono', monospace;
+    margin-top: 12px;
+    padding: 12px 14px;
+    background: var(--error-bg);
+    border: 0.5px solid var(--error-border);
+    border-radius: 8px;
+    line-height: 1.6;
+  }
+
+  /* Results */
+  .result-area { display: none; margin-top: 24px; }
+
+  .analysis-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .analysis-card {
+    background: rgba(240,237,230,0.03);
+    border: 0.5px solid rgba(240,237,230,0.07);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+
+  .analysis-card.full { grid-column: span 2; }
+
+  .ac-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 4px;
+  }
+
+  .ac-value {
+    font-size: 12px;
+    color: rgba(240,237,230,0.8);
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  .prompt-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: blink 1.2s ease-in-out infinite;
+    display: none;
+    flex-shrink: 0;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.75)} }
+
+  .prompt-box {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    color: rgba(240,237,230,0.75);
+    white-space: pre-wrap;
+    word-break: break-word;
+    min-height: 80px;
+  }
+
+  .prompt-box.active { border-color: rgba(200,240,90,0.2); }
+
+  /* Action row */
+  .action-row {
+    display: none;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .action-btn {
+    flex: 1;
+    padding: 10px 8px;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+
+  .action-btn:hover {
+    background: rgba(240,237,230,0.05);
+    border-color: var(--border-hover);
+    color: var(--text);
+  }
+
+  .action-btn.accent {
+    border-color: rgba(200,240,90,0.3);
+    color: var(--accent);
+  }
+
+  .action-btn.accent:hover { background: rgba(200,240,90,0.07); }
+  .action-btn.copied { color: var(--accent); border-color: rgba(200,240,90,0.3); }
+
+  /* Midjourney tip */
+  .mj-tip {
+    display: none;
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: rgba(200,240,90,0.04);
+    border: 0.5px solid rgba(200,240,90,0.15);
+    border-radius: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .mj-tip strong { color: var(--accent); font-weight: 600; }
+
+
+  /* ── LOADING SPINNER ──────────────────────────── */
+  .app-loader {
+    position: fixed; inset: 0; background: #0a0a0a;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9998; transition: opacity 0.3s ease;
+  }
+  .app-loader.hidden { opacity: 0; pointer-events: none; }
+  .spinner-wrap { text-align: center; }
+  .spinner {
+    width: 32px; height: 32px; border: 2px solid rgba(240,237,230,0.1);
+    border-top-color: #c8f05a; border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner-label {
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: rgba(240,237,230,0.25);
+  }
+
+  /* ── AUTH GATE ─────────────────────────────────── */
+  .auth-gate {
+    position: fixed; inset: 0; background: #0a0a0a;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999;
+  }
+  .auth-box {
+    width: 100%; max-width: 380px; padding: 0 28px;
+  }
+  .auth-logo {
+    font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800;
+    letter-spacing: 0.14em; text-transform: uppercase; color: #f0ede6;
+    margin-bottom: 6px;
+  }
+  .auth-logo span { color: #c8f05a; }
+  .auth-tagline {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    color: rgba(240,237,230,0.35); letter-spacing: 0.06em; margin-bottom: 36px;
+  }
+  .auth-tabs {
+    display: flex; margin-bottom: 24px;
+    border-bottom: 0.5px solid rgba(240,237,230,0.1);
+  }
+  .auth-tab {
+    flex: 1; padding: 10px; text-align: center; font-family: 'Syne', sans-serif;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(240,237,230,0.3); cursor: pointer; transition: all 0.15s;
+    border-bottom: 2px solid transparent; margin-bottom: -0.5px;
+  }
+  .auth-tab.active { color: #c8f05a; border-bottom-color: #c8f05a; }
+  .auth-field { margin-bottom: 12px; }
+  .auth-label {
+    font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: rgba(240,237,230,0.35); margin-bottom: 6px; display: block;
+  }
+  .auth-input {
+    width: 100%; background: rgba(240,237,230,0.05);
+    border: 0.5px solid rgba(240,237,230,0.15); border-radius: 6px;
+    padding: 12px 14px; font-family: 'DM Mono', monospace; font-size: 13px;
+    color: #f0ede6; outline: none; transition: border-color 0.15s;
+  }
+  .auth-input:focus { border-color: rgba(200,240,90,0.4); }
+  .auth-input::placeholder { color: rgba(240,237,230,0.2); }
+  .auth-btn {
+    width: 100%; padding: 14px; background: #c8f05a; color: #0a0a0a; border: none;
+    border-radius: 6px; font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 800;
+    letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
+    transition: all 0.15s; margin-top: 6px;
+  }
+  .auth-btn:hover:not(:disabled) { background: #d4f570; }
+  .auth-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .auth-msg {
+    font-family: 'DM Mono', monospace; font-size: 11px; margin-top: 10px;
+    padding: 10px 12px; border-radius: 6px; line-height: 1.6; display: none;
+  }
+  .auth-msg.error { color: #f09595; background: rgba(240,149,149,0.06); border: 0.5px solid rgba(240,149,149,0.2); }
+  .auth-msg.success { color: #c8f05a; background: rgba(200,240,90,0.06); border: 0.5px solid rgba(200,240,90,0.2); }
+  .auth-skip {
+    text-align: center; margin-top: 20px;
+  }
+  .auth-skip button {
+    background: none; border: none; font-family: 'DM Mono', monospace;
+    font-size: 10px; color: rgba(240,237,230,0.25); cursor: pointer;
+    letter-spacing: 0.06em; text-transform: uppercase; transition: color 0.15s;
+  }
+  .auth-skip button:hover { color: rgba(240,237,230,0.5); }
+
+  /* ── USER BAR ───────────────────────────────────── */
+  .user-bar {
+    display: none; align-items: center; justify-content: space-between;
+    padding: 10px 14px; background: rgba(240,237,230,0.04);
+    border: 0.5px solid rgba(240,237,230,0.08); border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  .user-bar.visible { display: flex; }
+  .user-email { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(240,237,230,0.45); }
+  .user-credits { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; color: #c8f05a; }
+  .sign-out-btn {
+    background: none; border: none; font-family: 'DM Mono', monospace; font-size: 10px;
+    color: rgba(240,237,230,0.3); cursor: pointer; letter-spacing: 0.06em;
+    text-transform: uppercase; transition: color 0.15s;
+  }
+  .sign-out-btn:hover { color: rgba(240,237,230,0.7); }
+
+  /* ── GEN GALLERY ────────────────────────────────── */
+  .gen-gallery { margin-top: 20px; display: none; }
+  .gen-gallery.visible { display: block; }
+  .gen-gallery-label {
+    font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: rgba(240,237,230,0.35); margin-bottom: 10px;
+  }
+  .gen-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .gen-thumb {
+    aspect-ratio: 3/4; overflow: hidden; border-radius: 6px;
+    background: rgba(240,237,230,0.04); cursor: pointer; position: relative;
+    transition: opacity 0.2s;
+  }
+  .gen-thumb:hover { opacity: 0.8; }
+  .gen-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .gen-thumb-label {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 5px 8px; background: linear-gradient(transparent, rgba(10,10,10,0.8));
+    font-family: 'DM Mono', monospace; font-size: 9px;
+    letter-spacing: 0.06em; text-transform: uppercase; color: rgba(240,237,230,0.6);
+  }
+
+</style>
 </head>
 <body>
+<style>
+  .gate {
+    position: fixed;
+    inset: 0;
+    background: #0a0a0a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    font-family: 'Syne', sans-serif;
+  }
+  .gate-box {
+    text-align: center;
+    width: 320px;
+  }
+  .gate-logo {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #f0ede6;
+    margin-bottom: 8px;
+  }
+  .gate-logo span { color: #c8f05a; }
+  .gate-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: rgba(240,237,230,0.35);
+    letter-spacing: 0.08em;
+    margin-bottom: 32px;
+  }
+  .gate-input {
+    width: 100%;
+    background: rgba(240,237,230,0.05);
+    border: 0.5px solid rgba(240,237,230,0.15);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: #f0ede6;
+    outline: none;
+    text-align: center;
+    letter-spacing: 0.1em;
+    transition: border-color 0.15s;
+    margin-bottom: 10px;
+  }
+  .gate-input:focus { border-color: rgba(200,240,90,0.4); }
+  .gate-input::placeholder { color: rgba(240,237,230,0.25); letter-spacing: 0.08em; }
+  .gate-btn {
+    width: 100%;
+    padding: 12px;
+    background: #c8f05a;
+    color: #0a0a0a;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .gate-btn:hover { background: #d4f570; }
+  .gate-error {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: #f09595;
+    margin-top: 8px;
+    display: none;
+  }
+</style>
 
-  <!-- NAV -->
-  <nav>
-    <a href="/" class="nav-logo">ALTER<span>.</span>EGO</a>
-    <div class="nav-right">
-      <a href="#how" class="nav-link">How it works</a>
-      <a href="#pricing" class="nav-link">Pricing</a>
-      <a href="/app/" class="nav-cta">Sign In</a>
+
+<div class="app" id="mainApp" style="display:none">
+
+  <div class="header">
+    <div class="logo">ALTER<span>.</span>EGO</div>
+    <div class="badge">Local MVP</div>
+  </div>
+
+  <!-- No API keys needed - handled server-side -->
+
+<!-- LOADING SPINNER -->
+<div class="app-loader" id="appLoader">
+  <div class="spinner-wrap">
+    <div class="spinner"></div>
+    <div class="spinner-label">Loading</div>
+  </div>
+</div>
+
+<!-- AUTH GATE -->
+<div class="auth-gate" id="authGate">
+  <div class="auth-box">
+    <div class="auth-logo">Alter<span>.</span>Ego</div>
+    <div class="auth-tagline">Sign in to save your generations</div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tabSignIn" onclick="switchTab('signin')">Sign In</div>
+      <div class="auth-tab" id="tabSignUp" onclick="switchTab('signup')">Create Account</div>
     </div>
-  </nav>
-
-  <!-- HERO -->
-  <section class="hero">
-
-    <!-- Gallery grid — base layer -->
-    <div class="hero-gallery">
-      <div class="hero-gallery-item"><img src="/images/alter-ego-1779536910282.jpg" alt="" loading="eager" /></div>
-      <div class="hero-gallery-item"><img src="/images/cyberpunk-neon.jpg" alt="" loading="eager" /></div>
-      <div class="hero-gallery-item"><img src="/images/NqqHJO_iF_9UFG7EeNKCm.png" alt="" loading="eager" /></div>
-      <div class="hero-gallery-item"><img src="/images/alter-ego-1778884630965.png" alt="" loading="eager" /></div>
-      <div class="hero-gallery-item"><img src="/images/anime4.jpg" alt="" loading="eager" /></div>
-      <div class="hero-gallery-item"><img src="/images/alter-ego-1778883871382.png" alt="" loading="eager" /></div>
-      <div class="hero-gallery-item"><img src="/images/fashion-3.png" alt="" loading="eager" /></div>
-      <div class="hero-gallery-item"><img src="/images/alter-ego-1779671790672.png" alt="" loading="eager" /></div>
-      <div class="hero-gallery-item"><img src="/images/acotar-fire.png" alt="" loading="eager" /></div>
-      <div class="hero-gallery-item"><img src="/images/cyberpunk-neon.jpg" alt="" loading="eager" /></div>
-      <div class="hero-gallery-item"><img src="/images/warhol-quad-2.png" alt="" loading="eager" /></div>
-      <div class="hero-gallery-item"><img src="/images/campaign-red.png" alt="" loading="eager" /></div>
+    <div id="formSignIn">
+      <div class="auth-field">
+        <label class="auth-label">Email</label>
+        <input type="email" class="auth-input" id="siEmail" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Password</label>
+        <input type="password" class="auth-input" id="siPassword" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="auth-btn" id="siBtn" onclick="handleSignIn()">Sign In</button>
+      <div class="auth-msg" id="siMsg"></div>
     </div>
+    <div id="formSignUp" style="display:none">
+      <div class="auth-field">
+        <label class="auth-label">Email</label>
+        <input type="email" class="auth-input" id="suEmail" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Password</label>
+        <input type="password" class="auth-input" id="suPassword" placeholder="Min. 6 characters" autocomplete="new-password">
+      </div>
+      <button class="auth-btn" id="suBtn" onclick="handleSignUp()">Create Account</button>
+      <div class="auth-msg" id="suMsg"></div>
+    </div>
+    <div class="auth-skip">
+      <button onclick="skipAuth()">Continue without account →</button>
+    </div>
+  </div>
+</div>
 
-    <!-- Gradient overlay -->
-    <div class="hero-gallery-overlay"></div>
+  <!-- Upload -->
+  <!-- USER BAR -->
+<div class="user-bar" id="userBar">
+  <div class="user-email" id="userEmail">—</div>
+  <div class="user-credits" id="userCredits"></div>
+  <button class="sign-out-btn" onclick="handleSignOut()">Sign out</button>
+</div>
 
-    <!-- Hero portrait floating over the split -->
-    <img
-      class="hero-portrait"
-      src="/images/riviera-yacht.png"
-      alt="ALTER.EGO example — Riviera style"
-    />
+<input type="file" id="fileInput" accept="image/*">
+  <div class="upload-zone" id="uploadZone">
+    <div class="upload-label">
+      <div class="upload-icon">📷</div>
+      <div class="upload-text" id="uploadText">Drop a selfie or click to upload</div>
+    </div>
+  </div>
 
-    <!-- Copy panel -->
-    <div class="hero-copy">
-      <p class="hero-eyebrow">AI Portrait Transformation</p>
-      <h1 class="hero-headline">
-        One selfie.<br><em>Infinite</em> lives.
-      </h1>
-      <p class="hero-sub">Upload a photo. Step into any world.</p>
-      <div class="hero-actions">
-        <a href="/app/" class="btn-primary">Start your first life free →</a>
-        <a href="#how" class="btn-ghost">See how it works</a>
+  <div class="divider"></div>
+
+  <!-- Style selector -->
+  <div class="section-label">Style Direction</div>
+  <div class="styles-grid">
+    <div class="style-btn active" data-style="cinematic"><span class="style-emoji">🎬</span><span class="style-name">Cinematic</span></div>
+    <div class="style-btn" data-style="editorial"><span class="style-emoji">📸</span><span class="style-name">Editorial</span></div>
+    <div class="style-btn" data-style="cyberpunk"><span class="style-emoji">⚡</span><span class="style-name">Cyberpunk</span></div>
+    <div class="style-btn" data-style="anime"><span class="style-emoji">🌸</span><span class="style-name">Anime</span></div>
+    <div class="style-btn" data-style="painterly"><span class="style-emoji">🎨</span><span class="style-name">Painterly</span></div>
+    <div class="style-btn" data-style="fashion"><span class="style-emoji">✦</span><span class="style-name">Fashion</span></div>
+    <div class="style-btn" data-style="sci-fi"><span class="style-emoji">🚀</span><span class="style-name">Sci-Fi</span></div>
+    <div class="style-btn" data-style="streetwear"><span class="style-emoji">🔥</span><span class="style-name">Streetwear</span></div>
+  </div>
+
+  <button class="generate-btn" id="generateBtn" disabled>Analyse &amp; Generate Prompt</button>
+  <div class="error-msg" id="errorMsg"></div>
+
+  <!-- Results -->
+  <div class="result-area" id="resultArea">
+    <div class="divider"></div>
+    <div class="analysis-grid" id="analysisGrid"></div>
+    <div class="prompt-label">
+      <span class="status-dot" id="statusDot"></span>
+      AI Image Prompt <span id="promptEditHint" style="display:none;font-size:9px;color:rgba(200,240,90,0.6);margin-left:6px;letter-spacing:0.04em">— tap to edit</span>
+    </div>
+    <textarea id="promptBox" class="prompt-box" style="resize:vertical;min-height:120px;width:100%;font-family:DM Mono,monospace;font-size:12px;line-height:1.8;color:rgba(240,237,230,0.75);background:rgba(240,237,230,0.04);border:0.5px solid rgba(240,237,230,0.1);border-radius:8px;padding:16px;outline:none;transition:border-color 0.15s" placeholder="Your prompt will appear here — edit before generating..." readonly></textarea>
+
+
+    <div class="action-row" id="actionRow">
+      <button class="action-btn" id="copyBtn">📋 Copy</button>
+      <button class="action-btn accent" id="mjBtn">✦ MJ Format</button>
+      <button class="action-btn" id="resetBtn">↺ Reset</button>
+    </div>
+    <button id="generateImageBtn" style="display:none;width:100%;margin-top:10px;padding:14px;background:#c8f05a;color:#0a0a0a;border:none;border-radius:8px;font-family:Syne,sans-serif;font-size:13px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:all 0.15s">⚡ Generate Image with Flux</button>
+    <div class="mj-tip" id="mjTip"></div>
+
+  <!-- Image generation result -->
+  <div id="imageArea" style="display:none;margin-top:16px">
+    <div style="height:0.5px;background:rgba(240,237,230,0.07);margin:16px 0"></div>
+    <div style="font-family:DM Mono,monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(240,237,230,0.35);margin-bottom:12px;display:flex;align-items:center;gap:8px">
+      <span id="imageStatusDot" style="display:none;width:6px;height:6px;border-radius:50%;background:#c8f05a;animation:blink 1.2s ease-in-out infinite;flex-shrink:0"></span>
+      Generated Image
+    </div>
+    <div id="imageContainer" style="border-radius:10px;overflow:hidden;background:rgba(240,237,230,0.03);border:0.5px solid rgba(240,237,230,0.08);min-height:180px;display:flex;align-items:center;justify-content:center">
+      <div id="imageLoading" style="font-family:DM Mono,monospace;font-size:11px;color:rgba(240,237,230,0.3);text-align:center;padding:40px 20px">
+        <div style="font-size:24px;margin-bottom:10px">⚡</div>
+        Generating your alter ego...
       </div>
     </div>
-
-    <!-- Scroll hint -->
-    <div class="hero-scroll-hint">
-      <span>Scroll</span>
-      <div class="scroll-line"></div>
-    </div>
-
-  </section>
-
-  <!-- 16 STYLES -->
-  <section class="styles-section" id="styles">
-
-    <!-- World backgrounds -->
-    <div class="styles-world-bg">
-      <div class="world-layer" data-world="riviera" style="background-image: url('/images/world-riviera-bg.jpg')"></div>
-      <div class="world-layer" data-world="sovereign" style="background-image: url('/images/NqqHJO_iF_9UFG7EeNKCm.png')"></div>
-      <div class="world-layer" data-world="cyberpunk" style="background-image: url('/images/world-cyberpunk-bg.jpg')"></div>
-      <div class="world-layer" data-world="dreamy" style="background-image: url('/images/world-dreamy-bg.jpg')"></div>
-      <div class="world-layer" data-world="fashion" style="background-image: url('/images/world-fashion-bg.jpg')"></div>
-    </div>
-
-    <div class="styles-content">
-      <p class="section-label fade-up">16 Worlds to inhabit</p>
-      <h2 class="section-title fade-up fade-up-delay-1">Every version of you,<br>finally visible.</h2>
-      <p class="section-sub fade-up fade-up-delay-2">Cinematic. Fantasy. Editorial. Athletic. All yours.</p>
-
-      <div class="styles-grid">
-        <div class="style-card" data-world="fashion">
-          <img src="/images/alter-ego-1779536910282.jpg" alt="Cinematic" loading="lazy" />
-          <div class="style-card-label">Cinematic</div>
-        </div>
-        <div class="style-card" data-world="fashion">
-          <img src="/images/fashion-3.png" alt="Campaign" loading="lazy" />
-          <div class="style-card-label">Campaign</div>
-        </div>
-        <div class="style-card" data-world="cyberpunk">
-          <img src="/images/cyberpunk-neon.jpg" alt="Cyberpunk" loading="lazy" />
-          <div class="style-card-label">Cyberpunk</div>
-        </div>
-        <div class="style-card" data-world="dreamy">
-          <img src="/images/anime4.jpg" alt="Anime" loading="lazy" />
-          <div class="style-card-label">Anime</div>
-        </div>
-        <div class="style-card" data-world="dreamy">
-          <img src="/images/bohemian.png" alt="Painterly" loading="lazy" />
-          <div class="style-card-label">Painterly</div>
-        </div>
-        <div class="style-card" data-world="sovereign">
-          <img src="/images/alter-ego-1778883871382.png" alt="Acotar" loading="lazy" />
-          <div class="style-card-label">Acotar</div>
-        </div>
-        <div class="style-card" data-world="cyberpunk">
-          <img src="/images/cyberpunk-neon.jpg" alt="Sci-Fi" loading="lazy" />
-          <div class="style-card-label">Sci-Fi</div>
-        </div>
-        <div class="style-card" data-world="fashion">
-          <img src="/images/glamour-bw.png" alt="Streetwear" loading="lazy" />
-          <div class="style-card-label">Streetwear</div>
-        </div>
-        <div class="style-card" data-world="fashion">
-          <img src="/images/cinematic-window.png" alt="Headshot" loading="lazy" />
-          <div class="style-card-label">Headshot</div>
-        </div>
-        <div class="style-card" data-world="fashion">
-          <img src="/images/campaign-red.png" alt="Glamour" loading="lazy" />
-          <div class="style-card-label">Glamour</div>
-        </div>
-        <div class="style-card" data-world="riviera">
-          <img src="/images/riviera-yacht.png" alt="Riviera" loading="lazy" />
-          <div class="style-card-label">Riviera</div>
-        </div>
-        <div class="style-card" data-world="sovereign">
-          <img src="/images/sovereign-king.png" alt="Sovereign" loading="lazy" />
-          <div class="style-card-label">Sovereign</div>
-        </div>
-        <div class="style-card" data-world="dreamy">
-          <img src="/images/acotar-flowers.png" alt="Bohemian" loading="lazy" />
-          <div class="style-card-label">Bohemian</div>
-        </div>
-        <div class="style-card" data-world="fashion">
-          <img src="/images/alter-ego-1779671790672.png" alt="Athlete" loading="lazy" />
-          <div class="style-card-label">Athlete</div>
-        </div>
-        <div class="style-card" data-world="fashion">
-          <img src="/images/alter-ego-1778884630965.png" alt="Warhol" loading="lazy" />
-          <div class="style-card-label">Warhol</div>
-        </div>
-        <div class="style-card" data-world="fashion">
-          <img src="/images/anime-golden.jpg" alt="Cover" loading="lazy" />
-          <div class="style-card-label">Cover</div>
-        </div>
+    <div id="imageError" style="display:none;font-size:11px;color:#f09595;font-family:DM Mono,monospace;margin-top:8px;padding:10px 12px;background:rgba(240,149,149,0.06);border:0.5px solid rgba(240,149,149,0.2);border-radius:8px;line-height:1.6"></div>
+    <div id="imageSaveRow" style="display:none;margin-top:10px;display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <a id="imageDownload" download="alter-ego.png" style="display:block;padding:12px;background:transparent;border:0.5px solid rgba(200,240,90,0.3);border-radius:8px;font-family:Syne,sans-serif;font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:#c8f05a;cursor:pointer;text-align:center;text-decoration:none">↓ Save</a>
+        <button id="shareBtn" style="padding:12px;background:#c8f05a;border:none;border-radius:8px;font-family:Syne,sans-serif;font-size:11px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#0a0a0a;cursor:pointer">↗ Share</button>
       </div>
+      <canvas id="watermarkCanvas" style="display:none"></canvas>
     </div>
-  </section>
+  </div>
 
-  <!-- HOW IT WORKS -->
-  <section class="how-section" id="how">
-    <p class="section-label fade-up">Simple as it gets</p>
-    <h2 class="section-title fade-up fade-up-delay-1">Three steps.<br>One transformation.</h2>
+  </div>
 
-    <div class="steps">
-      <div class="step fade-up fade-up-delay-2">
-        <span class="step-number">01</span>
-        <h3 class="step-title">Upload your selfie</h3>
-        <p class="step-desc">Any well-lit photo works. Front-facing, clear background, natural expression. The more detail, the more faithful the result.</p>
+</div>
+</div>
+
+<script>
+// ── SUPABASE ──────────────────────────────────────────
+const SUPABASE_URL = 'https://vzlrivfnzxmrymxpondl.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6bHJpdmZuenhtcnlteHBvbmRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MTM1MzUsImV4cCI6MjA5NDI4OTUzNX0.oV_mACedg9AfC-n0QEiLx4ouQV4asAHtLYBTBUzMvQg';
+let sb = null;
+
+let currentUser = null;
+
+// Init auth state
+function hideLoader() {
+  try {
+    const loader = document.getElementById('appLoader');
+    if (loader) { loader.classList.add('hidden'); setTimeout(() => { try { loader.remove(); } catch(e){} }, 400); }
+  } catch(e) {}
+}
+
+function showAuthGate() {
+  hideLoader();
+  const gate = document.getElementById('authGate');
+  const app = document.getElementById('mainApp');
+  if (gate) gate.setAttribute('style', 'display:flex');
+  if (app) app.setAttribute('style', 'display:none');
+}
+
+function showMainApp() {
+  hideLoader();
+  const gate = document.getElementById('authGate');
+  const app = document.getElementById('mainApp');
+  if (gate) gate.setAttribute('style', 'display:none');
+  if (app) app.setAttribute('style', 'display:block');
+}
+
+async function initAuth() {
+  // Check for existing session FIRST before setting up listener
+  // This prevents the listener firing before we know initial state
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session?.user) {
+      await onSignedIn(session.user);
+    } else {
+      showAuthGate();
+    }
+  } catch(e) {
+    console.error('initAuth error:', e);
+    showAuthGate();
+  }
+
+  // Listen for auth changes AFTER initial check
+  // Only act on definitive events — ignore TOKEN_REFRESHED to prevent flicker
+  sb.auth.onAuthStateChange(async (event, session) => {
+    console.log('Auth event:', event, session?.user?.email);
+    if (event === 'SIGNED_IN' && session?.user) {
+      await onSignedIn(session.user);
+    } else if (event === 'SIGNED_OUT') {
+      onSignedOut();
+      showAuthGate();
+    }
+    // Deliberately ignore: INITIAL_SESSION, TOKEN_REFRESHED, USER_UPDATED
+    // These cause the flicker/blank screen bug
+  });
+}
+
+async function onSignedIn(user) {
+  currentUser = user;
+  showMainApp();
+  document.getElementById('userBar').classList.add('visible');
+  document.getElementById('userEmail').textContent = user.email;
+  await loadProfile();
+  await loadGenerations();
+}
+
+function onSignedOut() {
+  currentUser = null;
+  document.getElementById('userBar').classList.remove('visible');
+  document.getElementById('userCredits').textContent = '';
+  document.getElementById('genGallery').classList.remove('visible');
+  document.getElementById('genGrid').innerHTML = '';
+}
+
+async function loadProfile() {
+  const { data } = await sb.from('profiles').select('credits, total_generations').eq('id', currentUser.id).single();
+  if (data) {
+    document.getElementById('userCredits').textContent = `${data.credits} credits`;
+  }
+}
+
+async function loadGenerations() {
+  const { data } = await sb.from('generations').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(12);
+  if (data && data.length > 0) {
+    const grid = document.getElementById('genGrid');
+    grid.innerHTML = data.map(g => `
+      <div class="gen-thumb" onclick="reuseGeneration('${g.image_url}','${(g.style||'').replace(/'/g,"\'")}')">
+        <img src="${g.image_url}" alt="${g.style || 'generation'}" loading="lazy">
+        <div class="gen-thumb-label">${g.style || '—'}</div>
       </div>
-      <div class="step fade-up fade-up-delay-3">
-        <span class="step-number">02</span>
-        <h3 class="step-title">Choose your world</h3>
-        <p class="step-desc">16 cinematic styles from Acotar fae warrior to Riviera elite. Each one a fully realised alternate reality waiting for you to step in.</p>
-      </div>
-      <div class="step fade-up fade-up-delay-4">
-        <span class="step-number">03</span>
-        <h3 class="step-title">Download & share</h3>
-        <p class="step-desc">Gallery-quality portrait, ready in seconds. Download full resolution or share directly. Your alternate lives, ready to post.</p>
-      </div>
-    </div>
-  </section>
+    `).join('');
+    document.getElementById('genGallery').classList.add('visible');
+  }
+}
 
-  <!-- PRICING -->
-  <section class="pricing-section" id="pricing">
-    <p class="section-label fade-up">Simple pricing</p>
-    <h2 class="section-title fade-up fade-up-delay-1">Pay once. No subscription.</h2>
-    <p class="section-sub fade-up fade-up-delay-2">Credits never expire. Use them whenever you want.</p>
+function reuseGeneration(url, style) {
+  // Show image in result area
+  const imageArea = document.getElementById('imageArea');
+  const imageContainer = document.getElementById('imageContainer');
+  imageArea.style.display = 'block';
+  const existing = imageContainer.querySelector('img');
+  if (existing) existing.remove();
+  document.getElementById('imageLoading').style.display = 'none';
+  const img = document.createElement('img');
+  img.src = url;
+  img.style.cssText = 'width:100%;display:block;border-radius:10px';
+  imageContainer.appendChild(img);
+  document.getElementById('imageSaveRow').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
-    <div class="pricing-grid">
-      <div class="price-card fade-up fade-up-delay-2">
-        <p class="price-name">Starter</p>
-        <p class="price-amount">$9</p>
-        <p class="price-credits">10 credits · $0.90 per generation</p>
-        <a href="/app/" class="price-btn">Get started</a>
-      </div>
-      <div class="price-card featured fade-up fade-up-delay-3">
-        <p class="price-name">Creator</p>
-        <p class="price-amount">$19</p>
-        <p class="price-credits">30 credits · $0.63 per generation</p>
-        <a href="/app/" class="price-btn">Get started</a>
-      </div>
-      <div class="price-card fade-up fade-up-delay-4">
-        <p class="price-name">Pro</p>
-        <p class="price-amount">$49</p>
-        <p class="price-credits">100 credits · $0.49 per generation</p>
-        <a href="/app/" class="price-btn">Get started</a>
-      </div>
-    </div>
+async function saveGeneration(imageUrl, style, prompt, mood, lighting, features) {
+  if (!currentUser) return;
+  await sb.from('generations').insert({
+    user_id: currentUser.id,
+    image_url: imageUrl,
+    style: style,
+    prompt: prompt,
+    mood: mood,
+    lighting: lighting,
+    features: features
+  });
+  // Update total generations count
+  await sb.rpc('increment_generations', { user_id: currentUser.id }).catch(() => {});
+  await loadGenerations();
+  await loadProfile();
+}
 
-    <p style="text-align:center; margin-top: 32px; font-size: 13px; color: var(--muted);">
-      First generation is free. No credit card required to try.
-    </p>
-  </section>
+// Auth functions
+function switchTab(tab) {
+  document.getElementById('tabSignIn').classList.toggle('active', tab === 'signin');
+  document.getElementById('tabSignUp').classList.toggle('active', tab === 'signup');
+  document.getElementById('formSignIn').style.display = tab === 'signin' ? 'block' : 'none';
+  document.getElementById('formSignUp').style.display = tab === 'signup' ? 'block' : 'none';
+}
 
-  <!-- CTA BANNER -->
-  <section class="cta-section">
-    <div class="cta-bg"></div>
-    <div class="cta-content fade-up">
-      <h2>Step into your<br><em>next life.</em></h2>
-      <p>Your selfie. Every world. Start free today.</p>
-      <a href="/app/" class="btn-primary">Create yours free →</a>
-    </div>
-  </section>
+async function handleSignIn() {
+  const email = document.getElementById('siEmail').value.trim();
+  const password = document.getElementById('siPassword').value;
+  const btn = document.getElementById('siBtn');
+  const msg = document.getElementById('siMsg');
+  if (!email || !password) return showMsg(msg, 'error', 'Please fill in all fields');
+  btn.disabled = true; btn.textContent = 'Signing in...';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  btn.disabled = false; btn.textContent = 'Sign In';
+  if (error) {
+    console.error('Sign in error:', error);
+    showMsg(msg, 'error', error.message);
+  } else {
+    console.log('Signed in:', data.user?.email);
+  }
+}
 
-  <!-- FOOTER -->
-  <footer>
-    <div class="footer-logo">ALTER<span>.</span>EGO</div>
-    <div class="footer-links">
-      <a href="/privacy">Privacy</a>
-      <a href="/terms">Terms</a>
-      <a href="mailto:contact@inhausmedia.com.au">Contact</a>
-      <a href="https://instagram.com/alter_ego.photography" target="_blank">Instagram</a>
-    </div>
-    <p class="footer-copy">© 2025 Inhaus Media. All rights reserved.</p>
-  </footer>
+async function handleSignUp() {
+  const email = document.getElementById('suEmail').value.trim();
+  const password = document.getElementById('suPassword').value;
+  const btn = document.getElementById('suBtn');
+  const msg = document.getElementById('suMsg');
+  if (!email || !password) return showMsg(msg, 'error', 'Please fill in all fields');
+  if (password.length < 6) return showMsg(msg, 'error', 'Password must be at least 6 characters');
+  btn.disabled = true; btn.textContent = 'Creating account...';
+  const { error } = await sb.auth.signUp({ email, password });
+  btn.disabled = false; btn.textContent = 'Create Account';
+  if (error) showMsg(msg, 'error', error.message);
+  else showMsg(msg, 'success', 'Account created! Check your email to confirm.');
+}
 
-  <script>
-    // Scroll reveal
-    const fadeEls = document.querySelectorAll('.fade-up');
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.classList.add('visible');
-          observer.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
-    fadeEls.forEach(el => observer.observe(el));
+async function handleSignOut() {
+  try {
+    await sb.auth.signOut();
+    // Nuclear option - clear all supabase localStorage keys
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('sb-') || key.includes('supabase')) {
+        localStorage.removeItem(key);
+      }
+    });
+  } catch(e) { console.log('signout error', e); }
+  currentUser = null;
+  // Clear user bar
+  const userBar = document.getElementById('userBar');
+  if (userBar) userBar.classList.remove('visible');
+  const userCredits = document.getElementById('userCredits');
+  if (userCredits) userCredits.textContent = '';
+  const genGallery = document.getElementById('genGallery');
+  if (genGallery) genGallery.classList.remove('visible');
+  const genGrid = document.getElementById('genGrid');
+  if (genGrid) genGrid.innerHTML = '';
+  // Redirect to landing page
+  window.location.href = '/';
+}
 
-    // World bg switcher for styles section
-    const styleCards = document.querySelectorAll('.style-card[data-world]');
-    const worldLayers = document.querySelectorAll('.styles-world-bg .world-layer');
+function skipAuth() {
+  document.getElementById('authGate').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+}
 
-    styleCards.forEach(card => {
-      card.addEventListener('mouseenter', () => {
-        const world = card.dataset.world;
-        worldLayers.forEach(layer => {
-          layer.classList.toggle('active', layer.dataset.world === world);
-        });
-      });
-      card.addEventListener('mouseleave', () => {
-        worldLayers.forEach(layer => layer.classList.remove('active'));
-      });
+function showMsg(el, type, text) {
+  el.className = 'auth-msg ' + type;
+  el.textContent = text;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+// Init on load — wait for DOM + add hard fallback
+document.addEventListener('DOMContentLoaded', () => {
+  // Hard fallback: if nothing happens in 4s, show auth gate
+  const fallbackTimer = setTimeout(() => {
+    console.warn('Auth timeout — showing gate');
+    showAuthGate();
+  }, 4000);
+
+  try {
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  } catch(e) {
+    console.error('Supabase init failed:', e);
+    showAuthGate();
+    return;
+  }
+
+  initAuth().then(() => clearTimeout(fallbackTimer)).catch(e => {
+    console.error('initAuth failed:', e);
+    clearTimeout(fallbackTimer);
+    showAuthGate();
+  });
+});
+
+// ── PASSWORD GATE ──────────────────────────────────────
+// Auth handled by Supabase
+
+const styleDescriptions = {
+  cinematic: [
+    'cinematic film still, anamorphic lens, dramatic golden hour natural light, shallow depth of field, muted warm tones, 35mm Kodak Portra grain, lens flare, epic scale',
+    'cinematic noir portrait, rain-soaked city street at night, single overhead street lamp casting dramatic shadows, deep blacks, silver highlights, 1950s detective thriller aesthetic',
+    'cinematic wide shot, vast desert landscape at dusk, subject silhouetted against burning orange sky, dust in the air, spaghetti western aesthetic, Sergio Leone inspired',
+    'intimate cinematic close-up, soft window light from the side, shallow focus, film grain texture, muted earth tones, quiet emotional drama, Terrence Malick visual style'
+  ],
+  editorial: [
+    'high-fashion editorial, Vogue magazine cover, stark white studio, single hard strobe light casting dramatic shadow, bold graphic composition, sharp crisp details',
+    'editorial fashion portrait, industrial warehouse setting, exposed brick and steel, fashion week energy, moody ambient light with dramatic fill, W Magazine aesthetic',
+    'luxury editorial, marble architecture backdrop, classical columns, dramatic arched doorways, deep shadows sculpting the face, architectural fashion photography',
+    'editorial portrait, minimalist seamless grey backdrop, Helmut Newton inspired composition, black and white, single hard side light, razor sharp details, commanding presence'
+  ],
+  cyberpunk: [
+    'cyberpunk city night, rain-soaked neon streets, holographic billboards, Blade Runner 2049 aesthetic, electric blue and magenta neon reflections on wet pavement',
+    'cyberpunk close-up portrait, holographic HUD data streams floating in air, augmented reality implants glowing cyan, dark urban alley, neon green and purple palette',
+    'dystopian cyberpunk rooftop, towering megacity backdrop, acid rain, bioluminescent tattoos glowing, leather and chrome outfit, stormy orange polluted sky',
+    'cyberpunk underground club, strobing neon lights, smoke machine haze, electric violet and hot pink palette, futuristic fashion, bass-heavy dark energy'
+  ],
+  anime: [
+    'anime portrait, Studio Ghibli inspired, cel-shaded illustration, expressive large eyes, soft pastel sky background, cherry blossoms, golden light, detailed linework',
+    'anime character, dark fantasy setting, dramatic cel-shading, glowing magical energy, intricate detailed armour, moonlit forest background, epic composition',
+    'anime portrait, slice of life aesthetic, warm cafe interior, soft afternoon light through window, cosy intimate mood, Makoto Shinkai colour palette',
+    'anime close-up, cyberpunk anime aesthetic, neon city backdrop, detailed digital illustration, electric eyes, futuristic fashion, ghost in the shell vibes'
+  ],
+  painterly: [
+    'classical oil painting portrait, Rembrandt chiaroscuro lighting, rich textured visible brushwork, dark dramatic background, Old Masters style, museum quality',
+    'impressionist oil painting, loose expressive brushwork, dappled garden light, vibrant colour palette, Monet inspired, painterly texture, soft edges',
+    'painterly portrait, John Singer Sargent style, elegant composition, dramatic loose brushwork, rich jewel tones, confident commanding presence',
+    'dark romantic oil painting, stormy dramatic sky background, baroque lighting, deep shadows, intense emotional energy, Caravaggio inspired chiaroscuro'
+  ],
+  fashion: [
+    'luxury fashion campaign, subject wearing an elegant dramatic floor-length black coat with oversized fur trim cuffs, posed inside a series of tall arched stone doorways, architectural minimalism, cool grey tones, full body editorial composition',
+    'high fashion editorial, bold cobalt blue tailored power suit, double breasted blazer and wide leg trousers, subject seated on industrial steel staircase, clean white studio backdrop, confident composed pose, sharp tailoring',
+    'fashion editorial, monochromatic all-red ensemble, oversized blazer and slim trousers, seated in a rattan peacock chair surrounded by sculptural red paper, bold flat colour background, vibrant energy, powerful pose',
+    'luxury fashion portrait, sheer draped silk evening gown, rooftop at golden hour, Dubai skyline blurred behind, warm champagne light, glamorous editorial energy, Vogue Arabia aesthetic'
+  ],
+  'sci-fi': [
+    'futuristic sci-fi character, deep space station interior, sleek holographic armour suit with bioluminescent accents, cosmic nebula visible through observation window, James Cameron cinematic scale',
+    'sci-fi portrait, post-apocalyptic wasteland survivor, rugged battle-worn armour, red dust storm on alien desert planet, two moons on the horizon, Mad Max meets Dune aesthetic',
+    'sci-fi close-up, time traveller aesthetic, glowing circuitry embedded in skin, holographic projections floating around hands, clean white lab environment, clinical futuristic lighting',
+    'sci-fi epic, underwater deep ocean research station, bioluminescent sea creatures visible through porthole, pressurised suit, teal and deep blue colour palette, Avatar aesthetic'
+  ],
+  streetwear: [
+    'full body wide street photography shot, subject walking on cobblestone European street, wearing oversized baggy light wash denim jeans, relaxed plaid oxford shirt, vintage burgundy cap, black loafers, side profile candid moment, rough textured white render wall, natural overcast daylight, 35mm film documentary style, raw authentic energy',
+    'full body street style editorial, subject standing on urban footpath in front of old European building doorway with graffiti, wearing wide leg dark denim, oversized white button-up cropped shirt, dark logo cap, silver rings, black leather shoes, natural street light, shot on film, candid authentic lookbook',
+    'full body lifestyle street shot, mirror selfie aesthetic in clean minimal home interior, wearing oversized camel sweatshirt, wide white linen trousers, suede slide sandals, large brown leather tote bag, white walls warm window light, effortless Parisian casual style, real person candid energy',
+    'full body wide shot, subject walking away glancing back over shoulder, baggy medium wash jeans, oversized plaid flannel shirt, worn-in cap, street level perspective, weathered concrete urban wall, golden hour warm light, candid documentary style, Tokyo Harajuku street fashion energy'
+  ]
+};
+
+// Pick a random variation from array or return string directly
+function getStyleDesc(style) {
+  const desc = styleDescriptions[style];
+  if (Array.isArray(desc)) return desc[Math.floor(Math.random() * desc.length)];
+  return desc || styleDescriptions.cinematic[0];
+}
+
+let selectedStyle = 'cinematic';
+let uploadedImageBase64 = null;
+let uploadedMediaType = 'image/jpeg';
+let generatedPrompt = '';
+
+
+function updateGenerateBtn() {
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = !uploadedImageBase64;
+}
+
+// Style buttons
+document.querySelectorAll('.style-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedStyle = btn.dataset.style;
+  });
+});
+
+// Upload
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+
+uploadZone.addEventListener('click', () => fileInput.click());
+
+uploadZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  uploadZone.style.borderColor = 'rgba(200,240,90,0.6)';
+});
+uploadZone.addEventListener('dragleave', () => { uploadZone.style.borderColor = ''; });
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.style.borderColor = '';
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) handleFile(file);
+});
+fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+function handleFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const result = e.target.result;
+
+    // Show preview immediately
+    const existing = uploadZone.querySelector('img.preview');
+    if (existing) existing.remove();
+    const previewImg = document.createElement('img');
+    previewImg.className = 'preview';
+    previewImg.src = result;
+    uploadZone.insertBefore(previewImg, uploadZone.firstChild);
+    uploadZone.classList.add('has-image');
+    document.getElementById('uploadText').textContent = 'Click to change photo';
+
+    // Compress image to max 1200px and quality 0.85 to stay under 4MB
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 1200;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL('image/jpeg', 0.85);
+      uploadedImageBase64 = compressed.split(',')[1];
+      uploadedMediaType = 'image/jpeg';
+      console.log(`Image compressed to ~${Math.round(uploadedImageBase64.length * 0.75 / 1024)}KB`);
+      updateGenerateBtn();
+    };
+    img.src = result;
+  };
+  reader.readAsDataURL(file);
+}
+
+
+
+// Generate
+document.getElementById('generateBtn').addEventListener('click', async () => {
+  if (!uploadedImageBase64) return;
+
+  const generateBtn = document.getElementById('generateBtn');
+  generateBtn.disabled = true;
+  generateBtn.textContent = 'Analysing...';
+
+  const errorMsg = document.getElementById('errorMsg');
+  errorMsg.style.display = 'none';
+
+  const resultArea = document.getElementById('resultArea');
+  const promptBox = document.getElementById('promptBox');
+  const statusDot = document.getElementById('statusDot');
+  const analysisGrid = document.getElementById('analysisGrid');
+  const actionRow = document.getElementById('actionRow');
+  const mjTip = document.getElementById('mjTip');
+
+  resultArea.style.display = 'block';
+  statusDot.style.display = 'inline-block';
+  promptBox.value = 'Analysing your photo...'; promptBox.setAttribute('readonly','');
+  promptBox.className = 'prompt-box active';
+  analysisGrid.innerHTML = '';
+  actionRow.style.display = 'none';
+  mjTip.style.display = 'none';
+
+  const styleDesc = getStyleDesc(selectedStyle);
+
+  const systemPrompt = `You are an expert AI art director and prompt engineer. Analyse the person in this selfie and generate a highly detailed AI image generation prompt.
+
+Respond ONLY with a valid JSON object. No markdown. No backticks. No explanation. Raw JSON only.
+
+{
+  "mood": "2-3 word mood descriptor",
+  "lighting": "detected or ideal lighting style",
+  "features": "concise physical description to anchor the AI generation accurately",
+  "prompt": "the complete AI image generation prompt, 60-90 words, ready for Midjourney or DALL-E"
+}
+
+Style to incorporate: ${styleDesc}
+
+Structure the prompt as: subject description → environment/setting → mood/atmosphere → technical camera and lighting specs. Make it vivid, specific, and professional. CRITICAL: always include these exact words in the prompt: natural skin texture, visible pores, subtle skin imperfections, realistic complexion, film grain on skin. This prevents plastic AI skin and creates a real photographic look.`;
+
+  try {
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: { type: 'base64', media_type: uploadedMediaType, data: uploadedImageBase64 }
+            },
+            { type: 'text', text: 'Analyse this selfie and respond with only the JSON object.' }
+          ]
+        }]
+      })
     });
 
-    // Parallax on hero portrait — subtle
-    const portrait = document.querySelector('.hero-portrait');
-    window.addEventListener('scroll', () => {
-      const y = window.scrollY;
-      if (portrait && y < window.innerHeight) {
-        portrait.style.transform = `translateX(40%) translateY(${y * 0.12}px)`;
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      const msg = errData.error?.message || `HTTP ${response.status}`;
+      if (response.status === 401) throw new Error('Invalid API key. Check your key at console.anthropic.com');
+      throw new Error(msg);
+    }
+
+    const data = await response.json();
+    const rawText = (data.content || []).map(i => i.text || '').join('').trim();
+
+    let parsed;
+    try {
+      const clean = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+      parsed = JSON.parse(clean);
+    } catch {
+      parsed = { prompt: rawText, mood: '—', lighting: '—', features: '—' };
+    }
+
+    generatedPrompt = parsed.prompt || rawText;
+
+    analysisGrid.innerHTML = `
+      <div class="analysis-card">
+        <div class="ac-label">Mood</div>
+        <div class="ac-value">${parsed.mood || '—'}</div>
+      </div>
+      <div class="analysis-card">
+        <div class="ac-label">Lighting</div>
+        <div class="ac-value">${parsed.lighting || '—'}</div>
+      </div>
+      <div class="analysis-card full">
+        <div class="ac-label">Features detected</div>
+        <div class="ac-value">${parsed.features || '—'}</div>
+      </div>
+    `;
+
+    promptBox.value = generatedPrompt;
+    promptBox.removeAttribute('readonly');
+    document.getElementById('promptEditHint').style.display = 'inline';
+    promptBox.className = 'prompt-box';
+    statusDot.style.display = 'none';
+    actionRow.style.display = 'flex';
+
+    const genImgBtn = document.getElementById('generateImageBtn');
+    if (genImgBtn) genImgBtn.style.display = 'block';
+
+  } catch (err) {
+    promptBox.value = '';
+    promptBox.className = 'prompt-box';
+    statusDot.style.display = 'none';
+    resultArea.style.display = 'none';
+    errorMsg.textContent = '⚠ ' + (err.message || 'Something went wrong. Please try again.');
+    errorMsg.style.display = 'block';
+  }
+
+  generateBtn.disabled = false;
+  generateBtn.textContent = 'Analyse & Generate Prompt';
+  updateGenerateBtn();
+});
+
+// Copy
+document.getElementById('copyBtn').addEventListener('click', function() {
+  if (!generatedPrompt) return;
+  navigator.clipboard.writeText(generatedPrompt).then(() => {
+    this.textContent = '✓ Copied';
+    this.classList.add('copied');
+    setTimeout(() => {
+      this.textContent = '📋 Copy';
+      this.classList.remove('copied');
+    }, 2000);
+  });
+});
+
+// MJ format
+document.getElementById('mjBtn').addEventListener('click', function() {
+  if (!generatedPrompt) return;
+  const livePrompt = document.getElementById('promptBox').value || generatedPrompt;
+  const mjPrompt = `/imagine prompt: ${livePrompt} --ar 4:5 --v 6.1 --style raw --q 2`;
+  const mjTip = document.getElementById('mjTip');
+  mjTip.innerHTML = `<strong>Midjourney ready:</strong><br><br>${mjPrompt}<br><br><button onclick="navigator.clipboard.writeText(\`${mjPrompt.replace(/`/g,"'")}\`);this.textContent='✓ Copied';setTimeout(()=>this.textContent='Copy for Midjourney',2000)" style="margin-top:8px;background:rgba(200,240,90,0.1);border:0.5px solid rgba(200,240,90,0.3);border-radius:6px;padding:6px 14px;font-family:Syne,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#c8f05a;cursor:pointer">Copy for Midjourney</button>`;
+  mjTip.style.display = 'block';
+});
+
+// Reset
+// Generate image with fal.ai
+document.getElementById('generateImageBtn').addEventListener('click', async () => {
+  if (!generatedPrompt) return;
+
+  const imageArea = document.getElementById('imageArea');
+  const imageContainer = document.getElementById('imageContainer');
+  const imageLoading = document.getElementById('imageLoading');
+  const imageError = document.getElementById('imageError');
+  const imageSaveRow = document.getElementById('imageSaveRow');
+  const imageStatusDot = document.getElementById('imageStatusDot');
+
+  imageArea.style.display = 'block';
+  imageLoading.style.display = 'block';
+  imageError.style.display = 'none';
+  imageSaveRow.style.display = 'none';
+  imageStatusDot.style.display = 'inline-block';
+
+  // Remove any existing image
+  const existingImg = imageContainer.querySelector('img');
+  if (existingImg) existingImg.remove();
+
+  const btn = document.getElementById('generateImageBtn');
+  btn.textContent = '⏳ Generating your alter ego...';
+  btn.disabled = true;
+
+  try {
+    const response = await fetch('/api/image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: document.getElementById('promptBox').value || generatedPrompt,
+        imageBase64: uploadedImageBase64,
+        mediaType: uploadedMediaType
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.detail || data.error?.message || `Error ${response.status}`);
+    }
+
+    const imageUrl = data.images?.[0]?.url;
+    if (!imageUrl) {
+      const debugInfo = data.debug ? JSON.stringify(Object.keys(data.debug)) : 'no debug';
+      throw new Error((data.error?.message || 'No image returned') + ' | keys: ' + debugInfo);
+    }
+
+    imageLoading.style.display = 'none';
+    imageStatusDot.style.display = 'none';
+
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.style.cssText = 'width:100%;display:block;border-radius:10px';
+    imageContainer.appendChild(img);
+
+    // Deduct credit if logged in
+    if (currentUser) {
+      const { data: profile } = await sb.from('profiles').select('credits').eq('id', currentUser.id).single();
+      if (profile && profile.credits > 0) {
+        await sb.from('profiles').update({ 
+          credits: profile.credits - 1,
+          total_generations: (profile.total_generations || 0) + 1
+        }).eq('id', currentUser.id);
+        await loadProfile();
       }
-    }, { passive: true });
+    }
 
-    // Slow auto-cycle gallery images on mobile (optional atmosphere)
-    // Already handled by CSS transitions on load
-  </script>
+    // Save to Supabase if logged in
+    saveGeneration(imageUrl, selectedStyle, generatedPrompt, 
+      document.querySelector('.analysis-card-value')?.textContent || '',
+      document.querySelectorAll('.analysis-card-value')[1]?.textContent || '',
+      document.querySelectorAll('.analysis-card-value')[2]?.textContent || ''
+    ).catch(() => {});
 
+    // Force download by fetching as blob
+    const dl = document.getElementById('imageDownload');
+    try {
+      const imgResp = await fetch(imageUrl);
+      const blob = await imgResp.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      dl.href = blobUrl;
+      dl.download = 'alter-ego-' + Date.now() + '.png';
+    } catch {
+      dl.href = imageUrl;
+      dl.download = 'alter-ego.png';
+    }
+    const isr = document.getElementById('imageSaveRow'); isr.style.display = 'block';
+
+  } catch (err) {
+    imageLoading.style.display = 'none';
+    imageStatusDot.style.display = 'none';
+    imageError.textContent = '⚠ ' + (err.message || 'Image generation failed');
+    imageError.style.display = 'block';
+  }
+
+  btn.textContent = '⚡ Generate Image';
+  btn.disabled = false;
+});
+
+// Share with watermark
+document.getElementById('shareBtn').addEventListener('click', async () => {
+  const img = document.querySelector('#imageContainer img');
+  if (!img) return;
+
+  const btn = document.getElementById('shareBtn');
+  btn.textContent = 'Creating...';
+  btn.disabled = true;
+
+  try {
+    const canvas = document.getElementById('watermarkCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Load image onto canvas
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    image.onload = async () => {
+      canvas.width = image.width;
+      canvas.height = image.height;
+      ctx.drawImage(image, 0, 0);
+
+      // Watermark bar at bottom
+      const barH = Math.round(canvas.height * 0.07);
+      ctx.fillStyle = 'rgba(0,0,0,0.72)';
+      ctx.fillRect(0, canvas.height - barH, canvas.width, barH);
+
+      // ALTER.EGO text
+      const fontSize = Math.round(barH * 0.42);
+      ctx.font = `800 ${fontSize}px 'Arial Black', Arial, sans-serif`;
+      ctx.letterSpacing = '4px';
+      ctx.fillStyle = '#c8f05a';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('ALTER.EGO', Math.round(canvas.width * 0.04), canvas.height - barH / 2);
+
+      // URL
+      ctx.font = `${Math.round(fontSize * 0.65)}px 'Arial', sans-serif`;
+      ctx.fillStyle = 'rgba(240,237,230,0.5)';
+      ctx.textAlign = 'right';
+      ctx.fillText(window.location.hostname, canvas.width - Math.round(canvas.width * 0.04), canvas.height - barH / 2);
+
+      // Try native share first (mobile)
+      canvas.toBlob(async (blob) => {
+        const file = new File([blob], 'alter-ego.png', { type: 'image/png' });
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: 'My ALTER.EGO',
+              text: 'Generated my alter ego with ALTER.EGO ✦'
+            });
+          } catch (e) {
+            if (e.name !== 'AbortError') downloadWatermarked(blob);
+          }
+        } else {
+          downloadWatermarked(blob);
+        }
+        btn.textContent = '↗ Share';
+        btn.disabled = false;
+      }, 'image/png');
+    };
+
+    image.onerror = () => {
+      btn.textContent = '↗ Share';
+      btn.disabled = false;
+      alert('Could not process image for sharing');
+    };
+
+    image.src = img.src;
+
+  } catch (err) {
+    btn.textContent = '↗ Share';
+    btn.disabled = false;
+  }
+});
+
+function downloadWatermarked(blob) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'alter-ego-' + Date.now() + '.png';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  uploadedImageBase64 = null;
+  const img = uploadZone.querySelector('img.preview');
+  if (img) img.remove();
+  uploadZone.classList.remove('has-image');
+  document.getElementById('uploadText').textContent = 'Drop a selfie or click to upload';
+  document.getElementById('resultArea').style.display = 'none';
+  document.getElementById('errorMsg').style.display = 'none';
+  document.getElementById('mjTip').style.display = 'none';
+  document.getElementById('imageArea').style.display = 'none';
+  document.getElementById('generateImageBtn').style.display = 'none';
+  generatedPrompt = '';
+  updateGenerateBtn();
+});
+</script>
 </body>
 </html>
