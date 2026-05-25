@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ALTER.EGO — One Selfie. Infinite Lives.</title>
-<meta name="description" content="Upload a selfie. Step into any world. AI portrait studio with 16 cinematic style directions.">
+<meta name="description" content="Upload a selfie. Step into any world. AI portrait generation across 16 cinematic style directions.">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
   --white: #f5f3ee;
   --accent: #c8f05a;
   --mid: #888;
-  --border: rgba(10,10,10,0.1);
+  --border: rgba(245,243,238,0.08);
 }
 html { scroll-behavior: smooth; }
 body {
@@ -25,7 +25,7 @@ body {
   overflow-x: hidden;
 }
 
-/* ─── NAV ─── */
+/* ── NAV ── */
 nav {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -33,153 +33,54 @@ nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24px 40px;
-  pointer-events: none;
+  padding: 22px 40px;
+  background: linear-gradient(to bottom, rgba(10,10,10,0.7) 0%, transparent 100%);
 }
 .nav-logo {
   font-family: 'Syne', sans-serif;
   font-size: 13px;
   font-weight: 800;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--white);
   text-decoration: none;
-  pointer-events: all;
-  transition: opacity 0.2s;
 }
 .nav-logo span { color: var(--accent); }
-.nav-logo:hover { opacity: 0.7; }
 .nav-signin {
   font-family: 'Syne', sans-serif;
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--black);
-  background: var(--white);
-  text-decoration: none;
-  padding: 9px 20px;
-  pointer-events: all;
-  transition: background 0.2s, color 0.2s;
-}
-.nav-signin:hover { background: var(--accent); }
-
-/* ─── HERO — DESKTOP SPLIT ─── */
-.hero {
-  display: grid;
-  grid-template-columns: 40% 60%;
-  height: 100vh;
-  min-height: 700px;
-  position: relative;
-  overflow: hidden;
-}
-
-/* LEFT PANEL */
-.hero-left {
-  position: relative;
-  background: var(--black);
-  overflow: hidden;
-  z-index: 2;
-}
-.hero-portrait {
-  position: absolute;
-  inset: 0;
-  will-change: transform;
-}
-.hero-portrait img {
-  width: 100%;
-  height: 115%;
-  object-fit: cover;
-  object-position: center top;
-  display: block;
-  filter: grayscale(15%);
-  opacity: 0.75;
-}
-.hero-portrait-grad {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(10,10,10,1) 0%,
-    rgba(10,10,10,0.55) 40%,
-    rgba(10,10,10,0.1) 80%,
-    rgba(10,10,10,0) 100%
-  );
-}
-.hero-left-content {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  padding: 0 48px 56px;
-  z-index: 10;
-  will-change: transform;
-}
-.hero-tag {
-  font-size: 9px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(245,243,238,0.3);
-  margin-bottom: 18px;
-}
-.hero-title {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(48px, 5.5vw, 82px);
-  font-weight: 900;
-  line-height: 0.93;
-  color: var(--white);
-  margin-bottom: 28px;
-  letter-spacing: -0.01em;
-}
-.hero-title em {
-  font-style: italic;
-  color: var(--accent);
-}
-.hero-sub {
-  font-size: 11px;
-  line-height: 1.85;
-  color: rgba(245,243,238,0.45);
-  max-width: 300px;
-  margin-bottom: 36px;
-  letter-spacing: 0.02em;
-}
-.hero-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 14px;
   background: var(--accent);
-  color: var(--black);
+  padding: 9px 18px;
   text-decoration: none;
-  padding: 16px 32px;
-  font-family: 'Syne', sans-serif;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  transition: background 0.2s, transform 0.2s;
+  transition: background 0.2s;
 }
-.hero-cta:hover { background: #d4f570; transform: translateY(-2px); }
-.hero-cta-arrow {
-  display: inline-block;
-  transition: transform 0.2s;
-}
-.hero-cta:hover .hero-cta-arrow { transform: translateX(4px); }
+.nav-signin:hover { background: #d4f570; }
 
-/* RIGHT PANEL — GALLERY GRID */
-.hero-right {
+/* ── HERO — DESKTOP SPLIT ── */
+.hero {
   position: relative;
+  height: 100vh;
+  display: flex;
   overflow: hidden;
 }
-.hero-grid {
+
+/* Right: Gallery grid full-bleed base */
+.hero-right {
+  position: absolute;
+  inset: 0;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  height: 115%;
-  width: 100%;
-  gap: 3px;
-  will-change: transform;
+  grid-auto-rows: calc(100vh / 3);
+  gap: 2px;
+  z-index: 0;
 }
 .hg-item {
-  position: relative;
   overflow: hidden;
+  position: relative;
   background: #111;
 }
 .hg-item img {
@@ -188,342 +89,383 @@ nav {
   object-fit: cover;
   object-position: center top;
   display: block;
-  transition: transform 0.8s ease;
-  filter: brightness(0.88);
+  filter: brightness(0.7);
+  transition: filter 0.4s;
 }
-.hg-item:hover img { transform: scale(1.05); filter: brightness(1); }
+.hg-item:hover img { filter: brightness(1); }
 .hg-label {
   position: absolute;
-  bottom: 10px; left: 10px;
+  bottom: 10px;
+  left: 10px;
   font-size: 8px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(245,243,238,0.7);
-  background: rgba(10,10,10,0.55);
+  color: rgba(245,243,238,0.6);
+  background: rgba(10,10,10,0.5);
   padding: 4px 10px;
-  backdrop-filter: blur(8px);
-  pointer-events: none;
+  backdrop-filter: blur(4px);
 }
-/* subtle dark veil on the right grid edge near left panel */
-.hero-right::before {
-  content: '';
+
+/* Dark gradient over gallery — strong left, fades right */
+.hero-gallery-overlay {
   position: absolute;
-  top: 0; left: 0; bottom: 0;
-  width: 60px;
-  background: linear-gradient(to right, rgba(10,10,10,0.7), transparent);
-  z-index: 5;
+  inset: 0;
+  background: linear-gradient(to right,
+    rgba(10,10,10,0.97) 0%,
+    rgba(10,10,10,0.88) 28%,
+    rgba(10,10,10,0.5) 52%,
+    rgba(10,10,10,0.1) 100%
+  );
+  z-index: 1;
+}
+
+/* Left: Copy panel */
+.hero-left {
+  position: relative;
+  z-index: 3;
+  width: 46%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 52px 72px;
+}
+
+/* Portrait floating over the split */
+.hero-portrait {
+  position: absolute;
+  z-index: 2;
+  right: 52%;
+  bottom: 0;
+  transform: translateX(42%);
+  height: 94%;
+  width: auto;
   pointer-events: none;
 }
+.hero-portrait img {
+  height: 100%;
+  width: auto;
+  object-fit: contain;
+  object-position: bottom;
+  filter: drop-shadow(-30px 0 60px rgba(10,10,10,0.95));
+}
 
-/* ─── MARQUEE ─── */
-.marquee-wrap {
-  overflow: hidden;
-  border-top: 0.5px solid rgba(245,243,238,0.08);
-  border-bottom: 0.5px solid rgba(245,243,238,0.08);
-  padding: 13px 0;
-  background: var(--black);
-}
-.marquee-track {
-  display: flex;
-  gap: 48px;
-  animation: marquee 32s linear infinite;
-  white-space: nowrap;
-}
-.marquee-item {
-  font-size: 9px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(245,243,238,0.28);
-  flex-shrink: 0;
-}
-.marquee-dot { color: var(--accent); }
-@keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
-
-/* ─── GALLERY SECTION ─── */
-.gallery-sec {
-  padding: 100px 40px;
-  background: var(--black);
-}
-.sec-eyebrow {
+.hero-tag {
   font-size: 9px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(245,243,238,0.25);
-  margin-bottom: 10px;
+  color: rgba(245,243,238,0.35);
+  margin-bottom: 16px;
 }
-.sec-title {
+.hero-title {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(32px, 4vw, 54px);
-  font-weight: 700;
-  line-height: 1.05;
+  font-size: clamp(52px, 6vw, 92px);
+  font-weight: 900;
+  line-height: 0.92;
   color: var(--white);
+  margin-bottom: 20px;
 }
-.sec-title em { font-style: italic; color: var(--accent); }
+.hero-title em { font-style: italic; color: var(--accent); }
+.hero-sub {
+  font-size: 11px;
+  line-height: 1.8;
+  color: rgba(245,243,238,0.45);
+  max-width: 260px;
+  margin-bottom: 36px;
+  letter-spacing: 0.02em;
+}
+.hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--accent);
+  color: var(--black);
+  text-decoration: none;
+  padding: 15px 28px;
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: background 0.2s, transform 0.2s;
+  width: fit-content;
+}
+.hero-cta:hover { background: #d4f570; transform: translateY(-2px); }
+
+/* ── GALLERY SECTION ── */
+.gallery-sec {
+  padding: 100px 40px;
+  background: var(--white);
+}
 .gallery-header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   margin-bottom: 48px;
 }
-.gallery-link {
-  font-family: 'Syne', sans-serif;
-  font-size: 10px;
-  letter-spacing: 0.12em;
+.sec-eyebrow {
+  font-size: 9px;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--white);
-  text-decoration: none;
-  border-bottom: 0.5px solid rgba(245,243,238,0.35);
-  padding-bottom: 3px;
-  transition: color 0.2s, border-color 0.2s;
+  color: var(--mid);
+  margin-bottom: 10px;
 }
-.gallery-link:hover { color: var(--accent); border-color: var(--accent); }
+.sec-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--black);
+}
+.gallery-link {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--black);
+  text-decoration: none;
+  border-bottom: 1px solid var(--black);
+  padding-bottom: 2px;
+  white-space: nowrap;
+}
 .g-item {
   overflow: hidden;
   position: relative;
   background: #111;
 }
 .g-item img {
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  object-position: center top;
   display: block;
-  transition: transform 0.7s ease, filter 0.4s ease;
-  filter: brightness(0.9);
+  transition: transform 0.6s ease;
 }
-.g-item:hover img { transform: scale(1.04); filter: brightness(1); }
+.g-item:hover img { transform: scale(1.04); }
 .g-label {
   position: absolute;
-  bottom: 12px; left: 12px;
-  font-size: 9px;
+  bottom: 10px;
+  left: 10px;
+  font-size: 8px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: rgba(245,243,238,0.85);
-  background: rgba(10,10,10,0.55);
-  padding: 5px 12px;
-  backdrop-filter: blur(6px);
+  background: rgba(10,10,10,0.6);
+  padding: 4px 10px;
+  backdrop-filter: blur(4px);
 }
 
-/* ─── HOW IT WORKS ─── */
+/* ── HOW IT WORKS ── */
 .how-sec {
   padding: 100px 40px;
-  background: #0e0e0e;
-  border-top: 0.5px solid rgba(245,243,238,0.06);
+  background: var(--black);
 }
 .how-header {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 40px;
-  margin-bottom: 72px;
+  margin-bottom: 64px;
   align-items: end;
 }
+.how-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(36px, 4vw, 60px);
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--white);
+}
+.how-title em { font-style: italic; color: var(--accent); }
 .how-intro {
   font-size: 11px;
   line-height: 1.9;
-  color: rgba(245,243,238,0.35);
-  align-self: flex-end;
+  color: rgba(245,243,238,0.4);
 }
 .steps {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0;
-  border: 0.5px solid rgba(245,243,238,0.06);
+  background: rgba(245,243,238,0.05);
+  gap: 1px;
 }
 .step {
-  padding: 52px 40px;
-  border-right: 0.5px solid rgba(245,243,238,0.06);
-  position: relative;
+  background: var(--black);
+  padding: 48px 36px;
 }
-.step:last-child { border-right: none; }
 .step-num {
   font-family: 'Playfair Display', serif;
-  font-size: 72px;
-  font-weight: 900;
-  color: rgba(245,243,238,0.03);
-  line-height: 1;
-  margin-bottom: 24px;
-  user-select: none;
-}
-.step-icon {
-  font-size: 24px;
-  margin-bottom: 16px;
-  display: block;
-}
-.step-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--white);
-  margin-bottom: 12px;
-}
-.step-desc {
-  font-size: 11px;
-  line-height: 1.85;
-  color: rgba(245,243,238,0.35);
-}
-.step-accent-line {
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(to right, var(--accent), transparent);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-.step:hover .step-accent-line { opacity: 1; }
-
-/* ─── STYLES SECTION ─── */
-.styles-sec {
-  padding: 100px 40px;
-  background: var(--black);
-  border-top: 0.5px solid rgba(245,243,238,0.06);
-}
-.styles-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0;
-  border: 0.5px solid rgba(245,243,238,0.06);
-  margin-top: 56px;
-}
-.s-card {
-  padding: 36px 28px;
-  border-right: 0.5px solid rgba(245,243,238,0.06);
-  border-bottom: 0.5px solid rgba(245,243,238,0.06);
-  cursor: default;
-  transition: background 0.25s;
-  position: relative;
-  overflow: hidden;
-}
-.s-card:hover { background: rgba(245,243,238,0.04); }
-.s-card:nth-child(4n) { border-right: none; }
-.s-card:nth-child(n+13) { border-bottom: none; }
-.s-num {
-  font-family: 'Playfair Display', serif;
-  font-size: 42px;
+  font-size: 64px;
   font-weight: 900;
   color: rgba(245,243,238,0.04);
   line-height: 1;
-  margin-bottom: 12px;
+  margin-bottom: 20px;
+}
+.step-icon { font-size: 26px; margin-bottom: 16px; display: block; }
+.step-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--white);
+  margin-bottom: 10px;
+}
+.step-desc { font-size: 11px; line-height: 1.8; color: rgba(245,243,238,0.4); }
+
+/* ── STYLES SECTION ── */
+.styles-sec { padding: 100px 40px; background: var(--white); }
+.styles-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  margin-top: 48px;
+}
+.s-card {
+  background: var(--white);
+  padding: 32px 24px;
+  transition: background 0.2s;
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+}
+.s-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 0.4s;
+  z-index: 0;
+}
+.s-card:hover::before { opacity: 1; }
+.s-card:hover { background: var(--black); }
+.s-card:hover .s-name, .s-card:hover .s-num { color: var(--white); }
+.s-card:hover .s-desc { color: rgba(245,243,238,0.4); }
+.s-card:hover .s-emoji-wrap { filter: none; }
+.s-card > * { position: relative; z-index: 1; }
+.s-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 40px;
+  font-weight: 900;
+  color: rgba(10,10,10,0.04);
+  line-height: 1;
+  margin-bottom: 10px;
   transition: color 0.2s;
 }
-.s-emoji { font-size: 20px; margin-bottom: 10px; display: block; }
+.s-emoji { font-size: 20px; margin-bottom: 8px; display: block; }
 .s-name {
   font-family: 'Syne', sans-serif;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--white);
-  margin-bottom: 8px;
+  color: var(--black);
+  margin-bottom: 6px;
+  transition: color 0.2s;
 }
-.s-desc {
-  font-size: 10px;
-  line-height: 1.7;
-  color: rgba(245,243,238,0.3);
-}
-.s-card:hover .s-desc { color: rgba(245,243,238,0.5); }
-.s-card:hover .s-num { color: rgba(245,243,238,0.07); }
+.s-desc { font-size: 9px; line-height: 1.7; color: var(--mid); transition: color 0.2s; }
 
-/* ─── PRICING ─── */
+/* ── PRICING ── */
 .pricing-sec {
+  background: var(--black);
   padding: 100px 40px;
-  background: #0e0e0e;
-  border-top: 0.5px solid rgba(245,243,238,0.06);
-}
-.pricing-header {
   text-align: center;
-  margin-bottom: 64px;
 }
+.pricing-header { margin-bottom: 56px; }
 .pricing-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1px;
-  background: rgba(245,243,238,0.06);
-  max-width: 900px;
-  margin: 0 auto;
+  background: var(--border);
+  max-width: 860px;
+  margin: 0 auto 32px;
 }
 .p-card {
-  background: #0e0e0e;
-  padding: 48px 40px;
+  background: var(--black);
+  padding: 44px 32px;
+  text-align: left;
   position: relative;
 }
-.p-card.featured {
-  background: var(--black);
-  border-top: 2px solid var(--accent);
-}
+.p-card.featured { background: rgba(200,240,90,0.05); }
 .p-badge {
+  display: inline-block;
   font-family: 'Syne', sans-serif;
   font-size: 8px;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--black);
   background: var(--accent);
+  color: var(--black);
   padding: 4px 10px;
-  display: inline-block;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 .p-name {
   font-family: 'Syne', sans-serif;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: rgba(245,243,238,0.4);
   margin-bottom: 12px;
 }
 .p-price {
   font-family: 'Playfair Display', serif;
-  font-size: 52px;
+  font-size: 56px;
   font-weight: 900;
   color: var(--white);
   line-height: 1;
-  margin-bottom: 4px;
+  margin-bottom: 10px;
 }
 .p-price sup {
-  font-size: 20px;
-  vertical-align: super;
+  font-size: 22px;
   font-weight: 400;
-  font-style: italic;
+  vertical-align: super;
+  color: rgba(245,243,238,0.5);
 }
 .p-credits {
   font-size: 10px;
-  letter-spacing: 0.08em;
-  color: rgba(245,243,238,0.3);
-  margin-bottom: 36px;
+  line-height: 1.7;
+  color: rgba(245,243,238,0.35);
+  margin-bottom: 32px;
 }
-.p-credits strong { color: var(--accent); }
 .p-cta {
   display: block;
-  text-align: center;
-  background: transparent;
-  border: 0.5px solid rgba(245,243,238,0.2);
-  color: var(--white);
-  text-decoration: none;
-  padding: 13px 24px;
   font-family: 'Syne', sans-serif;
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  text-decoration: none;
+  padding: 12px 20px;
+  text-align: center;
+  transition: all 0.2s;
+  border: 0.5px solid rgba(245,243,238,0.15);
+  color: var(--white);
 }
 .p-card.featured .p-cta {
   background: var(--accent);
-  border-color: var(--accent);
   color: var(--black);
+  border-color: var(--accent);
 }
-.p-cta:hover { background: var(--accent); border-color: var(--accent); color: var(--black); }
+.p-cta:hover { border-color: var(--accent); color: var(--accent); }
+.p-card.featured .p-cta:hover { background: #d4f570; color: var(--black); }
 
-/* ─── FINAL CTA ─── */
+/* ── CTA SECTION ── */
 .cta-sec {
   background: var(--black);
   padding: 140px 40px;
   text-align: center;
   position: relative;
   overflow: hidden;
-  border-top: 0.5px solid rgba(245,243,238,0.06);
+  border-top: 0.5px solid var(--border);
 }
+.cta-sec::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/images/lp-cta-bg.jpg') center center / cover no-repeat;
+  opacity: 0.15;
+  z-index: 0;
+}
+.cta-sec > * { position: relative; z-index: 1; }
 .cta-bg-text {
   position: absolute;
   top: 50%; left: 50%;
@@ -532,267 +474,304 @@ nav {
   font-size: clamp(80px, 18vw, 260px);
   font-weight: 900;
   font-style: italic;
-  color: rgba(245,243,238,0.025);
+  color: rgba(245,243,238,0.02);
   white-space: nowrap;
   pointer-events: none;
   user-select: none;
+  z-index: 0;
 }
 .cta-eyebrow {
   font-size: 9px;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: rgba(245,243,238,0.2);
+  color: rgba(245,243,238,0.28);
   margin-bottom: 24px;
-  position: relative;
 }
 .cta-title {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(48px, 7vw, 96px);
+  font-size: clamp(44px, 6vw, 80px);
   font-weight: 900;
   color: var(--white);
-  line-height: 1;
-  margin-bottom: 20px;
-  position: relative;
+  line-height: 1.05;
+  margin-bottom: 16px;
 }
 .cta-title em { font-style: italic; color: var(--accent); }
 .cta-sub {
   font-size: 11px;
-  color: rgba(245,243,238,0.3);
+  color: rgba(245,243,238,0.35);
   letter-spacing: 0.04em;
-  margin-bottom: 52px;
-  position: relative;
+  margin-bottom: 48px;
 }
 .cta-btn {
   display: inline-flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   background: var(--accent);
   color: var(--black);
   text-decoration: none;
-  padding: 20px 52px;
+  padding: 20px 48px;
   font-family: 'Syne', sans-serif;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  transition: background 0.2s, transform 0.2s;
-  position: relative;
+  transition: all 0.2s;
 }
 .cta-btn:hover { background: #d4f570; transform: translateY(-2px); }
 .cta-note {
-  margin-top: 28px;
+  margin-top: 24px;
   font-size: 9px;
   letter-spacing: 0.1em;
   color: rgba(245,243,238,0.15);
   text-transform: uppercase;
-  position: relative;
 }
 
-/* ─── FOOTER ─── */
+/* ── FOOTER ── */
 footer {
-  background: #050505;
-  border-top: 0.5px solid rgba(245,243,238,0.06);
+  background: var(--black);
+  border-top: 0.5px solid var(--border);
   padding: 28px 40px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
 }
 .f-logo {
   font-family: 'Syne', sans-serif;
   font-size: 12px;
   font-weight: 800;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--white);
   text-decoration: none;
 }
 .f-logo span { color: var(--accent); }
-.f-copy {
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  color: rgba(245,243,238,0.15);
-  text-transform: uppercase;
-}
-.f-links {
-  display: flex;
-  gap: 24px;
-  align-items: center;
-}
+.f-copy { font-size: 9px; letter-spacing: 0.08em; color: rgba(245,243,238,0.2); text-transform: uppercase; }
+.f-links { display: flex; gap: 20px; }
 .f-link {
   font-size: 9px;
   letter-spacing: 0.08em;
-  color: rgba(245,243,238,0.25);
+  color: rgba(245,243,238,0.35);
   text-transform: uppercase;
   text-decoration: none;
   transition: color 0.2s;
 }
 .f-link:hover { color: var(--accent); }
 
-/* ─── SCROLL REVEAL ─── */
+/* ── SCROLL ANIMATIONS ── */
 .fi {
   opacity: 0;
   transform: translateY(24px);
   transition: opacity 0.7s ease, transform 0.7s ease;
 }
-.fi.vis {
-  opacity: 1;
-  transform: translateY(0);
-}
+.fi.vis { opacity: 1; transform: translateY(0); }
 
-/* ─── MOBILE ─── */
+/* ══════════════════════════════════════════
+   MOBILE STYLES
+   ══════════════════════════════════════════ */
 @media (max-width: 768px) {
+
+  /* NAV */
+  nav { padding: 18px 20px; }
+  .nav-logo { font-size: 11px; }
+
+  /* ── MOBILE HERO — full bleed B&W portrait ── */
   .hero {
     display: block;
     height: 100svh;
     min-height: 100svh;
   }
+  .hero-right { display: none; }
+  .hero-gallery-overlay { display: none; }
+  .hero-portrait {
+    position: absolute;
+    right: 0; left: 0; top: 0; bottom: 0;
+    transform: none;
+    height: 100%;
+    width: 100%;
+  }
+  .hero-portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    filter: grayscale(100%) brightness(0.55);
+  }
   .hero-left {
     position: relative;
+    z-index: 3;
+    width: 100%;
     height: 100svh;
-    min-height: 100svh;
+    padding: 0 24px 52px;
+    justify-content: flex-end;
+    background: linear-gradient(to top,
+      rgba(10,10,10,0.95) 0%,
+      rgba(10,10,10,0.6) 40%,
+      rgba(10,10,10,0) 100%
+    );
+  }
+  .hero-title { font-size: clamp(44px, 13vw, 64px); }
+  .hero-sub { max-width: 100%; }
+
+  /* ── MOBILE GALLERY — full bleed 3-col ── */
+  .gallery-sec {
+    padding: 0;
+    background: var(--black);
+  }
+  .gallery-header {
+    padding: 48px 20px 28px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .gallery-header .sec-title { color: var(--white); }
+  .gallery-header .sec-eyebrow { color: rgba(245,243,238,0.4); }
+  .g-item { min-height: 200px !important; }
+
+  /* ── MOBILE HOW — each step has a world bg ── */
+  .how-sec { padding: 0; }
+  .how-header { display: none; }
+  .steps { grid-template-columns: 1fr; gap: 0; background: none; }
+  .step {
+    position: relative;
+    padding: 0;
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(245,243,238,0.06);
+  }
+  .step::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    z-index: 0;
+  }
+  .step::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top,
+      rgba(10,10,10,0.95) 0%,
+      rgba(10,10,10,0.5) 50%,
+      rgba(10,10,10,0.1) 100%
+    );
+    z-index: 1;
+  }
+  .step-1::before { background-image: url('/images/lp-step1-bg.jpg'); }
+  .step-2::before { background-image: url('/images/lp-step2-bg.jpg'); }
+  .step-3::before { background-image: url('/images/lp-step3-bg.jpg'); }
+  .step > * { position: relative; z-index: 2; }
+  .step-num {
+    position: absolute;
+    top: 24px; left: 24px;
+    font-size: 96px;
+    color: rgba(245,243,238,0.08);
+    margin: 0;
+  }
+  .step-content-wrap { padding: 0 24px 36px; }
+  .step-icon { font-size: 28px; margin-bottom: 10px; }
+  .step-title { font-size: 16px; margin-bottom: 8px; }
+  .step-desc { font-size: 12px; max-width: 280px; }
+
+  /* ── MOBILE STYLES — image cards like your concept ── */
+  .styles-sec {
+    padding: 0;
+    background: var(--black);
+  }
+  .styles-sec .sec-eyebrow,
+  .styles-sec .sec-title {
+    color: var(--white);
+    padding: 48px 20px 0;
+    display: block;
+  }
+  .styles-sec .sec-title { padding: 8px 20px 28px; }
+  .styles-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    background: var(--black);
+    margin-top: 0;
+  }
+  .s-card {
+    background: #111;
+    padding: 16px 12px;
+    aspect-ratio: 1;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
   }
-  .hero-portrait img {
-    height: 100%;
-    object-position: 35% top;
-    filter: grayscale(40%) brightness(0.65);
+  .s-card::before { opacity: 0.4 !important; }
+  .s-card:hover { background: #111; }
+  .s-name { font-size: 8px; color: var(--white) !important; letter-spacing: 0.08em; }
+  .s-num, .s-emoji, .s-desc { display: none; }
+
+  /* ── MOBILE PRICING — dark cards ── */
+  .pricing-sec { padding: 60px 20px; }
+  .pricing-grid {
+    grid-template-columns: 1fr;
+    max-width: 100%;
   }
-  .hero-portrait-grad {
-    background: linear-gradient(
-      to top,
-      rgba(10,10,10,1) 0%,
-      rgba(10,10,10,0.75) 35%,
-      rgba(10,10,10,0.2) 70%,
-      rgba(10,10,10,0) 100%
-    );
+  .p-card { padding: 32px 24px; }
+
+  /* ── MOBILE CTA ── */
+  .cta-sec { padding: 80px 20px; }
+  .cta-btn { padding: 16px 32px; font-size: 11px; }
+
+  /* FOOTER */
+  footer {
+    padding: 24px 20px;
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
   }
-  .hero-left-content {
-    padding: 0 24px 48px;
-  }
-  .hero-title { font-size: clamp(44px, 12vw, 64px); }
-  .hero-right { display: none; }
-
-  nav { padding: 18px 20px; }
-  .nav-logo { font-size: 12px; }
-
-  .gallery-sec, .how-sec, .styles-sec, .pricing-sec, .cta-sec { padding: 64px 20px; }
-  .gallery-header { flex-direction: column; align-items: flex-start; gap: 16px; }
-  .g-item { min-height: 240px !important; }
-
-  .how-header { grid-template-columns: 1fr; gap: 16px; }
-  .steps { grid-template-columns: 1fr; }
-  .step { border-right: none; border-bottom: 0.5px solid rgba(245,243,238,0.06); }
-  .step:last-child { border-bottom: none; }
-
-  .styles-grid { grid-template-columns: repeat(2, 1fr); }
-  .s-card:nth-child(4n) { border-right: 0.5px solid rgba(245,243,238,0.06); }
-  .s-card:nth-child(2n) { border-right: none; }
-  .s-card:nth-child(n+15) { border-bottom: none; }
-
-  .pricing-grid { grid-template-columns: 1fr; }
-
-  footer { flex-direction: column; padding: 24px 20px; text-align: center; gap: 12px; }
-  .f-links { gap: 16px; }
 }
 </style>
 </head>
 <body>
 
-<!-- NAV -->
 <nav>
   <a href="/" class="nav-logo">Alter<span>.</span>Ego</a>
   <a href="/app/" class="nav-signin">Sign In →</a>
 </nav>
 
-<!-- HERO -->
+<!-- ══ HERO ══ -->
 <section class="hero">
 
-  <!-- LEFT: Portrait + Copy -->
-  <div class="hero-left">
-    <div class="hero-portrait" id="heroPortrait">
-      <img src="/images/riviera-yacht.png" alt="ALTER.EGO AI Portrait">
-      <div class="hero-portrait-grad"></div>
-    </div>
-    <div class="hero-left-content" id="heroContent">
-      <div class="hero-tag fi">AI Portrait Studio · alter-ego.photography</div>
-      <h1 class="hero-title fi" style="transition-delay:0.07s">One selfie.<br><em>Infinite</em><br>lives.</h1>
-      <p class="hero-sub fi" style="transition-delay:0.14s">Upload a photo. Step into any world.</p>
-      <a href="/app/" class="hero-cta fi" style="transition-delay:0.21s">Start your first life free <span class="hero-cta-arrow">→</span></a>
-    </div>
+  <!-- Background gallery grid (desktop only) -->
+  <div class="hero-right">
+    <!-- Slot names: rename any file to lp-hero-grid-N.jpg to swap -->
+    <div class="hg-item"><img src="/images/acotar-fire.png" alt="Acotar"><div class="hg-label">Acotar</div></div>
+    <div class="hg-item"><img src="/images/cyberpunk-neon.jpg" alt="Cyberpunk"><div class="hg-label">Cyberpunk</div></div>
+    <div class="hg-item"><img src="/images/sovereign-king.png" alt="Sovereign"><div class="hg-label">Sovereign</div></div>
+    <div class="hg-item"><img src="/images/warhol-quad-2.png" alt="Warhol"><div class="hg-label">Warhol</div></div>
+    <div class="hg-item"><img src="/images/campaign-red.png" alt="Campaign"><div class="hg-label">Campaign</div></div>
+    <div class="hg-item"><img src="/images/glamour-bw.png" alt="Glamour"><div class="hg-label">Glamour</div></div>
+    <div class="hg-item"><img src="/images/anime-golden.jpg" alt="Anime"><div class="hg-label">Anime</div></div>
+    <div class="hg-item"><img src="/images/bohemian.png" alt="Bohemian"><div class="hg-label">Bohemian</div></div>
+    <div class="hg-item"><img src="/images/cinematic-window.png" alt="Cinematic"><div class="hg-label">Cinematic</div></div>
   </div>
 
-  <!-- RIGHT: Gallery Grid -->
-  <div class="hero-right">
-    <div class="hero-grid" id="heroGrid">
-      <div class="hg-item">
-        <img src="/images/acotar-fire.png" alt="Acotar">
-        <div class="hg-label">Acotar</div>
-      </div>
-      <div class="hg-item">
-        <img src="/images/cyberpunk-neon.jpg" alt="Cyberpunk">
-        <div class="hg-label">Cyberpunk</div>
-      </div>
-      <div class="hg-item">
-        <img src="/images/sovereign-king.png" alt="Sovereign">
-        <div class="hg-label">Sovereign</div>
-      </div>
-      <div class="hg-item">
-        <img src="/images/warhol-quad-2.png" alt="Warhol">
-        <div class="hg-label">Warhol</div>
-      </div>
-      <div class="hg-item">
-        <img src="/images/campaign-red.png" alt="Campaign">
-        <div class="hg-label">Campaign</div>
-      </div>
-      <div class="hg-item">
-        <img src="/images/glamour-bw.png" alt="Glamour">
-        <div class="hg-label">Glamour</div>
-      </div>
-      <div class="hg-item">
-        <img src="/images/anime-golden.jpg" alt="Anime">
-        <div class="hg-label">Anime</div>
-      </div>
-      <div class="hg-item">
-        <img src="/images/bohemian.png" alt="Bohemian">
-        <div class="hg-label">Bohemian</div>
-      </div>
-      <div class="hg-item">
-        <img src="/images/cinematic-window.png" alt="Cinematic">
-        <div class="hg-label">Cinematic</div>
-      </div>
-    </div>
+  <div class="hero-gallery-overlay"></div>
+
+  <!-- Hero portrait — desktop: yacht girl floating; mobile: full bleed B&W -->
+  <!-- To swap: rename file to lp-hero-portrait.png -->
+  <div class="hero-portrait">
+    <img src="/images/riviera-yacht.png" alt="ALTER.EGO AI Portrait">
+  </div>
+
+  <!-- Copy -->
+  <div class="hero-left">
+    <div class="hero-tag fi">AI Portrait Studio · alter-ego.photography</div>
+    <h1 class="hero-title fi" style="transition-delay:0.08s">One selfie.<br><em>Infinite</em><br>lives.</h1>
+    <p class="hero-sub fi" style="transition-delay:0.16s">Upload a photo. Step into any world.</p>
+    <a href="/app/" class="hero-cta fi" style="transition-delay:0.24s">Create yours free →</a>
   </div>
 
 </section>
 
-<!-- MARQUEE -->
-<div class="marquee-wrap">
-  <div class="marquee-track">
-    <span class="marquee-item">AI Portrait Generation</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">16 Style Directions</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Cyberpunk</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Cinematic Film</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">ACOTAR Fantasy</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Riviera Lifestyle</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Sovereign Royal</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Bohemian</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Sci-Fi</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Streetwear</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Warhol Pop Art</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">alter-ego.photography</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">AI Portrait Generation</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">16 Style Directions</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Cyberpunk</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Cinematic Film</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">ACOTAR Fantasy</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">alter-ego.photography</span><span class="marquee-item marquee-dot">✦</span>
-  </div>
-</div>
-
-<!-- GALLERY -->
+<!-- ══ GALLERY ══ -->
 <section class="gallery-sec">
   <div class="gallery-header fi">
     <div>
@@ -802,37 +781,42 @@ footer {
     <a href="/app/" class="gallery-link">Try it free →</a>
   </div>
   <div class="fi" style="transition-delay:0.08s">
-    <!-- Row 1 -->
+    <!-- Row 1: tall hero row -->
+    <!-- To swap images: rename file to lp-gallery-r1-c1.jpg etc. -->
     <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:4px;margin-bottom:4px">
-      <div class="g-item" style="min-height:600px">
+      <div class="g-item" style="min-height:580px">
         <img src="/images/acotar-fire.png" alt="Acotar" style="object-position:center top">
         <div class="g-label">Acotar</div>
       </div>
-      <div class="g-item" style="min-height:600px">
+      <div class="g-item" style="min-height:580px">
         <img src="/images/warhol-quad-2.png" alt="Warhol" style="object-position:center top">
         <div class="g-label">Warhol</div>
       </div>
-      <div class="g-item" style="min-height:600px">
+      <div class="g-item" style="min-height:580px">
         <img src="/images/cyberpunk-neon.jpg" alt="Cyberpunk" style="object-position:center top">
         <div class="g-label">Cyberpunk</div>
       </div>
     </div>
-    <!-- Row 2 -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:4px">
-      <div class="g-item" style="min-height:400px">
-        <img src="/images/bohemian.png" alt="Bohemian" style="object-position:center top">
-        <div class="g-label">Bohemian</div>
+    <!-- Row 2: 4-col -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;margin-bottom:4px">
+      <div class="g-item" style="min-height:380px">
+        <img src="/images/acotar-flowers.png" alt="Acotar" style="object-position:center top">
+        <div class="g-label">Acotar</div>
       </div>
-      <div class="g-item" style="min-height:400px">
-        <img src="/images/athlete-track.png" alt="Athlete" style="object-position:center top">
-        <div class="g-label">Athlete</div>
+      <div class="g-item" style="min-height:380px">
+        <img src="/images/sovereign-king.png" alt="Sovereign" style="object-position:center top">
+        <div class="g-label">Sovereign</div>
       </div>
-      <div class="g-item" style="min-height:400px">
-        <img src="/images/anime-golden.jpg" alt="Anime" style="object-position:center top">
-        <div class="g-label">Anime</div>
+      <div class="g-item" style="min-height:380px">
+        <img src="/images/campaign-red.png" alt="Campaign" style="object-position:center top">
+        <div class="g-label">Campaign</div>
+      </div>
+      <div class="g-item" style="min-height:380px">
+        <img src="/images/riviera-yacht.png" alt="Riviera" style="object-position:center top">
+        <div class="g-label">Riviera</div>
       </div>
     </div>
-    <!-- Row 3 -->
+    <!-- Row 3: 3-col -->
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:4px">
       <div class="g-item" style="min-height:380px">
         <img src="/images/cinematic-window.png" alt="Cinematic" style="object-position:center top">
@@ -844,94 +828,94 @@ footer {
       </div>
       <div class="g-item" style="min-height:380px">
         <img src="/images/cyberpunk-green.png" alt="Cyberpunk" style="object-position:center top">
-        <div class="g-label">Cyberpunk Green</div>
+        <div class="g-label">Cyberpunk</div>
       </div>
     </div>
-    <!-- Row 4 -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px">
+    <!-- Row 4: 3-col -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px">
       <div class="g-item" style="min-height:300px">
-        <img src="/images/acotar-flowers.png" alt="Acotar" style="object-position:center top">
-        <div class="g-label">Acotar</div>
+        <img src="/images/MSSmdbcC_vWu36DxFqN3-.png" alt="Streetwear" style="object-position:center top">
+        <div class="g-label">Streetwear</div>
       </div>
       <div class="g-item" style="min-height:300px">
-        <img src="/images/sovereign-king.png" alt="Sovereign" style="object-position:center top">
-        <div class="g-label">Sovereign</div>
+        <img src="/images/alter-ego-1779671790672.png" alt="Athlete" style="object-position:center top">
+        <div class="g-label">Athlete</div>
       </div>
       <div class="g-item" style="min-height:300px">
-        <img src="/images/campaign-red.png" alt="Campaign" style="object-position:center top">
-        <div class="g-label">Campaign</div>
-      </div>
-      <div class="g-item" style="min-height:300px">
-        <img src="/images/riviera-yacht.png" alt="Riviera" style="object-position:center top">
-        <div class="g-label">Riviera</div>
+        <img src="/images/anime-golden.jpg" alt="Anime" style="object-position:center top">
+        <div class="g-label">Anime</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- HOW IT WORKS -->
+<!-- ══ HOW IT WORKS ══ -->
 <section class="how-sec">
   <div class="how-header fi">
-    <h2 class="sec-title">Three steps.<br><em>Infinite you.</em></h2>
-    <p class="how-intro">No design skills. No prompting expertise.<br>Just a selfie and a vision for who you could be.</p>
+    <h2 class="how-title">Three steps.<br><em>Infinite you.</em></h2>
+    <p class="how-intro">No design skills. No prompting expertise. Just a selfie and a vision for who you could be.</p>
   </div>
   <div class="steps fi" style="transition-delay:0.1s">
-    <div class="step">
-      <div class="step-accent-line"></div>
+    <!-- Mobile: rename lp-step1-bg.jpg / lp-step2-bg.jpg / lp-step3-bg.jpg to swap backgrounds -->
+    <div class="step step-1">
       <div class="step-num">01</div>
-      <span class="step-icon">📷</span>
-      <div class="step-title">Upload a Selfie</div>
-      <p class="step-desc">Clear, well-lit, facing forward. Our AI reads your face and anchors the generation specifically to you.</p>
+      <div class="step-content-wrap">
+        <span class="step-icon">📷</span>
+        <div class="step-title">Upload a Selfie</div>
+        <p class="step-desc">Clear, well-lit, facing forward. Our AI reads your face and anchors the generation to you specifically.</p>
+      </div>
     </div>
-    <div class="step">
-      <div class="step-accent-line"></div>
+    <div class="step step-2">
       <div class="step-num">02</div>
-      <span class="step-icon">✦</span>
-      <div class="step-title">Pick Your Style</div>
-      <p class="step-desc">Choose from 16 curated aesthetic directions — each with 4 unique visual interpretations that rotate on every generation.</p>
+      <div class="step-content-wrap">
+        <span class="step-icon">✦</span>
+        <div class="step-title">Pick Your World</div>
+        <p class="step-desc">Choose from 16 curated aesthetic directions — each with unique visual interpretations that rotate on every generation.</p>
+      </div>
     </div>
-    <div class="step">
-      <div class="step-accent-line"></div>
+    <div class="step step-3">
       <div class="step-num">03</div>
-      <span class="step-icon">⚡</span>
-      <div class="step-title">Generate & Share</div>
-      <p class="step-desc">Your cinematic portrait is ready in seconds. Edit the prompt, regenerate, then share directly to Instagram.</p>
+      <div class="step-content-wrap">
+        <span class="step-icon">⚡</span>
+        <div class="step-title">Generate & Share</div>
+        <p class="step-desc">AI creates your cinematic portrait in seconds. Edit the prompt, regenerate, then share directly to Instagram.</p>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- 16 STYLES -->
+<!-- ══ 16 STYLES ══ -->
 <section class="styles-sec">
   <div class="fi">
     <div class="sec-eyebrow">Style Directions</div>
-    <h2 class="sec-title" style="margin-top:8px">Sixteen worlds.<br><em>All yours.</em></h2>
+    <h2 class="sec-title">Sixteen worlds.<br>All yours.</h2>
   </div>
   <div class="styles-grid fi" style="transition-delay:0.1s">
-    <div class="s-card"><div class="s-num">01</div><span class="s-emoji">🎬</span><div class="s-name">Cinematic</div><p class="s-desc">35mm film. Golden hour. Anamorphic lens. Kodak grain.</p></div>
-    <div class="s-card"><div class="s-num">02</div><span class="s-emoji">📸</span><div class="s-name">Cover</div><p class="s-desc">Vogue. Elle. GQ. Magazine cover quality, studio-lit perfection.</p></div>
-    <div class="s-card"><div class="s-num">03</div><span class="s-emoji">⚡</span><div class="s-name">Cyberpunk</div><p class="s-desc">Blade Runner nights. Neon reflections. Electric colour.</p></div>
-    <div class="s-card"><div class="s-num">04</div><span class="s-emoji">🌸</span><div class="s-name">Anime</div><p class="s-desc">Ghibli meets cyberpunk. Cel-shaded. Detailed linework.</p></div>
-    <div class="s-card"><div class="s-num">05</div><span class="s-emoji">🎨</span><div class="s-name">Painterly</div><p class="s-desc">Old Masters. Rembrandt light. Museum-quality texture.</p></div>
-    <div class="s-card"><div class="s-num">06</div><span class="s-emoji">✦</span><div class="s-name">Campaign</div><p class="s-desc">Luxury fashion campaigns. Architectural sets. Power dressing.</p></div>
-    <div class="s-card"><div class="s-num">07</div><span class="s-emoji">🚀</span><div class="s-name">Sci-Fi</div><p class="s-desc">Deep space. Holographic armour. Epic cosmic scale.</p></div>
-    <div class="s-card"><div class="s-num">08</div><span class="s-emoji">🔥</span><div class="s-name">Streetwear</div><p class="s-desc">Urban rooftops. Golden hour. Raw candid energy.</p></div>
-    <div class="s-card"><div class="s-num">09</div><span class="s-emoji">💼</span><div class="s-name">Headshot</div><p class="s-desc">Executive presence. Studio lighting. LinkedIn-ready polish.</p></div>
-    <div class="s-card"><div class="s-num">10</div><span class="s-emoji">✨</span><div class="s-name">Glamour</div><p class="s-desc">Old Hollywood. Smouldering intensity. Black and white drama.</p></div>
-    <div class="s-card"><div class="s-num">11</div><span class="s-emoji">🌿</span><div class="s-name">Acotar</div><p class="s-desc">Illyrian battle leathers. Twin moons. Fae court power.</p></div>
-    <div class="s-card"><div class="s-num">12</div><span class="s-emoji">⚡</span><div class="s-name">Athlete</div><p class="s-desc">Stadium lights. Championship energy. Sports campaign quality.</p></div>
-    <div class="s-card"><div class="s-num">13</div><span class="s-emoji">🎨</span><div class="s-name">Warhol</div><p class="s-desc">Bold silkscreen. Factory pop art. Four-panel iconic treatment.</p></div>
-    <div class="s-card"><div class="s-num">14</div><span class="s-emoji">🌴</span><div class="s-name">Riviera</div><p class="s-desc">Portofino harbour. Slim Aarons leisure. Kodachrome pastels.</p></div>
-    <div class="s-card"><div class="s-num">15</div><span class="s-emoji">🌻</span><div class="s-name">Bohemian</div><p class="s-desc">Wildflower meadows. 1970s free spirit. Sun-soaked analogue.</p></div>
-    <div class="s-card"><div class="s-num">16</div><span class="s-emoji">👑</span><div class="s-name">Sovereign</div><p class="s-desc">Royal courts. Velvet and gold. Van Dyck portrait authority.</p></div>
+    <div class="s-card" style="--world-bg:url('/images/cinematic-window.png')"><div class="s-num">01</div><span class="s-emoji">🎬</span><div class="s-name">Cinematic</div><p class="s-desc">35mm film. Golden hour. Anamorphic lens.</p></div>
+    <div class="s-card" style="--world-bg:url('/images/campaign-red.png')"><div class="s-num">02</div><span class="s-emoji">📸</span><div class="s-name">Cover</div><p class="s-desc">Vogue. Elle. GQ. Magazine cover quality.</p></div>
+    <div class="s-card" style="--world-bg:url('/images/cyberpunk-neon.jpg')"><div class="s-num">03</div><span class="s-emoji">⚡</span><div class="s-name">Cyberpunk</div><p class="s-desc">Blade Runner nights. Neon reflections.</p></div>
+    <div class="s-card" style="--world-bg:url('/images/anime-golden.jpg')"><div class="s-num">04</div><span class="s-emoji">🌸</span><div class="s-name">Anime</div><p class="s-desc">Ghibli meets cyberpunk. Cel-shaded.</p></div>
+    <div class="s-card" style="--world-bg:url('/images/acotar-fire.png')"><div class="s-num">05</div><span class="s-emoji">🎨</span><div class="s-name">Painterly</div><p class="s-desc">Old Masters. Rembrandt light.</p></div>
+    <div class="s-card" style="--world-bg:url('/images/campaign-red.png')"><div class="s-num">06</div><span class="s-emoji">✦</span><div class="s-name">Campaign</div><p class="s-desc">Luxury fashion campaigns. Power dressing.</p></div>
+    <div class="s-card" style="--world-bg:url('/images/cyberpunk-green.png')"><div class="s-num">07</div><span class="s-emoji">🚀</span><div class="s-name">Sci-Fi</div><p class="s-desc">Deep space. Holographic armour.</p></div>
+    <div class="s-card" style="--world-bg:url('/images/MSSmdbcC_vWu36DxFqN3-.png')"><div class="s-num">08</div><span class="s-emoji">🔥</span><div class="s-name">Streetwear</div><p class="s-desc">Urban rooftops. Golden hour. Raw energy.</p></div>
+    <div class="s-card" style="--world-bg:url('/images/glamour-bw.png')"><div class="s-num">09</div><span class="s-emoji">💼</span><div class="s-name">Headshot</div><p class="s-desc">Executive presence. LinkedIn-ready polish.</p></div>
+    <div class="s-card" style="--world-bg:url('/images/glamour-bw.png')"><div class="s-num">10</div><span class="s-emoji">✨</span><div class="s-name">Glamour</div><p class="s-desc">Old Hollywood. Black and white drama.</p></div>
+    <div class="s-card" style="--world-bg:url('/images/acotar-flowers.png')"><div class="s-num">11</div><span class="s-emoji">🌿</span><div class="s-name">Acotar</div><p class="s-desc">Illyrian battle leathers. Fae court power.</p></div>
+    <div class="s-card" style="--world-bg:url('/images/alter-ego-1779671790672.png')"><div class="s-num">12</div><span class="s-emoji">⚡</span><div class="s-name">Athlete</div><p class="s-desc">Stadium lights. Championship energy.</p></div>
+    <div class="s-card" style="--world-bg:url('/images/warhol-quad-2.png')"><div class="s-num">13</div><span class="s-emoji">🎨</span><div class="s-name">Warhol</div><p class="s-desc">Bold silkscreen. Factory pop art.</p></div>
+    <div class="s-card" style="--world-bg:url('/images/riviera-yacht.png')"><div class="s-num">14</div><span class="s-emoji">🌴</span><div class="s-name">Riviera</div><p class="s-desc">Portofino harbour. Kodachrome pastels.</p></div>
+    <div class="s-card" style="--world-bg:url('/images/bohemian.png')"><div class="s-num">15</div><span class="s-emoji">🌻</span><div class="s-name">Bohemian</div><p class="s-desc">Wildflower meadows. 1970s free spirit.</p></div>
+    <div class="s-card" style="--world-bg:url('/images/sovereign-king.png')"><div class="s-num">16</div><span class="s-emoji">👑</span><div class="s-name">Sovereign</div><p class="s-desc">Royal courts. Velvet and gold.</p></div>
   </div>
 </section>
 
-<!-- PRICING -->
+<!-- ══ PRICING ══ -->
 <section class="pricing-sec">
   <div class="pricing-header fi">
-    <div class="sec-eyebrow" style="text-align:center;margin-bottom:10px">Credits</div>
-    <h2 class="sec-title" style="color:var(--white);text-align:center">Pay once.<br><em>Use forever.</em></h2>
-    <p style="font-size:11px;color:rgba(245,243,238,0.3);margin-top:16px;letter-spacing:0.04em">Credits never expire. One credit = one generation.</p>
+    <div class="sec-eyebrow" style="color:rgba(245,243,238,0.3)">Credits</div>
+    <h2 class="sec-title" style="color:var(--white);margin-top:8px">Pay once.<br><em>Use forever.</em></h2>
+    <p style="font-size:11px;color:rgba(245,243,238,0.3);margin-top:16px;letter-spacing:0.03em">Credits never expire. One credit = one generation.</p>
   </div>
   <div class="pricing-grid fi" style="transition-delay:0.1s">
     <div class="p-card">
@@ -957,65 +941,68 @@ footer {
   <p class="fi" style="text-align:center;margin-top:28px;font-size:9px;letter-spacing:0.1em;color:rgba(245,243,238,0.15);text-transform:uppercase;transition-delay:0.2s">✦ First generation free · No subscription · Credits never expire</p>
 </section>
 
-<!-- FINAL CTA -->
+<!-- ══ CTA ══ -->
 <section class="cta-sec">
   <div class="cta-bg-text">ALTER.EGO</div>
   <div class="cta-eyebrow fi">Free to try · No account needed to start</div>
   <h2 class="cta-title fi" style="transition-delay:0.08s">Who could<br><em>you</em> be?</h2>
   <p class="cta-sub fi" style="transition-delay:0.14s">Upload a selfie. Results in under 30 seconds.</p>
-  <a href="/app/" class="cta-btn fi" style="transition-delay:0.2s">Create your alter ego <span>→</span></a>
+  <a href="/app/" class="cta-btn fi" style="transition-delay:0.2s">Create your alter ego →</a>
   <p class="cta-note fi" style="transition-delay:0.26s">✦ Your face. Your images. Always yours.</p>
 </section>
 
-<!-- FOOTER -->
+<!-- ══ FOOTER ══ -->
 <footer>
   <a href="/" class="f-logo">Alter<span>.</span>Ego</a>
   <div class="f-copy">© 2026 alter-ego.photography · Powered by Claude & Flux AI</div>
   <div class="f-links">
-    <a href="mailto:contact@inhausmedia.com.au" class="f-link">contact@inhausmedia.com.au</a>
+    <a href="https://instagram.com/alter_ego.photography" target="_blank" rel="noopener" class="f-link">Instagram</a>
+    <a href="mailto:contact@inhausmedia.com.au" class="f-link">Contact</a>
     <a href="/terms" class="f-link">Terms</a>
     <a href="/privacy" class="f-link">Privacy</a>
   </div>
 </footer>
 
 <script>
-// ─── SCROLL REVEAL ───
+// Style card world backgrounds via CSS custom property
+document.querySelectorAll('.s-card').forEach(card => {
+  const bg = card.style.getPropertyValue('--world-bg');
+  if (bg) card.style.setProperty('--world-bg', bg);
+  card.style.cssText += `;--world-bg:${bg}`;
+});
+
+// Apply world bg to ::before via data attribute
+document.querySelectorAll('.s-card').forEach(card => {
+  const bg = getComputedStyle(card).getPropertyValue('--world-bg').trim();
+  if (bg) {
+    const style = document.createElement('style');
+    const idx = Array.from(card.parentNode.children).indexOf(card);
+    style.textContent = `.styles-grid .s-card:nth-child(${idx + 1})::before { background-image: ${bg}; }`;
+    document.head.appendChild(style);
+  }
+});
+
+// Scroll reveal
 const obs = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('vis'); });
-}, { threshold: 0.06 });
+}, { threshold: 0.08 });
 document.querySelectorAll('.fi').forEach(el => obs.observe(el));
-// Hero fires immediately
-setTimeout(() => {
-  document.querySelectorAll('.hero .fi').forEach(el => el.classList.add('vis'));
-}, 80);
 
-// ─── PARALLAX ───
-(function() {
-  const portrait = document.getElementById('heroPortrait');
-  const content  = document.getElementById('heroContent');
-  const grid     = document.getElementById('heroGrid');
-  let ticking    = false;
+// Reveal hero immediately
+document.querySelectorAll('.hero .fi').forEach((el, i) => {
+  setTimeout(() => el.classList.add('vis'), 300 + i * 150);
+});
 
-  function onScroll() {
-    if (ticking) return;
-    requestAnimationFrame(() => {
-      const sy = window.scrollY;
-      // Portrait scrolls up slower than page (sticky feel)
-      if (portrait) portrait.style.transform = `translateY(${sy * 0.25}px)`;
-      // Copy scrolls up faster (lifts away)
-      if (content) content.style.transform = `translateY(${sy * -0.12}px)`;
-      // Grid scrolls slightly down (depth separation from portrait)
-      if (grid) grid.style.transform = `translateY(${sy * 0.18}px)`;
-      ticking = false;
-    });
-    ticking = true;
-  }
-
-  // Only run parallax on desktop
-  if (window.innerWidth > 768) {
-    window.addEventListener('scroll', onScroll, { passive: true });
-  }
-})();
+// Parallax on hero portrait (desktop only)
+const portrait = document.querySelector('.hero-portrait');
+if (window.innerWidth > 768) {
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    if (portrait && y < window.innerHeight) {
+      portrait.style.transform = `translateX(42%) translateY(${y * 0.1}px)`;
+    }
+  }, { passive: true });
+}
 </script>
 
 </body>
