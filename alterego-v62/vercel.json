@@ -7,6 +7,7 @@
     { "source": "/api/profile", "destination": "/api/profile" },
     { "source": "/api/generations", "destination": "/api/generations" },
     { "source": "/api/generate-complete", "destination": "/api/generate-complete" },
+    { "source": "/api/email", "destination": "/api/email" },
     { "source": "/app", "destination": "/public/app/index.html" },
     { "source": "/app/(.*)", "destination": "/public/app/$1" },
     { "source": "/(.*)", "destination": "/public/$1" }
