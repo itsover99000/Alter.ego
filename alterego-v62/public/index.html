@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ALTER.EGO — One Selfie. Infinite Lives.</title>
-<meta name="description" content="Upload a selfie. Step into any world. AI portrait generation across 16 cinematic style directions.">
+<meta name="description" content="Sixteen themes. Infinite you. Upload a selfie and step into any world — cinematic, fantasy, sci-fi, editorial and more. Powered by AI.">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -440,7 +440,7 @@ nav {
 }
 .worlds-stage-inner {
   display: grid;
-  grid-template-columns: 380px 1fr;
+  grid-template-columns: 500px 1fr;
   gap: 0;
   align-items: stretch;
   min-height: 560px;
@@ -450,6 +450,17 @@ nav {
   position: relative;
   overflow: hidden;
   flex-shrink: 0;
+}
+.worlds-img-col::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.35;
+  mix-blend-mode: overlay;
 }
 .world-slide {
   position: absolute;
