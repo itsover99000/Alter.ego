@@ -80,7 +80,7 @@ export default async function handler(req, res) {
         const formData = new FormData();
         formData.append('file', blob, `selfie.${ext}`);
 
-        const uploadRes = await fetch('https://fal.run/storage/upload', {
+        const uploadRes = await fetch('https://fal.run/files/upload', {
           method: 'POST',
           headers: { 'Authorization': `Key ${falKey}` },
           body: formData
