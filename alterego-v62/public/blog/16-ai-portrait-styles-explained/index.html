@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>16 AI Portrait Styles Explained — Which One is You? — ALTER.EGO</title>
+<meta name="description" content="From Cinematic film to Sovereign royalty, Cyberpunk streets to Riviera leisure — every ALTER.EGO AI portrait style direction explained so you can pick your world.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root { --black: #0a0a0a; --white: #f5f3ee; --accent: #c8f05a; --text: #1a1a1a; --mid: #666; --border: #e8e6e1; }
+body { background: #faf9f7; color: var(--text); font-family: 'DM Mono', monospace; }
+nav { background: var(--black); padding: 20px 40px; display: flex; align-items: center; justify-content: space-between; }
+.nav-logo { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--white); text-decoration: none; }
+.nav-logo span { color: var(--accent); }
+.nav-cta { font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--black); background: var(--accent); padding: 9px 18px; text-decoration: none; }
+.nav-cta:hover { background: #d4f570; }
+.post-hero { background: var(--black); padding: 80px 40px 64px; }
+.post-breadcrumb { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(245,243,238,0.3); margin-bottom: 24px; }
+.post-breadcrumb a { color: rgba(245,243,238,0.3); text-decoration: none; }
+.post-breadcrumb a:hover { color: var(--accent); }
+.post-tag { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
+.post-title { font-family: 'Playfair Display', serif; font-size: clamp(32px, 5vw, 60px); font-weight: 900; color: var(--white); line-height: 1.05; margin-bottom: 20px; }
+.post-meta { font-size: 9px; letter-spacing: 0.1em; color: rgba(245,243,238,0.25); text-transform: uppercase; }
+.post-wrap { max-width: 720px; margin: 0 auto; padding: 72px 40px; }
+.post-body p { font-size: 13px; line-height: 2; color: #333; margin-bottom: 20px; }
+.post-body strong { color: var(--text); font-weight: 500; }
+.post-divider { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+.styles-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); margin: 32px 0; }
+.style-card { background: #faf9f7; padding: 24px 20px; }
+.style-num { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 900; color: rgba(10,10,10,0.06); line-height: 1; margin-bottom: 6px; }
+.style-name { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text); margin-bottom: 8px; }
+.style-emoji { font-size: 18px; margin-bottom: 6px; display: block; }
+.style-desc { font-size: 10px; line-height: 1.7; color: var(--mid); }
+.style-best { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-top: 8px; background: var(--black); display: inline-block; padding: 3px 8px; }
+.post-cta-box { background: var(--black); padding: 48px 40px; margin: 56px 0 0; text-align: center; }
+.post-cta-box h3 { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--white); margin-bottom: 12px; }
+.post-cta-box h3 em { font-style: italic; color: var(--accent); }
+.post-cta-box p { font-size: 11px; color: rgba(245,243,238,0.4); margin-bottom: 28px; }
+.post-cta-btn { display: inline-block; background: var(--accent); color: var(--black); text-decoration: none; padding: 14px 36px; font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+.post-cta-btn:hover { background: #d4f570; }
+footer { background: var(--black); border-top: 0.5px solid rgba(245,243,238,0.08); padding: 28px 40px; display: flex; align-items: center; justify-content: space-between; }
+.f-logo { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--white); text-decoration: none; }
+.f-logo span { color: var(--accent); }
+.f-copy { font-size: 9px; letter-spacing: 0.08em; color: rgba(245,243,238,0.2); text-transform: uppercase; }
+.f-links { display: flex; gap: 20px; }
+.f-link { font-size: 9px; letter-spacing: 0.08em; color: rgba(245,243,238,0.35); text-transform: uppercase; text-decoration: none; }
+.f-link:hover { color: var(--accent); }
+@media (max-width: 768px) {
+  nav { padding: 18px 20px; }
+  .post-hero { padding: 52px 20px 44px; }
+  .post-wrap { padding: 40px 20px; }
+  .styles-grid { grid-template-columns: 1fr; }
+  .post-cta-box { padding: 36px 24px; }
+  footer { flex-direction: column; padding: 24px 20px; gap: 12px; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">Alter<span>.</span>Ego</a>
+  <a href="/app/" class="nav-cta">Try it free →</a>
+</nav>
+
+<div class="post-hero">
+  <div class="post-breadcrumb"><a href="/blog/">Blog</a> → Guide</div>
+  <div class="post-tag">Guide · Styles</div>
+  <h1 class="post-title">16 AI Portrait Styles Explained —<br>Which One is You?</h1>
+  <div class="post-meta">May 2026 · 6 min read</div>
+</div>
+
+<div class="post-wrap">
+  <div class="post-body">
+
+    <p>ALTER.EGO has 16 style directions — each one a different world you can step into with a single selfie. Some are cinematic and grounded in reality. Some are pure fantasy. Some are professional and polished. Some are completely unhinged in the best possible way.</p>
+
+    <p>Here's exactly what each style does, what it looks like, and who it's best for.</p>
+
+    <div class="styles-grid">
+      <div class="style-card">
+        <div class="style-num">01</div>
+        <span class="style-emoji">🎬</span>
+        <div class="style-name">Cinematic</div>
+        <p class="style-desc">35mm film aesthetic. Golden hour light. Anamorphic lens flare. Kodak grain. Think a still from a prestige drama — moody, textured, deeply cinematic.</p>
+        <div class="style-best">Best for: film lovers, creatives</div>
+      </div>
+      <div class="style-card">
+        <div class="style-num">02</div>
+        <span class="style-emoji">📸</span>
+        <div class="style-name">Cover</div>
+        <p class="style-desc">Vogue. GQ. Elle. Studio-lit magazine cover quality. Clean backgrounds, perfect lighting, editorial styling. Looks like it belongs on a newsstand.</p>
+        <div class="style-best">Best for: personal brand, social media</div>
+      </div>
+      <div class="style-card">
+        <div class="style-num">03</div>
+        <span class="style-emoji">⚡</span>
+        <div class="style-name">Cyberpunk</div>
+        <p class="style-desc">Blade Runner rain. Neon reflections on wet pavement. Electric colour. Futuristic streetwear. The dystopian city at night done right.</p>
+        <div class="style-best">Best for: tech fans, gamers, sci-fi lovers</div>
+      </div>
+      <div class="style-card">
+        <div class="style-num">04</div>
+        <span class="style-emoji">🌸</span>
+        <div class="style-name">Anime</div>
+        <p class="style-desc">Ghibli meets cyberpunk. Detailed cel-shading, expressive eyes, detailed linework. A fully rendered anime portrait version of you.</p>
+        <div class="style-best">Best for: anime fans, gamers, cosplay</div>
+      </div>
+      <div class="style-card">
+        <div class="style-num">05</div>
+        <span class="style-emoji">🎨</span>
+        <div class="style-name">Painterly</div>
+        <p class="style-desc">Old Masters portrait tradition. Rembrandt light. Rich texture. Dark backgrounds with warm candlelit tones. Looks like it belongs in a museum.</p>
+        <div class="style-best">Best for: art lovers, unique gifts</div>
+      </div>
+      <div class="style-card">
+        <div class="style-num">06</div>
+        <span class="style-emoji">✦</span>
+        <div class="style-name">Campaign</div>
+        <p class="style-desc">Luxury fashion campaign. Architectural backdrops. Structured power dressing. The kind of image brands spend six figures producing.</p>
+        <div class="style-best">Best for: fashion, personal brand</div>
+      </div>
+      <div class="style-card">
+        <div class="style-num">07</div>
+        <span class="style-emoji">🚀</span>
+        <div class="style-name">Sci-Fi</div>
+        <p class="style-desc">Deep space. Alien landscapes. Tactical gear and holographic armour. Epic cosmic scale. Dune vibes. You as the protagonist of a sci-fi epic.</p>
+        <div class="style-best">Best for: sci-fi fans, gamers</div>
+      </div>
+      <div class="style-card">
+        <div class="style-num">08</div>
+        <span class="style-emoji">🔥</span>
+        <div class="style-name">Streetwear</div>
+        <p class="style-desc">Urban rooftops at golden hour. Candid editorial energy. Raw street photography meets fashion campaign. City grit, expressive style.</p>
+        <div class="style-best">Best for: streetwear fans, urban culture</div>
+      </div>
+      <div class="style-card">
+        <div class="style-num">09</div>
+        <span class="style-emoji">💼</span>
+        <div class="style-name">Headshot</div>
+        <p class="style-desc">Executive presence. Clean studio lighting. Professional finish. LinkedIn-ready, résumé-ready, bio-photo ready. Serious without being stiff.</p>
+        <div class="style-best">Best for: professionals, LinkedIn</div>
+      </div>
+      <div class="style-card">
+        <div class="style-num">10</div>
+        <span class="style-emoji">✨</span>
+        <div class="style-name">Glamour</div>
+        <p class="style-desc">Old Hollywood. Black and white drama. Smouldering intensity. Think silver screen icons — Audrey Hepburn, Cary Grant, Marlene Dietrich energy.</p>
+        <div class="style-best">Best for: drama lovers, vintage aesthetic</div>
+      </div>
+      <div class="style-card">
+        <div class="style-num">11</div>
+        <span class="style-emoji">🌿</span>
+        <div class="style-name">Acotar</div>
+        <p class="style-desc">Illyrian battle leathers. Twin moons. Ancient forests. Fae court power. Sarah J. Maas's world rendered with cinematic accuracy — your face in the Night Court.</p>
+        <div class="style-best">Best for: ACOTAR readers, BookTok</div>
+      </div>
+      <div class="style-card">
+        <div class="style-num">12</div>
+        <span class="style-emoji">⚡</span>
+        <div class="style-name">Athlete</div>
+        <p class="style-desc">Stadium lights. Championship energy. Sports campaign quality — the kind of image that appears on the side of a building during the World Cup.</p>
+        <div class="style-best">Best for: sports fans, fitness enthusiasts</div>
+      </div>
+      <div class="style-card">
+        <div class="style-num">13</div>
+        <span class="style-emoji">🎨</span>
+        <div class="style-name">Warhol</div>
+        <p class="style-desc">Bold silkscreen treatment. Factory pop art. Four-panel iconic grid. Andy Warhol's signature style applied to your face. Instantly recognisable.</p>
+        <div class="style-best">Best for: art lovers, pop culture fans</div>
+      </div>
+      <div class="style-card">
+        <div class="style-num">14</div>
+        <span class="style-emoji">🌴</span>
+        <div class="style-name">Riviera</div>
+        <p class="style-desc">Portofino harbour. Slim Aarons leisure photography. Kodachrome pastels. Saturated blues and yellows. Old money Mediterranean summer.</p>
+        <div class="style-best">Best for: travel lovers, aesthetic feeds</div>
+      </div>
+      <div class="style-card">
+        <div class="style-num">15</div>
+        <span class="style-emoji">🌻</span>
+        <div class="style-name">Bohemian</div>
+        <p class="style-desc">Wildflower meadows. 1970s free spirit. Sun-soaked analogue film. Golden light, natural textures, effortless style. Romantic and warm.</p>
+        <div class="style-best">Best for: nature lovers, boho aesthetic</div>
+      </div>
+      <div class="style-card">
+        <div class="style-num">16</div>
+        <span class="style-emoji">👑</span>
+        <div class="style-name">Sovereign</div>
+        <p class="style-desc">Royal courts. Velvet and gold. Van Dyck portrait authority. The kind of painting that hangs in a palace. You as nobility — commanding, regal, timeless.</p>
+        <div class="style-best">Best for: history lovers, dramatic portraits</div>
+      </div>
+    </div>
+
+    <hr class="post-divider">
+
+    <p>Each style direction has multiple visual interpretations that rotate on every generation — so even within the same style, no two portraits are identical. That variation is intentional. Part of the fun is running the same selfie through a style multiple times and seeing which world the AI decides you inhabit.</p>
+
+    <p>Our most popular styles based on usage are Acotar, Headshot, Cinematic and Sovereign. The most shareable on social media are Acotar, Warhol, Cyberpunk and Sovereign — they're visually distinctive enough to stop the scroll.</p>
+
+    <p>If you're not sure where to start, try Cinematic first. It's the most universally flattering, works well on any face, and the results are consistently strong. Then try Acotar or Sovereign for something more dramatic.</p>
+
+  </div>
+
+  <div class="post-cta-box">
+    <h3>16 worlds.<br><em>One selfie.</em></h3>
+    <p>Which version of you comes out the other side?</p>
+    <a href="/app/" class="post-cta-btn">Start free →</a>
+  </div>
+</div>
+
+<footer>
+  <a href="/" class="f-logo">Alter<span>.</span>Ego</a>
+  <div class="f-copy">© 2026 alter-ego.photography</div>
+  <div class="f-links">
+    <a href="/" class="f-link">Home</a>
+    <a href="/blog/" class="f-link">Blog</a>
+    <a href="/terms" class="f-link">Terms</a>
+    <a href="/privacy" class="f-link">Privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

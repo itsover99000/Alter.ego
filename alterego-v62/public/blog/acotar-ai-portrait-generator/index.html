@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How to Generate an ACOTAR Portrait from Your Selfie — ALTER.EGO</title>
+<meta name="description" content="Step into the Night Court. Learn how to transform your selfie into an ACOTAR Illyrian warrior, Fae court member or High Lord using ALTER.EGO AI portrait generator.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root { --black: #0a0a0a; --white: #f5f3ee; --accent: #c8f05a; --text: #1a1a1a; --mid: #666; --border: #e8e6e1; }
+body { background: #faf9f7; color: var(--text); font-family: 'DM Mono', monospace; }
+nav { background: var(--black); padding: 20px 40px; display: flex; align-items: center; justify-content: space-between; }
+.nav-logo { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--white); text-decoration: none; }
+.nav-logo span { color: var(--accent); }
+.nav-cta { font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--black); background: var(--accent); padding: 9px 18px; text-decoration: none; }
+.nav-cta:hover { background: #d4f570; }
+.post-hero { background: var(--black); padding: 80px 40px 64px; }
+.post-breadcrumb { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(245,243,238,0.3); margin-bottom: 24px; }
+.post-breadcrumb a { color: rgba(245,243,238,0.3); text-decoration: none; }
+.post-breadcrumb a:hover { color: var(--accent); }
+.post-tag { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
+.post-title { font-family: 'Playfair Display', serif; font-size: clamp(32px, 5vw, 60px); font-weight: 900; color: var(--white); line-height: 1.05; margin-bottom: 20px; }
+.post-meta { font-size: 9px; letter-spacing: 0.1em; color: rgba(245,243,238,0.25); text-transform: uppercase; }
+.post-wrap { max-width: 720px; margin: 0 auto; padding: 72px 40px; }
+.post-body h2 { font-family: 'Playfair Display', serif; font-size: clamp(22px, 3vw, 30px); font-weight: 700; color: var(--text); margin: 48px 0 16px; line-height: 1.2; }
+.post-body h2 em { font-style: italic; }
+.post-body p { font-size: 13px; line-height: 2; color: #333; margin-bottom: 20px; }
+.post-body strong { color: var(--text); font-weight: 500; }
+.post-body ul { margin: 0 0 20px 20px; }
+.post-body ul li { font-size: 13px; line-height: 2; color: #333; margin-bottom: 6px; }
+.post-divider { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+.post-image { width: 100%; border-radius: 2px; margin: 32px 0; display: block; }
+.post-image-placeholder { width: 100%; aspect-ratio: 3/2; background: var(--black); display: flex; align-items: center; justify-content: center; margin: 32px 0; }
+.post-image-placeholder span { font-family: 'Playfair Display', serif; font-size: 80px; font-weight: 900; font-style: italic; color: rgba(245,243,238,0.06); }
+.post-cta-box { background: var(--black); padding: 48px 40px; margin: 56px 0 0; text-align: center; }
+.post-cta-box h3 { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--white); margin-bottom: 12px; }
+.post-cta-box h3 em { font-style: italic; color: var(--accent); }
+.post-cta-box p { font-size: 11px; color: rgba(245,243,238,0.4); margin-bottom: 28px; }
+.post-cta-btn { display: inline-block; background: var(--accent); color: var(--black); text-decoration: none; padding: 14px 36px; font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; transition: background 0.2s; }
+.post-cta-btn:hover { background: #d4f570; }
+footer { background: var(--black); border-top: 0.5px solid rgba(245,243,238,0.08); padding: 28px 40px; display: flex; align-items: center; justify-content: space-between; }
+.f-logo { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--white); text-decoration: none; }
+.f-logo span { color: var(--accent); }
+.f-copy { font-size: 9px; letter-spacing: 0.08em; color: rgba(245,243,238,0.2); text-transform: uppercase; }
+.f-links { display: flex; gap: 20px; }
+.f-link { font-size: 9px; letter-spacing: 0.08em; color: rgba(245,243,238,0.35); text-transform: uppercase; text-decoration: none; transition: color 0.2s; }
+.f-link:hover { color: var(--accent); }
+@media (max-width: 768px) {
+  nav { padding: 18px 20px; }
+  .post-hero { padding: 52px 20px 44px; }
+  .post-wrap { padding: 40px 20px; }
+  .post-cta-box { padding: 36px 24px; }
+  footer { flex-direction: column; padding: 24px 20px; gap: 12px; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">Alter<span>.</span>Ego</a>
+  <a href="/app/" class="nav-cta">Try it free →</a>
+</nav>
+
+<div class="post-hero">
+  <div class="post-breadcrumb"><a href="/blog/">Blog</a> → Fantasy</div>
+  <div class="post-tag">Fantasy · ACOTAR</div>
+  <h1 class="post-title">How to Generate an ACOTAR Portrait<br>from Your Selfie</h1>
+  <div class="post-meta">May 2026 · 4 min read</div>
+</div>
+
+<div class="post-wrap">
+  <div class="post-body">
+
+    <p>If you've spent any time in the ACOTAR fandom you've probably imagined what you'd look like as an Illyrian warrior, a member of the Night Court, or a High Fae with magic crackling at your fingertips. Until recently that fantasy lived entirely in your head. Now it doesn't have to.</p>
+
+    <p>ALTER.EGO is an AI portrait studio that takes a single selfie and transforms it into a cinematic portrait across 16 style directions — including an ACOTAR fantasy theme that renders you into the world Sarah J. Maas built with stunning accuracy. Twin moons. Ancient forests. Battle leathers. Illyrian tattoos. Your face.</p>
+
+    <div class="post-image-placeholder"><span>A</span></div>
+
+    <h2>What is the ACOTAR style direction?</h2>
+
+    <p>The ACOTAR theme in ALTER.EGO draws from the visual language of the book series — dark Illyrian armour, sweeping capes, moonlit mountain landscapes, glowing magic, ancient forest settings and the distinctive tattoos of the Night Court. The AI has been prompted to capture the cinematic, high-fantasy aesthetic that ACOTAR readers picture when they're deep in the books.</p>
+
+    <p>Depending on your features and the prompt interpretation, you might come out as a warrior standing on a cliff edge above a winding canyon, a Fae court member surrounded by glowing wildflowers, or a High Lord with flames in both hands beneath a full moon. Every generation is slightly different — which makes it genuinely addictive to keep generating.</p>
+
+    <h2>How to generate your ACOTAR portrait</h2>
+
+    <p>The process takes about 60 seconds from upload to result:</p>
+
+    <ul>
+      <li><strong>Step 1 — Upload a selfie.</strong> Clear, well-lit, facing forward. The AI reads your facial features to anchor the generation to you specifically. A clean selfie in good light gives the best face lock.</li>
+      <li><strong>Step 2 — Select the ACOTAR style.</strong> Scroll through the 16 style directions and tap ACOTAR. Each style has multiple visual interpretations that rotate on every generation.</li>
+      <li><strong>Step 3 — Generate.</strong> The AI analyses your photo, builds a cinematic prompt, and renders your portrait in under 30 seconds.</li>
+      <li><strong>Step 4 — Share.</strong> Download your portrait or share directly to Instagram. Tag us — we love seeing the results.</li>
+    </ul>
+
+    <hr class="post-divider">
+
+    <h2>Tips for the best ACOTAR result</h2>
+
+    <p><strong>Use a front-facing photo.</strong> The AI needs to clearly read your facial features. A slight angle is fine but a direct front-facing shot gives the strongest face lock — meaning the output actually looks like you rather than a generic fantasy character.</p>
+
+    <p><strong>Good lighting makes a big difference.</strong> Natural window light or any soft indoor light works well. Avoid harsh shadows across your face or very dark images.</p>
+
+    <p><strong>Generate multiple times.</strong> Each generation interprets the ACOTAR world slightly differently. One might place you in the Illyrian mountains, another in an ancient forest. The first result isn't always the best — run it 2-3 times and pick your favourite.</p>
+
+    <p><strong>Try the Acotar style alongside Painterly and Sovereign.</strong> If you love the ACOTAR aesthetic, the Painterly style (Old Masters portrait treatment) and Sovereign style (royal court, velvet and gold) give similarly dramatic fantasy results with a different mood.</p>
+
+    <hr class="post-divider">
+
+    <h2>Which ACOTAR character would you be?</h2>
+
+    <p>The results vary dramatically based on your features and which interpretation the AI chooses. Some people come out with unmistakable Cassian energy — brooding warrior, tactical gear, battle-ready stance. Others get Rhysand vibes — dark armour, commanding presence, magic in hand. Female portraits often lean into Feyre or Nesta territory — powerful, ethereal, Night Court elegance.</p>
+
+    <p>The fun is that you don't get to choose. You upload your selfie, pick the world, and discover which character the AI decides you are. Then you post it and watch your ACOTAR friends lose their minds.</p>
+
+  </div>
+
+  <div class="post-cta-box">
+    <h3>Step into the<br><em>Night Court.</em></h3>
+    <p>One selfie. Your Illyrian era awaits.</p>
+    <a href="/app/" class="post-cta-btn">Generate yours free →</a>
+  </div>
+</div>
+
+<footer>
+  <a href="/" class="f-logo">Alter<span>.</span>Ego</a>
+  <div class="f-copy">© 2026 alter-ego.photography</div>
+  <div class="f-links">
+    <a href="/" class="f-link">Home</a>
+    <a href="/blog/" class="f-link">Blog</a>
+    <a href="/terms" class="f-link">Terms</a>
+    <a href="/privacy" class="f-link">Privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

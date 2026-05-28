@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog — ALTER.EGO AI Portrait Studio</title>
+<meta name="description" content="Tips, guides and inspiration for AI portrait generation. Learn how to create cinematic portraits from a selfie with ALTER.EGO.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --black: #0a0a0a;
+  --white: #f5f3ee;
+  --accent: #c8f05a;
+  --text: #1a1a1a;
+  --mid: #666;
+  --border: #e8e6e1;
+}
+body {
+  background: #faf9f7;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+}
+
+/* NAV */
+nav {
+  background: var(--black);
+  padding: 20px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--white);
+  text-decoration: none;
+}
+.nav-logo span { color: var(--accent); }
+.nav-cta {
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--black);
+  background: var(--accent);
+  padding: 9px 18px;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.nav-cta:hover { background: #d4f570; }
+
+/* HERO */
+.blog-hero {
+  background: var(--black);
+  padding: 80px 40px 64px;
+  border-bottom: 1px solid #222;
+}
+.blog-eyebrow {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(245,243,238,0.3);
+  margin-bottom: 16px;
+}
+.blog-hero-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(36px, 5vw, 64px);
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1.05;
+}
+.blog-hero-title em { font-style: italic; color: var(--accent); }
+.blog-hero-sub {
+  font-size: 11px;
+  color: rgba(245,243,238,0.4);
+  margin-top: 16px;
+  letter-spacing: 0.04em;
+  line-height: 1.8;
+}
+
+/* POSTS GRID */
+.posts-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 72px 40px;
+}
+.posts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  background: var(--border);
+}
+.post-card {
+  background: #faf9f7;
+  text-decoration: none;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  transition: background 0.2s;
+}
+.post-card:hover { background: #fff; }
+.post-thumb {
+  width: 100%;
+  aspect-ratio: 3/2;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  background: #e8e6e1;
+}
+.post-thumb-placeholder {
+  width: 100%;
+  aspect-ratio: 3/2;
+  background: var(--black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.post-thumb-placeholder span {
+  font-family: 'Playfair Display', serif;
+  font-size: 48px;
+  font-weight: 900;
+  font-style: italic;
+  color: rgba(245,243,238,0.08);
+}
+.post-body { padding: 28px 28px 36px; flex: 1; display: flex; flex-direction: column; }
+.post-tag {
+  font-size: 8px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mid);
+  margin-bottom: 12px;
+}
+.post-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(18px, 2vw, 24px);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.post-excerpt {
+  font-size: 10px;
+  line-height: 1.8;
+  color: var(--mid);
+  flex: 1;
+  margin-bottom: 20px;
+}
+.post-read-more {
+  font-family: 'Syne', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text);
+  border-bottom: 1px solid var(--text);
+  padding-bottom: 2px;
+  display: inline-block;
+  transition: color 0.2s, border-color 0.2s;
+}
+.post-card:hover .post-read-more { color: var(--black); border-color: var(--black); }
+
+/* FOOTER */
+footer {
+  background: var(--black);
+  border-top: 0.5px solid rgba(245,243,238,0.08);
+  padding: 28px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.f-logo { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--white); text-decoration: none; }
+.f-logo span { color: var(--accent); }
+.f-copy { font-size: 9px; letter-spacing: 0.08em; color: rgba(245,243,238,0.2); text-transform: uppercase; }
+.f-links { display: flex; gap: 20px; }
+.f-link { font-size: 9px; letter-spacing: 0.08em; color: rgba(245,243,238,0.35); text-transform: uppercase; text-decoration: none; transition: color 0.2s; }
+.f-link:hover { color: var(--accent); }
+
+@media (max-width: 768px) {
+  nav { padding: 18px 20px; }
+  .blog-hero { padding: 52px 20px 44px; }
+  .posts-wrap { padding: 40px 20px; }
+  .posts-grid { grid-template-columns: 1fr; }
+  footer { flex-direction: column; padding: 24px 20px; gap: 12px; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">Alter<span>.</span>Ego</a>
+  <a href="/app/" class="nav-cta">Try it free →</a>
+</nav>
+
+<div class="blog-hero">
+  <div class="blog-eyebrow">ALTER.EGO · Journal</div>
+  <h1 class="blog-hero-title">AI portraits.<br><em>Your face.</em></h1>
+  <p class="blog-hero-sub">Guides, inspiration and ideas for your AI portrait journey.</p>
+</div>
+
+<div class="posts-wrap">
+  <div class="posts-grid">
+
+    <a href="/blog/acotar-ai-portrait-generator/" class="post-card">
+      <div class="post-thumb-placeholder"><span>A</span></div>
+      <div class="post-body">
+        <div class="post-tag">Fantasy · ACOTAR</div>
+        <h2 class="post-title">How to Generate an ACOTAR Portrait from Your Selfie</h2>
+        <p class="post-excerpt">Step into the Night Court. Upload a selfie and let ALTER.EGO transform you into an Illyrian warrior, a Fae court member, or a High Lord — in under 30 seconds.</p>
+        <span class="post-read-more">Read more →</span>
+      </div>
+    </a>
+
+    <a href="/blog/ai-headshots-vs-photographer/" class="post-card">
+      <div class="post-thumb-placeholder"><span>H</span></div>
+      <div class="post-body">
+        <div class="post-tag">Professional · Headshots</div>
+        <h2 class="post-title">AI Headshots vs Traditional Photographer — Is It Worth It?</h2>
+        <p class="post-excerpt">A professional headshot session costs $300–$800 in Australia. AI headshots cost less than $1. We break down when each makes sense — and when AI wins hands down.</p>
+        <span class="post-read-more">Read more →</span>
+      </div>
+    </a>
+
+    <a href="/blog/16-ai-portrait-styles-explained/" class="post-card">
+      <div class="post-thumb-placeholder"><span>16</span></div>
+      <div class="post-body">
+        <div class="post-tag">Guide · Styles</div>
+        <h2 class="post-title">16 AI Portrait Styles Explained — Which One is You?</h2>
+        <p class="post-excerpt">From Cinematic film to Sovereign royalty, Cyberpunk streets to Riviera leisure — every ALTER.EGO style direction explained so you can pick the world that fits your vibe.</p>
+        <span class="post-read-more">Read more →</span>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+<footer>
+  <a href="/" class="f-logo">Alter<span>.</span>Ego</a>
+  <div class="f-copy">© 2026 alter-ego.photography</div>
+  <div class="f-links">
+    <a href="/" class="f-link">Home</a>
+    <a href="/app/" class="f-link">App</a>
+    <a href="/terms" class="f-link">Terms</a>
+    <a href="/privacy" class="f-link">Privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>
