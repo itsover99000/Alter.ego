@@ -66,39 +66,13 @@ export default async function handler(req, res) {
     const fullPrompt = `${prompt}, ${skinDetail}, ${noBackground}`;
     const negativePrompt = `cartoon, illustration, CGI, render, fake, plastic, low quality, blurry face, distorted face, ugly, deformed, white background, plain background, ${noBranding}, watermark`;
 
-    // ── FAL CDN UPLOAD ───────────────────────────────────────────────
-    // Upload base64 image to fal storage first — avoids sending large
-    // data URIs in the PuLID payload and prevents Vercel timeout issues
-    let falImageUrl = null;
-    if (imageBase64) {
-      try {
-        const mimeType = mediaType || 'image/jpeg';
-        const buffer = Buffer.from(imageBase64, 'base64');
-        const blob = new Blob([buffer], { type: mimeType });
-        const ext = mimeType.includes('png') ? 'png' : 'jpg';
-
-        const formData = new FormData();
-        formData.append('file', blob, `selfie.${ext}`);
-
-        const uploadRes = await fetch('https://fal.run/files/upload', {
-          method: 'POST',
-          headers: { 'Authorization': `Key ${falKey}` },
-          body: formData
-        });
-
-        const uploadData = await uploadRes.json();
-        if (uploadRes.ok && uploadData.url) {
-          falImageUrl = uploadData.url;
-          console.log('fal CDN upload OK:', falImageUrl);
-        } else {
-          console.log('fal CDN upload failed:', JSON.stringify(uploadData));
-        }
-      } catch (uploadErr) {
-        console.log('fal CDN upload error:', uploadErr.message);
-      }
-    }
-
     // ── FLUX-PULID ───────────────────────────────────────────────────
+    // fal.ai natively supports base64 data URIs as image input —
+    // no CDN upload needed. Pass data URI directly to PuLID.
+    const falImageUrl = imageBase64
+      ? `data:${mediaType || 'image/jpeg'};base64,${imageBase64}`
+      : null;
+
     if (falImageUrl) {
       let pulidData = null;
       let pulidStatus = null;
