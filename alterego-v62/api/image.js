@@ -66,6 +66,73 @@ export default async function handler(req, res) {
     const fullPrompt = `${prompt}, ${skinDetail}, ${noBackground}`;
     const negativePrompt = `cartoon, illustration, CGI, render, fake, plastic, low quality, blurry face, distorted face, ugly, deformed, white background, plain background, ${noBranding}, watermark`;
 
+    // ── NANABANA + FACE SWAP PIPELINE ───────────────────────────────
+    // Step 1: Generate with nano-banana-pro (muapi) for high quality
+    // Step 2: Swap selfie face onto the generated image (fal face swap)
+    if (selectedModel === 'nano-faceswap' && imageBase64) {
+      const muapiKey = process.env.MUAPI_API_KEY;
+      const falImageUrl = `data:${mediaType || 'image/jpeg'};base64,${imageBase64}`;
+
+      try {
+        console.log('nano-faceswap: step 1 — generating with nano-banana-pro');
+
+        // Step 1: Generate with NanaBana via muapi
+        const nbRes = await fetch('https://api.muapi.ai/api/v1/nano-banana-pro', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-api-key': muapiKey },
+          body: JSON.stringify({ prompt: fullPrompt, aspect_ratio: '3:4', resolution: '1k' })
+        });
+        const nbData = await nbRes.json();
+        const nbJobId = nbData.request_id;
+        console.log('nano-banana job submitted:', nbJobId);
+
+        if (!nbJobId) throw new Error('NanaBana did not return a job ID');
+
+        // Poll for NanaBana result
+        let generatedImageUrl = null;
+        for (let i = 0; i < 30; i++) {
+          await new Promise(r => setTimeout(r, 2000));
+          const pollRes = await fetch(`https://api.muapi.ai/api/v1/predictions/${nbJobId}/result`, {
+            headers: { 'x-api-key': muapiKey }
+          });
+          const pollData = await pollRes.json();
+          const result = pollData.detail || pollData;
+          if (result.outputs?.[0]) { generatedImageUrl = result.outputs[0]; break; }
+          if (result.status === 'failed' && !result.outputs?.[0]) {
+            throw new Error('NanaBana generation failed');
+          }
+        }
+
+        if (!generatedImageUrl) throw new Error('NanaBana timed out');
+        console.log('nano-faceswap: step 1 complete, got image URL');
+
+        // Step 2: Face swap — put selfie face onto generated image
+        console.log('nano-faceswap: step 2 — face swap');
+        const swapRes = await fetch('https://fal.run/easel-ai/advanced-face-swap', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Key ${falKey}` },
+          body: JSON.stringify({
+            face_image_0: falImageUrl,
+            target_image: generatedImageUrl,
+            workflow_type: 'user_hair'
+          })
+        });
+        const swapData = await swapRes.json();
+        console.log('face-swap status:', swapRes.status);
+
+        const swapUrl = swapData.image?.url || swapData.images?.[0]?.url;
+        if (swapRes.ok && swapUrl) {
+          console.log('nano-faceswap: pipeline complete');
+          return res.status(200).json({ images: [{ url: swapUrl }] });
+        }
+        console.log('face-swap failed:', JSON.stringify(swapData).slice(0, 300));
+        // Fall through to PuLID if face swap fails
+      } catch (pipelineErr) {
+        console.log('nano-faceswap pipeline error:', pipelineErr.message);
+        // Fall through to PuLID
+      }
+    }
+
     // ── INSTANT CHARACTER (fal-ai/instant-character) ───────────────
     if (selectedModel === 'instant-character' && imageBase64) {
       const imageDataUrl = `data:${mediaType || 'image/jpeg'};base64,${imageBase64}`;

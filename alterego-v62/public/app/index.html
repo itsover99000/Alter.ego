@@ -1990,7 +1990,7 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
   try {
     // Route to fal (PuLID face-lock) or muapi based on selected model
     const livePrompt = document.getElementById('promptBox').value || generatedPrompt;
-    const isMuapi = selectedModel && selectedModel !== 'flux-pulid' && selectedModel !== 'instant-character';
+    const isMuapi = selectedModel && selectedModel !== 'flux-pulid' && selectedModel !== 'instant-character' && selectedModel !== 'nano-faceswap';
 
     let response;
     if (isMuapi) {
