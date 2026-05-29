@@ -10,7 +10,7 @@ const MUAPI_MODEL_SLUGS = {
 
 // Poll muapi for job completion
 async function pollMuapi(jobId, muapiKey, maxAttempts = 30, intervalMs = 2000) {
-  const pollUrl = `https://muapi.ai/api/v1/predictions/${jobId}`;
+  const pollUrl = `https://api.muapi.ai/api/v1/predictions/${jobId}`;
   for (let i = 0; i < maxAttempts; i++) {
     await new Promise(r => setTimeout(r, intervalMs));
     const pollRes = await fetch(pollUrl, {
@@ -75,7 +75,7 @@ export default async function handler(req, res) {
   const slug = MUAPI_MODEL_SLUGS[modelKey];
   if (!slug) return res.status(400).json({ error: `No muapi slug for model: ${modelKey}` });
 
-  const endpoint = `https://muapi.ai/api/v1/${slug}`;
+  const endpoint = `https://api.muapi.ai/api/v1/${slug}`;
   console.log(`muapi generate: model=${slug}, endpoint=${endpoint}`);
 
   try {
