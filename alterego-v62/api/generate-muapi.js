@@ -58,9 +58,11 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
         'x-api-key': muapiKey
       },
+      // GPT-4o only supports 1:1, 2:3, 3:2 — others support 3:4
+      const aspectRatio = (slug === 'gpt4o-text-to-image') ? '2:3' : '3:4';
       body: JSON.stringify({
         prompt,
-        aspect_ratio: '3:4',
+        aspect_ratio: aspectRatio,
         negative_prompt: 'ugly, deformed, blurry, low quality, watermark, text'
       })
     });
@@ -69,9 +71,10 @@ export default async function handler(req, res) {
     console.log('muapi submit:', JSON.stringify(submitData).slice(0, 200));
 
     if (!submitRes.ok) {
-      return res.status(500).json({
-        error: { message: submitData.detail || submitData.error || 'muapi submission failed' }
-      });
+      const errDetail = Array.isArray(submitData.detail) 
+        ? submitData.detail.map(e => e.msg || e.message || JSON.stringify(e)).join(', ')
+        : submitData.detail || submitData.error || 'muapi submission failed';
+      return res.status(500).json({ error: { message: errDetail } });
     }
 
     // If completed immediately (unlikely but handle it)
