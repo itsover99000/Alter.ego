@@ -2081,14 +2081,23 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
       }).catch(e => console.error('generate-complete error:', e));
     }
 
-    // Force download by fetching as blob
+    // Force download via server proxy to bypass CORS on external CDNs
     const dl = document.getElementById('imageDownload');
     try {
-      const imgResp = await fetch(imageUrl);
-      const blob = await imgResp.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      dl.href = blobUrl;
-      dl.download = 'alter-ego-' + Date.now() + '.png';
+      const proxyRes = await fetch('/api/download-proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: imageUrl })
+      });
+      if (proxyRes.ok) {
+        const blob = await proxyRes.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        dl.href = blobUrl;
+        dl.download = 'alter-ego-' + Date.now() + '.png';
+      } else {
+        dl.href = imageUrl;
+        dl.download = 'alter-ego.png';
+      }
     } catch {
       dl.href = imageUrl;
       dl.download = 'alter-ego.png';

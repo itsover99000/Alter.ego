@@ -18,20 +18,26 @@ export default async function handler(req, res) {
     });
 
     const data = await pollRes.json();
-    console.log(`muapi-poll: status=${data.status}, jobId=${jobId}`);
+    // Status can be at root or nested inside 'detail'
+    const result = data.detail || data;
+    const status = result.status;
+    console.log(`muapi-poll: status=${status}, jobId=${jobId}`);
 
-    if (data.status === 'completed') {
-      const url = data.outputs?.[0] || data.output?.image_url;
-      if (url) return res.status(200).json({ status: 'completed', url });
-      return res.status(500).json({ error: 'Completed but no image URL' });
+    // Check for output URL regardless of status — muapi sometimes marks
+    // jobs as 'failed' even when they produced a valid output image
+    const url = result.outputs?.[0] || result.output?.image_url;
+    if (url) return res.status(200).json({ status: 'completed', url });
+
+    if (status === 'completed') {
+      return res.status(500).json({ error: 'Completed but no image URL returned' });
     }
 
-    if (data.status === 'failed') {
-      return res.status(500).json({ error: data.error || 'Generation failed' });
+    if (status === 'failed') {
+      return res.status(500).json({ error: result.error || 'Generation failed on muapi' });
     }
 
     // Still processing
-    return res.status(200).json({ status: data.status || 'processing' });
+    return res.status(200).json({ status: status || 'processing' });
 
   } catch (err) {
     console.log('muapi-poll error:', err.message);
