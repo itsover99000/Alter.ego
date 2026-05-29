@@ -621,6 +621,123 @@
     letter-spacing: 0.06em; text-transform: uppercase; color: rgba(240,237,230,0.6);
   }
 
+
+  /* ── Model Selector ── */
+  .model-selector-wrap {
+    margin-top: 20px;
+    display: none; /* hidden until models load and user has access */
+  }
+  .model-selector-wrap.visible { display: block; }
+  .model-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .model-btn {
+    background: rgba(240,237,230,0.04);
+    border: 0.5px solid rgba(240,237,230,0.1);
+    border-radius: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .model-btn:hover { background: rgba(240,237,230,0.07); border-color: rgba(240,237,230,0.2); }
+  .model-btn.active {
+    background: rgba(200,240,90,0.08);
+    border-color: rgba(200,240,90,0.4);
+  }
+  .model-btn-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .model-btn.active .model-btn-name { color: var(--accent); }
+  .model-btn-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .model-badge {
+    font-size: 8px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+  .badge-face { background: rgba(200,240,90,0.15); color: var(--accent); }
+  .badge-style { background: rgba(240,237,230,0.08); color: rgba(240,237,230,0.45); }
+  .badge-cost { background: rgba(240,237,230,0.05); color: rgba(240,237,230,0.35); }
+  .model-no-face-warn {
+    font-size: 9px;
+    color: rgba(240,237,230,0.35);
+    margin-top: 4px;
+    letter-spacing: 0.02em;
+  }
+  /* Access code */
+  .access-code-wrap {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 0.5px solid rgba(240,237,230,0.07);
+  }
+  .access-code-toggle {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(240,237,230,0.3);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s;
+  }
+  .access-code-toggle:hover { color: var(--accent); }
+  .access-code-form {
+    display: none;
+    margin-top: 10px;
+    gap: 8px;
+  }
+  .access-code-form.visible { display: flex; }
+  .access-code-input {
+    flex: 1;
+    background: rgba(240,237,230,0.05);
+    border: 0.5px solid rgba(240,237,230,0.12);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .access-code-input:focus { outline: none; border-color: var(--accent); }
+  .access-code-btn {
+    background: rgba(200,240,90,0.1);
+    border: 0.5px solid rgba(200,240,90,0.3);
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .access-code-btn:hover { background: rgba(200,240,90,0.2); }
+  .access-code-msg { font-size: 10px; margin-top: 6px; }
+  .access-code-msg.success { color: var(--accent); }
+  .access-code-msg.error { color: #ff6b6b; }
 </style>
 </head>
 <body>
@@ -870,6 +987,24 @@
     <div class="style-btn" data-style="sovereign"><span class="style-emoji">👑</span><span class="style-name">Sovereign</span></div>
   </div>
 
+
+  <!-- Model Selector (visible to entitled users only) -->
+  <div class="model-selector-wrap" id="modelSelectorWrap">
+    <div class="divider"></div>
+    <div class="section-label">Generation Model</div>
+    <div class="model-grid" id="modelGrid">
+      <!-- populated by JS via /api/models -->
+    </div>
+    <div class="access-code-wrap">
+      <button class="access-code-toggle" id="accessCodeToggle">✦ Have an access code?</button>
+      <div class="access-code-form" id="accessCodeForm">
+        <input type="text" class="access-code-input" id="accessCodeInput" placeholder="ENTER CODE" maxlength="32">
+        <button class="access-code-btn" id="accessCodeBtn">Redeem</button>
+      </div>
+      <div class="access-code-msg" id="accessCodeMsg"></div>
+    </div>
+  </div>
+
   <button class="generate-btn" id="generateBtn" disabled>Analyse &amp; Generate Prompt</button>
   <div class="error-msg" id="errorMsg"></div>
 
@@ -1023,6 +1158,7 @@ async function onSignedIn(user) {
   document.getElementById('userEmail').textContent = user.email;
   await loadProfile();
   await loadGenerations();
+    loadModels(currentUser.id);
 }
 
 function onSignedOut() {
@@ -1440,6 +1576,99 @@ function getStyleDesc(style) {
 }
 
 let selectedStyle = 'cinematic';
+
+// ── Model selector state ─────────────────────────────────────────────────────
+let selectedModel = 'flux-pulid';
+let availableModels = [];
+
+// Load models from /api/models (called after sign-in)
+async function loadModels(userId) {
+  if (!userId) return;
+  try {
+    const res = await fetch('/api/models', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId })
+    });
+    const data = await res.json();
+    availableModels = data.models || [];
+
+    // Only show selector if user has more than just the default
+    if (availableModels.length > 1) {
+      document.getElementById('modelSelectorWrap').classList.add('visible');
+      renderModelGrid();
+    }
+  } catch (e) {
+    console.log('loadModels error:', e.message);
+  }
+}
+
+function renderModelGrid() {
+  const grid = document.getElementById('modelGrid');
+  if (!grid) return;
+  grid.innerHTML = availableModels.map(m => `
+    <button class="model-btn ${m.key === selectedModel ? 'active' : ''}"
+            data-model="${m.key}"
+            onclick="selectModel('${m.key}')">
+      <div class="model-btn-name">${m.label}</div>
+      <div class="model-btn-meta">
+        <span class="model-badge ${m.face_lock ? 'badge-face' : 'badge-style'}">
+          ${m.face_lock ? '✓ Face Lock' : 'Stylised'}
+        </span>
+        <span class="model-badge badge-cost">${m.credit_cost} cr</span>
+      </div>
+      ${!m.face_lock ? '<div class="model-no-face-warn">Face accuracy not guaranteed</div>' : ''}
+    </button>
+  `).join('');
+}
+
+function selectModel(key) {
+  selectedModel = key;
+  document.querySelectorAll('.model-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.model === key);
+  });
+}
+
+// Access code redemption
+document.getElementById('accessCodeToggle').addEventListener('click', () => {
+  document.getElementById('accessCodeForm').classList.toggle('visible');
+});
+
+document.getElementById('accessCodeBtn').addEventListener('click', async () => {
+  const code = document.getElementById('accessCodeInput').value.trim();
+  const msg = document.getElementById('accessCodeMsg');
+  const btn = document.getElementById('accessCodeBtn');
+  if (!code || !currentUser) return;
+
+  btn.textContent = 'Redeeming...';
+  btn.disabled = true;
+  msg.textContent = '';
+  msg.className = 'access-code-msg';
+
+  try {
+    const res = await fetch('/api/redeem-access-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: currentUser.id, code })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Invalid code');
+
+    msg.textContent = '✓ ' + (data.message || 'Models unlocked!');
+    msg.className = 'access-code-msg success';
+    document.getElementById('accessCodeInput').value = '';
+
+    // Reload model list
+    await loadModels(currentUser.id);
+  } catch (e) {
+    msg.textContent = '✗ ' + e.message;
+    msg.className = 'access-code-msg error';
+  }
+
+  btn.textContent = 'Redeem';
+  btn.disabled = false;
+});
+
 let uploadedImageBase64 = null;
 let uploadedMediaType = 'image/jpeg';
 let generatedPrompt = '';
@@ -1723,17 +1952,34 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
   btn.disabled = true;
 
   try {
-    const response = await fetch('/api/image', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        prompt: document.getElementById('promptBox').value || generatedPrompt,
-        imageBase64: uploadedImageBase64,
-        mediaType: uploadedMediaType,
-        style: selectedStyle,
-        userId: currentUser?.id || null
-      })
-    });
+    // Route to fal (PuLID face-lock) or muapi based on selected model
+    const livePrompt = document.getElementById('promptBox').value || generatedPrompt;
+    const isMuapi = selectedModel && selectedModel !== 'flux-pulid';
+
+    let response;
+    if (isMuapi) {
+      response = await fetch('/api/generate-muapi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: livePrompt,
+          modelKey: selectedModel,
+          userId: currentUser?.id || null
+        })
+      });
+    } else {
+      response = await fetch('/api/image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: livePrompt,
+          imageBase64: uploadedImageBase64,
+          mediaType: uploadedMediaType,
+          style: selectedStyle,
+          userId: currentUser?.id || null
+        })
+      });
+    }
 
     const data = await response.json();
 
@@ -1767,7 +2013,8 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
           userId: currentUser.id,
           imageUrl: imageUrl,
           style: selectedStyle,
-          prompt: generatedPrompt
+          prompt: generatedPrompt,
+          selectedModel: selectedModel
         })
       }).then(r => r.json()).then(data => {
         if (data.credits !== undefined) {
