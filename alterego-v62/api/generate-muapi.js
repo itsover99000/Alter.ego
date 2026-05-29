@@ -58,11 +58,10 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
         'x-api-key': muapiKey
       },
-      // GPT-4o only supports 1:1, 2:3, 3:2 — others support 3:4
-      const aspectRatio = (slug === 'gpt4o-text-to-image') ? '2:3' : '3:4';
       body: JSON.stringify({
         prompt,
-        aspect_ratio: aspectRatio,
+        // GPT-4o only supports 1:1, 2:3, 3:2 — others support 3:4
+        aspect_ratio: (slug === 'gpt4o-text-to-image') ? '2:3' : '3:4',
         negative_prompt: 'ugly, deformed, blurry, low quality, watermark, text'
       })
     });
