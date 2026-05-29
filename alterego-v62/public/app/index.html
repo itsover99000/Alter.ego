@@ -1945,6 +1945,24 @@ document.getElementById('mjBtn').addEventListener('click', function() {
 
 // Reset
 // Generate image with fal.ai
+
+// Poll muapi job from browser — avoids Vercel 10s timeout
+async function pollMuapiJob(jobId, maxAttempts = 40, intervalMs = 3000) {
+  for (let i = 0; i < maxAttempts; i++) {
+    await new Promise(r => setTimeout(r, intervalMs));
+    const res = await fetch('/api/muapi-poll', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobId })
+    });
+    const data = await res.json();
+    if (data.status === 'completed' && data.url) return data.url;
+    if (data.error) throw new Error(data.error);
+    // still processing — continue
+  }
+  throw new Error('Generation timed out. Please try again.');
+}
+
 document.getElementById('generateImageBtn').addEventListener('click', async () => {
   if (!generatedPrompt) return;
 
@@ -1976,7 +1994,8 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
 
     let response;
     if (isMuapi) {
-      response = await fetch('/api/generate-muapi', {
+      // Submit job
+      const submitRes = await fetch('/api/generate-muapi', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1985,6 +2004,25 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
           userId: currentUser?.id || null
         })
       });
+
+      const submitData = await submitRes.json();
+
+      if (!submitRes.ok) {
+        throw new Error(submitData.error?.message || submitData.error || 'Generation failed');
+      }
+
+      // If completed immediately
+      if (submitData.images) {
+        response = { ok: true, json: async () => submitData };
+      } else if (submitData.jobId) {
+        // Poll from browser until complete (bypasses Vercel timeout)
+        btn.textContent = '⏳ Generating... (this may take 30-60s)';
+        const imageUrl = await pollMuapiJob(submitData.jobId);
+        // Fake a response object
+        response = { ok: true, json: async () => ({ images: [{ url: imageUrl }] }) };
+      } else {
+        throw new Error('No job ID returned from muapi');
+      }
     } else {
       response = await fetch('/api/image', {
         method: 'POST',
@@ -2002,7 +2040,8 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.detail || data.error?.message || `Error ${response.status}`);
+      const errMsg = data.detail || data.error?.message || data.error || `Error ${response.status}`;
+      throw new Error(typeof errMsg === 'object' ? JSON.stringify(errMsg) : errMsg);
     }
 
     const imageUrl = data.images?.[0]?.url;
@@ -2057,7 +2096,8 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
   } catch (err) {
     imageLoading.style.display = 'none';
     imageStatusDot.style.display = 'none';
-    imageError.textContent = '⚠ ' + (err.message || 'Image generation failed');
+    const errDisplay = err.message || 'Image generation failed';
+    imageError.textContent = '⚠ ' + (typeof errDisplay === 'object' ? JSON.stringify(errDisplay) : errDisplay);
     imageError.style.display = 'block';
   }
 

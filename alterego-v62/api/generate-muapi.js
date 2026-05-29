@@ -1,42 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
-// muapi model slug mapping — key = our internal key, value = muapi's endpoint slug
+// muapi model slug mapping
 const MUAPI_MODEL_SLUGS = {
   'midjourney-v8':        'midjourney-v8',
   'nano-banana-pro':      'nano-banana-pro',
   'google-imagen4-ultra': 'google-imagen4-ultra',
   'gpt4o-text-to-image':  'gpt4o-text-to-image',
 };
-
-// Poll muapi for job completion
-async function pollMuapi(jobId, muapiKey, maxAttempts = 30, intervalMs = 2000) {
-  // muapi poll URL from webhook docs
-  const pollUrl = `https://api.muapi.ai/api/v1/predictions/${jobId}/result`;
-  for (let i = 0; i < maxAttempts; i++) {
-    await new Promise(r => setTimeout(r, intervalMs));
-    const pollRes = await fetch(pollUrl, {
-      method: 'GET',
-      headers: { 'x-api-key': muapiKey, 'Content-Type': 'application/json' }
-    });
-    const data = await pollRes.json();
-    const status = data.status || data.data?.status;
-    console.log(`muapi poll ${i + 1}: status=${status}, keys=${Object.keys(data).join(',')}`);
-    if (status === 'completed' || status === 'succeeded' || status === 'success') {
-      const url = data.outputs?.[0]
-        || data.output?.image_url
-        || data.output?.outputs?.[0]
-        || data.data?.outputs?.[0]
-        || data.output?.urls?.get;
-      if (url) return { url };
-      console.log('muapi completed but no image URL:', JSON.stringify(data).slice(0, 500));
-      throw new Error('Generation completed but no image URL returned');
-    }
-    if (status === 'failed' || status === 'error') {
-      throw new Error(`muapi generation failed: ${data.error || data.data?.error || 'unknown error'}`);
-    }
-  }
-  throw new Error('muapi generation timed out after 60 seconds');
-}
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -61,13 +31,12 @@ export default async function handler(req, res) {
 
   const { data: profile } = await supabase
     .from('profiles').select('credits').eq('id', userId).single();
-
   if (!profile) return res.status(404).json({ error: 'Profile not found' });
 
   const { data: modelRecord } = await supabase
     .from('models').select('credit_cost').eq('key', modelKey).single();
-
   const creditCost = modelRecord?.credit_cost || 2;
+
   if (profile.credits < creditCost) {
     return res.status(402).json({
       error: { message: `Not enough credits. This model costs ${creditCost} credits. You have ${profile.credits}.` }
@@ -79,10 +48,10 @@ export default async function handler(req, res) {
   if (!slug) return res.status(400).json({ error: `No muapi slug for model: ${modelKey}` });
 
   const endpoint = `https://api.muapi.ai/api/v1/${slug}`;
-  console.log(`muapi generate: model=${slug}, endpoint=${endpoint}`);
+  console.log(`muapi generate: model=${slug}`);
 
   try {
-    // ── Submit job ─────────────────────────────────────────────────────────
+    // ── Submit job — return request_id immediately, client polls ─────────
     const submitRes = await fetch(endpoint, {
       method: 'POST',
       headers: {
@@ -97,7 +66,7 @@ export default async function handler(req, res) {
     });
 
     const submitData = await submitRes.json();
-    console.log('muapi submit response:', JSON.stringify(submitData).slice(0, 300));
+    console.log('muapi submit:', JSON.stringify(submitData).slice(0, 200));
 
     if (!submitRes.ok) {
       return res.status(500).json({
@@ -105,22 +74,18 @@ export default async function handler(req, res) {
       });
     }
 
-    // ── Check if synchronous or async ─────────────────────────────────────
-    // Some muapi models return immediately, others return a job ID
-    if (submitData.output?.image_url || submitData.outputs?.[0]) {
-      const imageUrl = submitData.output?.image_url || submitData.outputs[0];
-      return res.status(200).json({ images: [{ url: imageUrl }] });
+    // If completed immediately (unlikely but handle it)
+    if (submitData.status === 'completed' && submitData.outputs?.[0]) {
+      return res.status(200).json({ images: [{ url: submitData.outputs[0] }] });
     }
 
-    // Async — poll for result
+    // Return job ID for client-side polling
     const jobId = submitData.request_id || submitData.id;
     if (!jobId) {
-      console.log('muapi no job ID in response:', JSON.stringify(submitData));
       return res.status(500).json({ error: { message: 'muapi did not return a job ID' } });
     }
 
-    const { url } = await pollMuapi(jobId, muapiKey);
-    return res.status(200).json({ images: [{ url }] });
+    return res.status(202).json({ jobId, status: 'processing' });
 
   } catch (err) {
     console.log('muapi error:', err.message);
