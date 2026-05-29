@@ -2,11 +2,14 @@ import { createClient } from '@supabase/supabase-js';
 
 // muapi model slug mapping
 const MUAPI_MODEL_SLUGS = {
-  'midjourney-v8':        'midjourney-v8',
+  'gpt4o-image-to-image': 'gpt4o-image-to-image',
   'nano-banana-pro':      'nano-banana-pro',
   'google-imagen4-ultra': 'google-imagen4-ultra',
   'gpt4o-text-to-image':  'gpt4o-text-to-image',
 };
+
+// Models that accept an image reference (selfie URL passed as images_list)
+const IMAGE_INPUT_MODELS = ['gpt4o-image-to-image'];
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -18,7 +21,7 @@ export default async function handler(req, res) {
   const muapiKey = process.env.MUAPI_API_KEY;
   if (!muapiKey) return res.status(500).json({ error: 'MUAPI_API_KEY not configured' });
 
-  const { prompt, modelKey, userId } = req.body;
+  const { prompt, modelKey, userId, imageUrl, imageBase64, mediaType } = req.body;
   if (!prompt || !modelKey || !userId) {
     return res.status(400).json({ error: 'Missing prompt, modelKey, or userId' });
   }
@@ -48,6 +51,27 @@ export default async function handler(req, res) {
   if (!slug) return res.status(400).json({ error: `No muapi slug for model: ${modelKey}` });
 
   const endpoint = `https://api.muapi.ai/api/v1/${slug}`;
+
+  // For image-input models, upload selfie to muapi CDN first
+  let selfieUrl = imageUrl || null;
+  if (IMAGE_INPUT_MODELS.includes(slug) && imageBase64 && !selfieUrl) {
+    try {
+      const mimeType = mediaType || 'image/jpeg';
+      const buffer = Buffer.from(imageBase64, 'base64');
+      const formData = new FormData();
+      formData.append('file', new Blob([buffer], { type: mimeType }), 'selfie.jpg');
+      const uploadRes = await fetch('https://api.muapi.ai/api/v1/upload', {
+        method: 'POST',
+        headers: { 'x-api-key': muapiKey },
+        body: formData
+      });
+      const uploadData = await uploadRes.json();
+      selfieUrl = uploadData.url || uploadData.file_url || null;
+      console.log('muapi selfie upload:', selfieUrl ? 'OK' : 'failed', JSON.stringify(uploadData).slice(0, 100));
+    } catch (e) {
+      console.log('muapi selfie upload error:', e.message);
+    }
+  }
   console.log(`muapi generate: model=${slug}`);
 
   try {
@@ -60,8 +84,10 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         prompt,
-        // GPT-4o only supports 1:1, 2:3, 3:2 — others support 3:4
-        aspect_ratio: (slug === 'gpt4o-text-to-image') ? '2:3' : '3:4',
+        // Image input models get the selfie passed as images_list
+        ...(IMAGE_INPUT_MODELS.includes(slug) && selfieUrl ? { images_list: [selfieUrl] } : {}),
+        // GPT-4o variants only support certain aspect ratios
+        aspect_ratio: (slug === 'gpt4o-text-to-image' || slug === 'gpt4o-image-to-image') ? '2:3' : '3:4',
         negative_prompt: 'ugly, deformed, blurry, low quality, watermark, text'
       })
     });

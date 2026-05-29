@@ -2001,7 +2001,10 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
         body: JSON.stringify({
           prompt: livePrompt,
           modelKey: selectedModel,
-          userId: currentUser?.id || null
+          userId: currentUser?.id || null,
+          // Pass selfie as base64 for image-input models — server will upload to get URL
+          imageBase64: uploadedImageBase64,
+          mediaType: uploadedMediaType
         })
       });
 
