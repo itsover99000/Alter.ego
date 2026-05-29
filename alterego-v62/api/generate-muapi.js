@@ -10,26 +10,28 @@ const MUAPI_MODEL_SLUGS = {
 
 // Poll muapi for job completion
 async function pollMuapi(jobId, muapiKey, maxAttempts = 30, intervalMs = 2000) {
-  const pollUrl = `https://api.muapi.ai/api/v1/predictions/${jobId}`;
+  const pollUrl = `https://api.muapi.ai/api/v1/request/${jobId}`;
   for (let i = 0; i < maxAttempts; i++) {
     await new Promise(r => setTimeout(r, intervalMs));
     const pollRes = await fetch(pollUrl, {
       headers: { 'x-api-key': muapiKey }
     });
     const data = await pollRes.json();
-    console.log(`muapi poll ${i + 1}: status=${data.status}`);
-
-    if (data.status === 'completed' || data.status === 'succeeded') {
+    const status = data.status || data.data?.status;
+    console.log(`muapi poll ${i + 1}: status=${status}, keys=${Object.keys(data).join(',')}`);
+    if (status === 'completed' || status === 'succeeded' || status === 'success') {
       const url = data.output?.image_url
         || data.output?.outputs?.[0]
         || data.outputs?.[0]
+        || data.data?.output?.image_url
+        || data.data?.outputs?.[0]
         || data.output?.urls?.get;
       if (url) return { url };
-      console.log('muapi completed but no image URL found:', JSON.stringify(data).slice(0, 400));
+      console.log('muapi completed but no image URL:', JSON.stringify(data).slice(0, 500));
       throw new Error('Generation completed but no image URL returned');
     }
-    if (data.status === 'failed' || data.status === 'error') {
-      throw new Error(`muapi generation failed: ${data.error || 'unknown error'}`);
+    if (status === 'failed' || status === 'error') {
+      throw new Error(`muapi generation failed: ${data.error || data.data?.error || 'unknown error'}`);
     }
   }
   throw new Error('muapi generation timed out after 60 seconds');
@@ -110,7 +112,7 @@ export default async function handler(req, res) {
     }
 
     // Async — poll for result
-    const jobId = submitData.id || submitData.request_id;
+    const jobId = submitData.request_id || submitData.id;
     if (!jobId) {
       console.log('muapi no job ID in response:', JSON.stringify(submitData));
       return res.status(500).json({ error: { message: 'muapi did not return a job ID' } });
