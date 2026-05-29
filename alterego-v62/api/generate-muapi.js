@@ -10,20 +10,21 @@ const MUAPI_MODEL_SLUGS = {
 
 // Poll muapi for job completion
 async function pollMuapi(jobId, muapiKey, maxAttempts = 30, intervalMs = 2000) {
-  const pollUrl = `https://api.muapi.ai/api/v1/request/${jobId}`;
+  // muapi poll URL from webhook docs
+  const pollUrl = `https://api.muapi.ai/api/v1/predictions/${jobId}/result`;
   for (let i = 0; i < maxAttempts; i++) {
     await new Promise(r => setTimeout(r, intervalMs));
     const pollRes = await fetch(pollUrl, {
-      headers: { 'x-api-key': muapiKey }
+      method: 'GET',
+      headers: { 'x-api-key': muapiKey, 'Content-Type': 'application/json' }
     });
     const data = await pollRes.json();
     const status = data.status || data.data?.status;
     console.log(`muapi poll ${i + 1}: status=${status}, keys=${Object.keys(data).join(',')}`);
     if (status === 'completed' || status === 'succeeded' || status === 'success') {
-      const url = data.output?.image_url
+      const url = data.outputs?.[0]
+        || data.output?.image_url
         || data.output?.outputs?.[0]
-        || data.outputs?.[0]
-        || data.data?.output?.image_url
         || data.data?.outputs?.[0]
         || data.output?.urls?.get;
       if (url) return { url };
