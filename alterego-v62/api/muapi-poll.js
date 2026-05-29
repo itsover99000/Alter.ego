@@ -17,7 +17,15 @@ export default async function handler(req, res) {
       headers: { 'x-api-key': muapiKey }
     });
 
-    const data = await pollRes.json();
+    const rawText = await pollRes.text();
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch {
+      console.log('muapi-poll non-JSON response:', pollRes.status, rawText.slice(0, 200));
+      // If still getting HTML, keep polling — muapi may not have the result yet
+      return res.status(200).json({ status: 'processing' });
+    }
     // Status can be at root or nested inside 'detail'
     const result = data.detail || data;
     const status = result.status;
