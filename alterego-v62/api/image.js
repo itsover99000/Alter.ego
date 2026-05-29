@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   if (!falKey) return res.status(500).json({ error: { message: 'Fal API key not configured' } });
 
   try {
-    const { prompt, imageBase64, mediaType, style, userId } = req.body;
+    const { prompt, imageBase64, mediaType, style, userId, selectedModel } = req.body;
 
     // ── CREDIT CHECK BEFORE GENERATION ──────────────────────────────
     if (userId) {
@@ -65,6 +65,36 @@ export default async function handler(req, res) {
 
     const fullPrompt = `${prompt}, ${skinDetail}, ${noBackground}`;
     const negativePrompt = `cartoon, illustration, CGI, render, fake, plastic, low quality, blurry face, distorted face, ugly, deformed, white background, plain background, ${noBranding}, watermark`;
+
+    // ── INSTANT CHARACTER (fal-ai/instant-character) ───────────────
+    if (selectedModel === 'instant-character' && imageBase64) {
+      const imageDataUrl = `data:${mediaType || 'image/jpeg'};base64,${imageBase64}`;
+      try {
+        console.log('instant-character: generating with face reference');
+        const icRes = await fetch('https://fal.run/fal-ai/instant-character', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Key ${falKey}`
+          },
+          body: JSON.stringify({
+            prompt: fullPrompt,
+            image_url: imageDataUrl,
+            num_inference_steps: 28,
+            guidance_scale: 5.0,
+            num_images: 1
+          })
+        });
+        const icData = await icRes.json();
+        console.log('instant-character status:', icRes.status);
+        if (icRes.ok && icData.images?.length > 0) return res.status(200).json({ images: icData.images });
+        if (icRes.ok && icData.image?.url) return res.status(200).json({ images: [icData.image] });
+        console.log('instant-character FAILED:', JSON.stringify(icData).slice(0, 300));
+      } catch (icErr) {
+        console.log('instant-character exception:', icErr.message);
+      }
+      // Fall through to PuLID if instant-character fails
+    }
 
     // ── FLUX-PULID ───────────────────────────────────────────────────
     // fal.ai natively supports base64 data URIs as image input —

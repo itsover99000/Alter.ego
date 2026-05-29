@@ -1990,7 +1990,7 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
   try {
     // Route to fal (PuLID face-lock) or muapi based on selected model
     const livePrompt = document.getElementById('promptBox').value || generatedPrompt;
-    const isMuapi = selectedModel && selectedModel !== 'flux-pulid';
+    const isMuapi = selectedModel && selectedModel !== 'flux-pulid' && selectedModel !== 'instant-character';
 
     let response;
     if (isMuapi) {
@@ -2035,7 +2035,8 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
           imageBase64: uploadedImageBase64,
           mediaType: uploadedMediaType,
           style: selectedStyle,
-          userId: currentUser?.id || null
+          userId: currentUser?.id || null,
+          selectedModel: selectedModel || 'flux-pulid'
         })
       });
     }
