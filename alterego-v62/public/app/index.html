@@ -1159,6 +1159,9 @@ async function onSignedIn(user) {
   await loadProfile();
   await loadGenerations();
     loadModels(currentUser.id);
+    // Show access code section immediately on sign-in
+    const msw = document.getElementById('modelSelectorWrap');
+    if (msw) msw.classList.add('visible');
 }
 
 function onSignedOut() {
@@ -1593,9 +1596,10 @@ async function loadModels(userId) {
     const data = await res.json();
     availableModels = data.models || [];
 
-    // Only show selector if user has more than just the default
+    // Always show the wrap (for access code input)
+    document.getElementById('modelSelectorWrap').classList.add('visible');
+    // Only render model grid if user has more than default
     if (availableModels.length > 1) {
-      document.getElementById('modelSelectorWrap').classList.add('visible');
       renderModelGrid();
     }
   } catch (e) {
