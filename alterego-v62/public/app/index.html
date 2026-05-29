@@ -1631,6 +1631,20 @@ function selectModel(key) {
   document.querySelectorAll('.model-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.model === key);
   });
+  // Update generate button text to reflect selected model
+  updateGenerateImageBtn();
+}
+
+function updateGenerateImageBtn() {
+  const btn = document.getElementById('generateImageBtn');
+  if (!btn) return;
+  if (!selectedModel || selectedModel === 'flux-pulid') {
+    btn.textContent = '⚡ Generate Image with Flux';
+  } else {
+    const model = availableModels.find(m => m.key === selectedModel);
+    const name = model ? model.label.replace(' — Face Lock (Default)', '').replace('— Face Lock (Default)', '') : selectedModel;
+    btn.textContent = `⚡ Generate with ${name}`;
+  }
 }
 
 // Access code redemption
@@ -2047,7 +2061,7 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
     imageError.style.display = 'block';
   }
 
-  btn.textContent = '⚡ Generate Image';
+  updateGenerateImageBtn();
   btn.disabled = false;
   // Reset file input so the same image can be re-selected / a new one triggers change event
   document.getElementById('fileInput').value = '';
