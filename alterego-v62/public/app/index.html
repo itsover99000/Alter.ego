@@ -2073,23 +2073,6 @@ document.getElementById('mjBtn').addEventListener('click', function() {
 // Reset
 // Generate image with fal.ai
 
-// Poll muapi job from browser — avoids Vercel 10s timeout
-async function pollMuapiJob(jobId, maxAttempts = 40, intervalMs = 3000) {
-  for (let i = 0; i < maxAttempts; i++) {
-    await new Promise(r => setTimeout(r, intervalMs));
-    const res = await fetch('/api/muapi-poll', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jobId })
-    });
-    const data = await res.json();
-    if (data.status === 'completed' && data.url) return data.url;
-    if (data.error) throw new Error(data.error);
-    // still processing — continue
-  }
-  throw new Error('Generation timed out. Please try again.');
-}
-
 document.getElementById('generateImageBtn').addEventListener('click', async () => {
   if (!generatedPrompt) return;
 
@@ -2115,45 +2098,11 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
   btn.disabled = true;
 
   try {
-    // Route to fal (PuLID face-lock) or muapi based on selected model
+    // Route all generations through /api/image (fal)
     const livePrompt = document.getElementById('promptBox').value || generatedPrompt;
-    const isMuapi = selectedModel && selectedModel !== 'flux-pulid' && selectedModel !== 'instant-character' && selectedModel !== 'nano-faceswap';
 
     let response;
-    if (isMuapi) {
-      // Submit job
-      const submitRes = await fetch('/api/generate-muapi', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: livePrompt,
-          modelKey: selectedModel,
-          userId: currentUser?.id || null,
-          // Pass selfie as base64 for image-input models — server will upload to get URL
-          imageBase64: uploadedImageBase64,
-          mediaType: uploadedMediaType
-        })
-      });
-
-      const submitData = await submitRes.json();
-
-      if (!submitRes.ok) {
-        throw new Error(submitData.error?.message || submitData.error || 'Generation failed');
-      }
-
-      // If completed immediately
-      if (submitData.images) {
-        response = { ok: true, json: async () => submitData };
-      } else if (submitData.jobId) {
-        // Poll from browser until complete (bypasses Vercel timeout)
-        btn.textContent = '⏳ Generating... (this may take 30-60s)';
-        const imageUrl = await pollMuapiJob(submitData.jobId);
-        // Fake a response object
-        response = { ok: true, json: async () => ({ images: [{ url: imageUrl }] }) };
-      } else {
-        throw new Error('No job ID returned from muapi');
-      }
-    } else {
+    {
       response = await fetch('/api/image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2215,23 +2164,14 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
       }).catch(e => console.error('generate-complete error:', e));
     }
 
-    // Force download via server proxy to bypass CORS on external CDNs
+    // fal CDN images support direct download
     const dl = document.getElementById('imageDownload');
     try {
-      const proxyRes = await fetch('/api/download-proxy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: imageUrl })
-      });
-      if (proxyRes.ok) {
-        const blob = await proxyRes.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        dl.href = blobUrl;
-        dl.download = 'alter-ego-' + Date.now() + '.png';
-      } else {
-        dl.href = imageUrl;
-        dl.download = 'alter-ego.png';
-      }
+      const imgResp = await fetch(imageUrl);
+      const blob = await imgResp.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      dl.href = blobUrl;
+      dl.download = 'alter-ego-' + Date.now() + '.png';
     } catch {
       dl.href = imageUrl;
       dl.download = 'alter-ego.png';
