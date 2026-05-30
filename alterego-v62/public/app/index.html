@@ -1129,7 +1129,7 @@
     <div class="video-result" id="videoResult">
       <video id="videoPlayer" controls loop playsinline></video>
       <div class="video-actions">
-        <a class="video-download-btn" id="videoDownload" download="alter-ego-animation.mp4">↓ Download Video</a>
+        <a class="video-download-btn" id="videoDownload" download="alter-ego-animation.mp4" target="_blank">↓ Download Video</a>
       </div>
     </div>
     <div class="error-msg" id="animateError"></div>
@@ -2392,14 +2392,25 @@ document.getElementById('animateBtn').addEventListener('click', async () => {
   }
 });
 
-function showVideo(videoUrl) {
+async function showVideo(videoUrl) {
   const player = document.getElementById('videoPlayer');
   const dl = document.getElementById('videoDownload');
   const result = document.getElementById('videoResult');
   player.src = videoUrl;
-  dl.href = videoUrl;
   result.classList.add('visible');
   player.play();
+
+  // Fetch video as blob for proper download
+  try {
+    const resp = await fetch(videoUrl);
+    const blob = await resp.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    dl.href = blobUrl;
+    dl.download = 'alter-ego-animation-' + Date.now() + '.mp4';
+  } catch {
+    dl.href = videoUrl;
+    dl.download = 'alter-ego-animation.mp4';
+  }
 }
 
 </script>
