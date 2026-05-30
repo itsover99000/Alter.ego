@@ -2334,14 +2334,25 @@ async function pollKlingJob(requestId, maxAttempts = 60, intervalMs = 5000) {
     const res = await fetch('/api/animate-poll', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ requestId })
+      body: JSON.stringify({ requestId, userId: currentUser?.id })
     });
     const data = await res.json();
     if (data.status === 'completed' && data.videoUrl) return data.videoUrl;
-    if (data.error) throw new Error(data.error);
+    if (data.error) {
+      const refundMsg = data.refunded ? ' Your credits have been refunded.' : '';
+      throw new Error(data.error + refundMsg);
+    }
     console.log(`kling poll ${i+1}: ${data.status}`);
   }
-  throw new Error('Animation timed out. Please try again.');
+  // Timeout — refund via separate call
+  try {
+    await fetch('/api/animate-poll', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requestId, userId: currentUser?.id, refundOnly: true })
+    });
+  } catch {}
+  throw new Error('Animation timed out. Your credits have been refunded.');
 }
 
 document.getElementById('animateBtn').addEventListener('click', async () => {
