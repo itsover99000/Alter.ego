@@ -738,6 +738,112 @@
   .access-code-msg { font-size: 10px; margin-top: 6px; }
   .access-code-msg.success { color: var(--accent); }
   .access-code-msg.error { color: #ff6b6b; }
+
+  /* ── Animate Section ── */
+  .animate-section {
+    display: none;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 0.5px solid rgba(240,237,230,0.07);
+  }
+  .animate-section.visible { display: block; }
+  .animate-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(240,237,230,0.35);
+    margin-bottom: 10px;
+  }
+  .animate-prompt-box {
+    width: 100%;
+    background: rgba(240,237,230,0.04);
+    border: 0.5px solid rgba(240,237,230,0.1);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text);
+    line-height: 1.6;
+    resize: vertical;
+    min-height: 60px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+  }
+  .animate-prompt-box:focus { outline: none; border-color: rgba(240,237,230,0.25); }
+  .animate-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .animate-duration {
+    background: rgba(240,237,230,0.04);
+    border: 0.5px solid rgba(240,237,230,0.1);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .animate-btn {
+    flex: 1;
+    background: rgba(200,240,90,0.1);
+    border: 0.5px solid rgba(200,240,90,0.3);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .animate-btn:hover:not(:disabled) { background: rgba(200,240,90,0.2); }
+  .animate-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .animate-cost {
+    font-size: 9px;
+    color: rgba(240,237,230,0.3);
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+  .video-result {
+    display: none;
+    margin-top: 12px;
+  }
+  .video-result.visible { display: block; }
+  .video-result video {
+    width: 100%;
+    border-radius: 8px;
+    display: block;
+  }
+  .video-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .video-download-btn {
+    flex: 1;
+    background: rgba(200,240,90,0.1);
+    border: 0.5px solid rgba(200,240,90,0.3);
+    border-radius: 6px;
+    padding: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  .video-download-btn:hover { background: rgba(200,240,90,0.2); }
 </style>
 </head>
 <body>
@@ -1007,6 +1113,27 @@
 
   <button class="generate-btn" id="generateBtn" disabled>Analyse &amp; Generate Prompt</button>
   <div class="error-msg" id="errorMsg"></div>
+
+  <!-- Animate Section — appears after successful generation -->
+  <div class="animate-section" id="animateSection">
+    <div class="animate-label">✦ Animate with Kling 3.0</div>
+    <textarea class="animate-prompt-box" id="animatePrompt" placeholder="Describe the motion..."></textarea>
+    <div class="animate-cost">8 credits · 5s or 10s · Kling v3 Pro · fal.ai</div>
+    <div class="animate-controls">
+      <select class="animate-duration" id="animateDuration">
+        <option value="5">5 seconds</option>
+        <option value="10">10 seconds</option>
+      </select>
+      <button class="animate-btn" id="animateBtn">⚡ Animate Portrait</button>
+    </div>
+    <div class="video-result" id="videoResult">
+      <video id="videoPlayer" controls loop playsinline></video>
+      <div class="video-actions">
+        <a class="video-download-btn" id="videoDownload" download="alter-ego-animation.mp4">↓ Download Video</a>
+      </div>
+    </div>
+    <div class="error-msg" id="animateError"></div>
+  </div>
 
   <!-- Results -->
   <div class="result-area" id="resultArea">
@@ -2062,6 +2189,9 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
     img.style.cssText = 'width:100%;display:block;border-radius:10px';
     imageContainer.appendChild(img);
 
+    // Show animate section with style-matched prompt
+    showAnimateSection(imageUrl);
+
     // Show save row IMMEDIATELY after image appears — never block on anything else
     document.getElementById('imageSaveRow').style.display = 'block';
 
@@ -2219,6 +2349,119 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   generatedPrompt = '';
   updateGenerateBtn();
 });
+
+// ── Style-specific animation prompts ────────────────────────────────────────
+const STYLE_ANIMATE_PROMPTS = {
+  cinematic:   'Gentle breathing, hair moves softly in wind, subtle camera push in. Hold face still. Cinematic motion.',
+  cover:       'Subtle hair movement, soft light shifts, elegant atmosphere. Hold face still.',
+  cyberpunk:   'Neon lights flicker and pulse, rain falls in background, holographic glitch effect. Hold face still.',
+  anime:       'Hair strands flutter gently, sparkles drift through scene, soft atmospheric glow. Hold face still.',
+  painterly:   'Candlelight flickers warmly, dust motes drift in soft light, gentle breathing. Hold face still.',
+  campaign:    'Fabric moves gently in breeze, atmospheric light shifts, elegant slow camera drift. Hold face still.',
+  'sci-fi':    'Holographic elements pulse and shimmer, particles drift in zero gravity, atmospheric haze. Hold face still.',
+  streetwear:  'Urban atmosphere, light breeze moves clothing, city ambience, subtle camera drift. Hold face still.',
+  headshot:    'Subtle breathing, soft light shift, professional calm atmosphere. Hold face still.',
+  glamour:     'Soft light pulses gently, hair moves subtly, old Hollywood atmosphere. Hold face still.',
+  acotar:      'Flames flicker and pulse with warm golden light, cloak ripples in wind, magical particles drift. Hold face still.',
+  athlete:     'Stadium lights pulse, crowd blur moves in background, dramatic atmosphere. Hold face still.',
+  warhol:      'Colours shift and pulse in pop art style, graphic elements animate. Hold face still.',
+  riviera:     'Ocean breeze moves hair gently, light shimmers on water, golden hour atmosphere. Hold face still.',
+  bohemian:    'Wildflowers sway in breeze, golden light shifts, dreamy atmospheric particles. Hold face still.',
+  sovereign:   'Candlelight flickers dramatically, velvet fabric moves subtly, dust motes drift in regal light. Hold face still.',
+};
+
+let currentGeneratedImageUrl = null;
+
+function showAnimateSection(imageUrl) {
+  currentGeneratedImageUrl = imageUrl;
+  const section = document.getElementById('animateSection');
+  const promptBox = document.getElementById('animatePrompt');
+  if (!section || !promptBox) return;
+
+  // Pre-populate with style-specific prompt
+  promptBox.value = STYLE_ANIMATE_PROMPTS[selectedStyle] || 'Gentle breathing, subtle atmospheric movement, cinematic motion. Hold face still.';
+
+  section.classList.add('visible');
+  // Hide previous video
+  document.getElementById('videoResult').classList.remove('visible');
+  document.getElementById('animateError').textContent = '';
+}
+
+// Poll Kling job from browser
+async function pollKlingJob(requestId, maxAttempts = 60, intervalMs = 5000) {
+  for (let i = 0; i < maxAttempts; i++) {
+    await new Promise(r => setTimeout(r, intervalMs));
+    const res = await fetch('/api/animate-poll', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requestId })
+    });
+    const data = await res.json();
+    if (data.status === 'completed' && data.videoUrl) return data.videoUrl;
+    if (data.error) throw new Error(data.error);
+    console.log(`kling poll ${i+1}: ${data.status}`);
+  }
+  throw new Error('Animation timed out. Please try again.');
+}
+
+document.getElementById('animateBtn').addEventListener('click', async () => {
+  if (!currentGeneratedImageUrl || !currentUser) return;
+
+  const btn = document.getElementById('animateBtn');
+  const errEl = document.getElementById('animateError');
+  const prompt = document.getElementById('animatePrompt').value.trim();
+  const duration = document.getElementById('animateDuration').value;
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Submitting...';
+  errEl.textContent = '';
+  document.getElementById('videoResult').classList.remove('visible');
+
+  try {
+    const res = await fetch('/api/animate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: currentUser.id,
+        imageUrl: currentGeneratedImageUrl,
+        style: selectedStyle,
+        animatePrompt: prompt,
+        duration
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Animation failed');
+
+    // If completed immediately
+    if (data.videoUrl) {
+      showVideo(data.videoUrl);
+      return;
+    }
+
+    // Poll for result
+    btn.textContent = '⏳ Animating... (30-90s)';
+    const videoUrl = await pollKlingJob(data.requestId);
+    showVideo(videoUrl);
+
+  } catch (err) {
+    errEl.textContent = '⚠ ' + err.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⚡ Animate Portrait';
+  }
+});
+
+function showVideo(videoUrl) {
+  const player = document.getElementById('videoPlayer');
+  const dl = document.getElementById('videoDownload');
+  const result = document.getElementById('videoResult');
+  player.src = videoUrl;
+  dl.href = videoUrl;
+  result.classList.add('visible');
+  player.play();
+}
+
 </script>
 </body>
 </html>

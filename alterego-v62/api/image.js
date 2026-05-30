@@ -70,40 +70,25 @@ export default async function handler(req, res) {
     // Step 1: Generate with nano-banana-pro (muapi) for high quality
     // Step 2: Swap selfie face onto the generated image (fal face swap)
     if (selectedModel === 'nano-faceswap' && imageBase64) {
-      const muapiKey = process.env.MUAPI_API_KEY;
       const falImageUrl = `data:${mediaType || 'image/jpeg'};base64,${imageBase64}`;
 
       try {
         console.log('nano-faceswap: step 1 — generating with nano-banana-pro');
 
-        // Step 1: Generate with NanaBana via muapi
-        const nbRes = await fetch('https://api.muapi.ai/api/v1/nano-banana-pro', {
+        // Step 1: Generate with fal-ai/nano-banana-2 (fal infrastructure)
+        console.log('nano-faceswap: step 1 — fal nano-banana-2');
+        const nbRes = await fetch('https://fal.run/fal-ai/nano-banana-2', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-api-key': muapiKey },
-          body: JSON.stringify({ prompt: fullPrompt, aspect_ratio: '3:4', resolution: '1k' })
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Key ${falKey}` },
+          body: JSON.stringify({ prompt: fullPrompt, aspect_ratio: '3:4', resolution: '1K' })
         });
         const nbData = await nbRes.json();
-        const nbJobId = nbData.request_id;
-        console.log('nano-banana job submitted:', nbJobId);
+        console.log('nano-banana-2 status:', nbRes.status);
 
-        if (!nbJobId) throw new Error('NanaBana did not return a job ID');
-
-        // Poll for NanaBana result
-        let generatedImageUrl = null;
-        for (let i = 0; i < 30; i++) {
-          await new Promise(r => setTimeout(r, 2000));
-          const pollRes = await fetch(`https://api.muapi.ai/api/v1/predictions/${nbJobId}/result`, {
-            headers: { 'x-api-key': muapiKey }
-          });
-          const pollData = await pollRes.json();
-          const result = pollData.detail || pollData;
-          if (result.outputs?.[0]) { generatedImageUrl = result.outputs[0]; break; }
-          if (result.status === 'failed' && !result.outputs?.[0]) {
-            throw new Error('NanaBana generation failed');
-          }
+        const generatedImageUrl = nbData.images?.[0]?.url || nbData.image?.url;
+        if (!nbRes.ok || !generatedImageUrl) {
+          throw new Error('NanaBana 2 generation failed: ' + JSON.stringify(nbData).slice(0, 200));
         }
-
-        if (!generatedImageUrl) throw new Error('NanaBana timed out');
         console.log('nano-faceswap: step 1 complete, got image URL');
 
         // Step 2: Face swap — put selfie face onto generated image
