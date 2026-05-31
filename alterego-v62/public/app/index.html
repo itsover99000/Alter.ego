@@ -844,6 +844,46 @@
     transition: all 0.2s;
   }
   .video-download-btn:hover { background: rgba(200,240,90,0.2); }
+
+  /* ── Locked themes ── */
+  .style-btn.locked {
+    opacity: 0.45;
+    cursor: not-allowed;
+    position: relative;
+  }
+  .style-btn.locked::after {
+    content: '🔒';
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-size: 10px;
+    opacity: 0.8;
+  }
+  .style-btn.locked:hover {
+    background: rgba(240,237,230,0.04);
+    border-color: rgba(240,237,230,0.1);
+  }
+  .upgrade-toast {
+    display: none;
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--black);
+    border: 0.5px solid rgba(200,240,90,0.3);
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    z-index: 9999;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .upgrade-toast.show { display: block; animation: toastIn 0.2s ease; }
+  @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 </style>
 </head>
 <body>
@@ -1091,6 +1131,12 @@
     <div class="style-btn" data-style="riviera"><span class="style-emoji">🌴</span><span class="style-name">Riviera</span></div>
     <div class="style-btn" data-style="bohemian"><span class="style-emoji">🌻</span><span class="style-name">Bohemian</span></div>
     <div class="style-btn" data-style="sovereign"><span class="style-emoji">👑</span><span class="style-name">Sovereign</span></div>
+    <div class="style-btn" data-style="pets"><span class="style-emoji">🐾</span><span class="style-name">Pets</span></div>
+    <div class="style-btn" data-style="st-moritz"><span class="style-emoji">🎿</span><span class="style-name">St Moritz</span></div>
+    <div class="style-btn" data-style="samurai"><span class="style-emoji">⚔️</span><span class="style-name">Samurai</span></div>
+    <div class="style-btn" data-style="tennis"><span class="style-emoji">🎾</span><span class="style-name">Tennis</span></div>
+    <div class="style-btn" data-style="cyborg"><span class="style-emoji">🤖</span><span class="style-name">Cyborg</span></div>
+    <div class="style-btn" data-style="influencer"><span class="style-emoji">📱</span><span class="style-name">Influencer</span></div>
   </div>
 
 
@@ -1695,6 +1741,48 @@ const styleDescriptions = {
     'full body regal portrait, subject seated in a gilded baroque throne of deep purple velvet in a soaring palace hall with white and gold Corinthian columns, voluminous curled hair crowned with an intricate gold filigree crown set with sapphires, wearing a structured Tudor-style forest green velvet court gown with gold brocade panels and lace cuffs, jewelled choker and long pendant earrings, hands folded in lap, gaze directed just past the viewer with serene ancient authority, warm chandelier light from above, Old Masters portrait texture, commanding cinematic full body frame',
     'full body sovereign portrait, subject standing at the top of a sweeping marble palace staircase, elaborate updo pinned with gold ornaments and a jewelled crown, wearing a dramatic full-length gold and burgundy brocade damask ceremonial gown with fur-trimmed collar and long embroidered train pooling on the steps behind, heavy jewelled statement necklace and chandelier earrings, one hand resting on marble balustrade with quiet authority, gaze forward with absolute regal composure, warm candlelight and chandelier glow from gilded ceiling above, Renaissance court aesthetic, Holbein portraiture quality, full cinematic royal frame',
     'full body royal editorial portrait, subject standing before an arched palace window with formal baroque gardens visible behind, centre-parted hair in a structured updo with an ornate gold crown, wearing a floor-length off-shoulder burgundy velvet court gown with gold embroidered bodice set with rubies and sapphires, heavy gold statement necklace layered with pearls, long white lace gloves, posture perfectly erect chin lifted, gaze directed just off-camera with centuries of quiet power, dramatic single overhead light sculpting strong regal features, Van Dyck and Velazquez court portrait quality, full body commanding frame'
+  ],
+
+  pets: [
+    'regal oil painting portrait of a pet animal in a vast candlelit palace ballroom, wearing an ornate jewelled collar with diamonds and sapphires, ermine-trimmed velvet cape draped across its back, seated upon a gilded throne cushion of crimson velvet, blurred aristocratic figures in the background, warm Rembrandt candlelight, true four-legged photorealistic animal with natural fur markings faithfully preserved, NOT anthropomorphic, no human face, no human hands, no upright posture, animal anatomy correct, Van Dyck Old Master oil portrait quality, dignified regal presence',
+    'close portrait of a noble pet animal draped in a rich ermine-trimmed velvet robe, wearing a jewelled crown atop its head, seated in a gilded throne before deep crimson curtains and soaring stone arches, single dramatic key light casting warm Rembrandt shadows, real animal features and markings perfectly preserved, true photorealistic four-legged animal anatomy, no anthropomorphising, Old Master portrait quality, commanding dignity',
+    'full oil painting portrait of a pet animal posed in a grand Renaissance chamber, ornate jewelled medallion collar, silk cravat tied at neck, velvet-draped chaise behind, tall arched windows with golden light streaming in, intricate Persian rug underfoot, expression serene and commanding, photorealistic animal fur texture and markings preserved, NO human features, correct four-legged anatomy, Rembrandt chiaroscuro, museum-quality Old Master painting',
+    'majestic close portrait of a pet animal wearing an elaborate diamond and gold collar, seated before a fireplace in a Bridgerton-era drawing room, warm flickering firelight, rich botanical wallpaper, antique furniture blurred in background, subject face sharp and dignified, true animal anatomy and coat preserved, photorealistic fur, NOT anthropomorphic, cinematic painted realism, Van Dyck portrait energy'
+  ],
+
+  'st-moritz': [
+    'full body portrait of subject in 1970s St Moritz alpine luxury, wearing an oversized vintage fur coat in rich brown or cream, large tinted aviator sunglasses, colour-blocked ski knit underneath in mustard yellow and white, reclining on a wooden sun lounger on a chalet terrace with snow-covered Alps rising behind, crystal champagne glasses on a small wooden table beside them, saturated Kodachrome film grain, Slim Aarons jet-set photography aesthetic, golden alpine sun, warm and effortlessly glamorous',
+    'full body subject posed leaning against a vintage Porsche 911 in midnight blue, St Moritz village in background, white turtleneck knit and tailored wide-leg ivory trousers, tortoiseshell sunglasses, diamond ring catching the light, fresh snow on the road, crisp mountain air atmosphere, Kodachrome 1970s colour palette, warm saturated film grain, Slim Aarons leisure photography quality',
+    'portrait of subject seated inside a St Moritz chalet interior, roaring stone fireplace behind them, wearing a luxurious cream shearling coat, layers of gold chains and diamonds at the neck, glass of red wine in hand, warm amber firelight, vintage hunting trophies and ski equipment on timber walls, 1970s jet-set social scene energy, Kodachrome film quality, atmospheric and intimate',
+    'subject stepping off a vintage St Moritz mountain railway train into falling snow, wearing a dramatic floor-length red dress with deep plunging neckline, layered pearl and gold necklaces, oversized dark sunglasses, snow falling softly around them, crowd of similarly glamorous figures blurred behind, saturated 1970s Kodachrome colour, editorial fashion meets documentary photography energy'
+  ],
+
+  samurai: [
+    'full body cinematic portrait of subject as an elite samurai warrior standing before a centuries-old cherry blossom grove at dusk, wearing ornate lacquered black and gold armour with intricate kanji engravings, kabuto helmet with golden horns, hand resting on katana hilt at hip, cherry blossom petals drifting through the air, dramatic side lighting from a low setting sun casting long shadows, ancient Japanese castle silhouette in the background, cinematic depth, Akira Kurosawa film aesthetic',
+    'close dramatic portrait of subject as a samurai, face partially shadowed beneath a wide kasa straw hat, wearing dark indigo and charcoal haori jacket with subtle clan crest embroidery, hand wrapped around katana grip, rain falling softly around them, a moonlit bamboo forest behind, single dramatic rim light separating subject from background, 35mm film grain, feudal Japan atmosphere, cinematic stillness',
+    'full body subject as a legendary samurai standing at the top of stone temple steps at golden hour, elaborate red and black lacquered armour with golden mon crest on the chest plate, two swords at their side, long dark hair pinned under kabuto, ancient cedar trees lining the steps below, warm amber light cutting across the armour, cinematic epic scale, feudal Japan grandeur',
+    'dramatic three-quarter portrait of subject as a ronin samurai in a sparse feudal Japanese inn, candlelight from a paper lantern the sole light source, wearing a worn dark kimono with a clan mon, one hand resting on a katana laid across a low timber table, expression of calm determination, deep atmospheric shadows, Kurosawa aesthetic, painterly chiaroscuro, period authenticity'
+  ],
+
+  tennis: [
+    'editorial fashion photograph of subject lying flat on a hard court tennis court, shot from directly above, surrounded by scattered yellow tennis balls, wearing white cropped athletic top and wide-leg white tennis skirts, white visor, small gold hoop earrings, arms relaxed at sides, hair spread across the court surface, strong geometric court line shadows across the image, vivid green court colour, Vogue Sports editorial quality, high fashion meets sport',
+    'subject posed seated on a Wimbledon-style grass court, wearing all-white tennis dress with subtle broderie anglaise trim, holding a vintage wooden racket, afternoon golden light casting long shadows across the grass, ivy-covered clubhouse architecture blurred behind, a glass of Pimms on a white linen table beside them, effortless old-money tennis energy, editorial fashion photography',
+    'full body subject mid-serve on a red clay court at golden hour, wearing a white and pastel tennis set, hair in a high ponytail, dramatic low sun behind them creating a strong silhouette with lens flare, red clay dust lifting around their feet, Roland Garros atmosphere, editorial sports photography quality, dynamic and cinematic',
+    'close portrait of subject at courtside during a match, wearing a white tennis visor and cool white athletic set, a white towel draped over their shoulder, looking off-camera with calm focus, blur of a green court and crowd behind, warm afternoon light, editorial fashion meets sport energy'
+  ],
+
+  cyborg: [
+    'close dramatic portrait of subject as a near-future cyborg, one half of the face human with natural skin and features, the other half revealing polished chrome titanium plating beneath, circuit-trace lines running from the mechanical side across to the organic half, a single glowing cyan eye on the machine side, industrial concrete environment, cold blue-white directional lighting, HBO Westworld aesthetic, hyper-real skin-to-metal detail, cinematic',
+    'full body subject as an elite cyborg operative, wearing a sleek form-fitting black tactical suit with integrated chrome plating across the shoulders and chest, one arm entirely replaced with a polished silver mechanical prosthetic with articulated finger joints, background a dark rain-slicked urban alley with neon reflections, strong single-source key light, Blade Runner 2049 aesthetic, cinematic depth',
+    'portrait of subject as a cybernetic being, natural human face surrounded by delicate exposed mechanical components at the temples and jawline, fine copper wire tracings, micro circuit boards, small cooling vents, giving the appearance of engineered perfection beneath beautiful skin, soft studio lighting with a subtle blue-white cast, clean minimal background, Deus Ex aesthetic, hyperreal detail',
+    'dramatic three-quarter portrait of subject as a battlefield cyborg, chrome-plated combat armour fused directly to skin at the shoulders and forearms, glowing amber eye implants, face bearing both natural expression and mechanical augmentation, battlefield dust and smoke atmosphere behind, heavy rim light separating subject from dark background, Ghost in the Shell cinematic quality'
+  ],
+
+  influencer: [
+    'full body editorial portrait of subject as a high-end lifestyle influencer on an Amalfi Coast villa terrace at golden hour, wearing a flowing ivory silk midi dress with thin straps, gold jewellery layered at the neck and wrists, hair loosely pinned with face-framing pieces, one hand resting on a white marble balustrade, turquoise sea and terracotta village cliffs blurred far below, warm saturated golden light, aspirational luxury travel photography quality',
+    'subject posed on the edge of an infinity pool overlooking the Bali rice terraces at sunset, wearing a rust-orange silk slip dress, layered gold chains, hair loose and sun-kissed, holding a tropical drink with an orchid garnish, soft golden hour backlight creating a warm rim glow, lush jungle and distant terraces blurred behind, aspirational lifestyle editorial quality, clean composition',
+    'close natural-light portrait of subject in a minimal luxury hotel suite, white linen everything, floor-to-ceiling windows with a blurred European cityscape behind, wearing a simple cream oversized blazer, fine gold chain, skin glowing from natural window light, a coffee cup and open book on the table behind, aspirational creator aesthetic, effortlessly curated',
+    'full body subject walking a sunlit cobblestone street in a Mediterranean village, wearing a rust linen wide-leg co-ord set, strappy leather sandals, oversized sunglasses, straw tote bag, gelato in hand, pastel-painted facades and bougainvillea climbing the walls behind, soft warm afternoon light, travel content creator aesthetic, Amalfi or Positano energy'
   ]
 };
 
@@ -1711,6 +1799,9 @@ let selectedStyle = 'cinematic';
 let selectedModel = 'flux-pulid';
 let availableModels = [];
 
+// Locked themes — set by /api/models response
+let lockedThemes = [];
+
 // Load models from /api/models (called after sign-in)
 async function loadModels(userId) {
   if (!userId) return;
@@ -1722,6 +1813,10 @@ async function loadModels(userId) {
     });
     const data = await res.json();
     availableModels = data.models || [];
+    lockedThemes = data.lockedThemes || [];
+
+    // Apply lock state to style buttons
+    applyThemeLocks();
 
     // Always show the wrap (for access code input)
     document.getElementById('modelSelectorWrap').classList.add('visible');
@@ -1732,6 +1827,26 @@ async function loadModels(userId) {
   } catch (e) {
     console.log('loadModels error:', e.message);
   }
+}
+
+function applyThemeLocks() {
+  document.querySelectorAll('.style-btn').forEach(btn => {
+    const style = btn.dataset.style;
+    if (lockedThemes.includes(style)) {
+      btn.classList.add('locked');
+    } else {
+      btn.classList.remove('locked');
+    }
+  });
+}
+
+let toastTimer = null;
+function showUpgradeToast() {
+  const toast = document.getElementById('upgradToast');
+  if (!toast) return;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
 }
 
 function renderModelGrid() {
@@ -1827,6 +1942,11 @@ function updateGenerateBtn() {
 // Style buttons
 document.querySelectorAll('.style-btn').forEach(btn => {
   btn.addEventListener('click', () => {
+    // Block locked themes — show upgrade prompt
+    if (btn.classList.contains('locked')) {
+      showUpgradeToast();
+      return;
+    }
     document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     selectedStyle = btn.dataset.style;
@@ -1945,7 +2065,7 @@ SKIN: always include: natural skin texture, visible pores, subtle skin imperfect
 
 CLOTHING: This rule depends on the style being generated.
 
-For styles where the outfit must match the theme (acotar, cyberpunk, sci-fi, athlete, warhol, anime, painterly, cinematic, glamour, cover, campaign, bohemian, riviera, sovereign): COMPLETELY IGNORE what the subject is wearing in the photo AND completely ignore their actual hair length or style. Do not describe their actual clothing or hair at all. Instead invent theme-appropriate wardrobe AND hair from scratch: bohemian = long loose wild wavy hair, flowing maxi dress or wide flared trousers with peasant blouse, layered beaded jewellery, barefoot or espadrilles; riviera = loose beach waves or silk scarf over hair, white linen wide-leg trousers or flowing maxi dress, Breton stripe shirt, straw tote bag, tortoiseshell sunglasses; sovereign = elaborate updo or voluminous curls with ornate gold crown, floor-length velvet or brocade gown in crimson/forest green/gold with ermine trim, heavy jewelled necklace and chandelier earrings. For acotar: Illyrian battle leathers. For athlete: performance athletic kit. For warhol: simple plain top so the graphic treatment dominates.
+For styles where the outfit must match the theme (acotar, cyberpunk, sci-fi, athlete, warhol, anime, painterly, cinematic, glamour, cover, campaign, bohemian, riviera, sovereign, st-moritz, samurai, tennis, cyborg, influencer): COMPLETELY IGNORE what the subject is wearing in the photo AND completely ignore their actual hair length or style. Do not describe their actual clothing or hair at all. Instead invent theme-appropriate wardrobe AND hair from scratch: bohemian = long loose wild wavy hair, flowing maxi dress or wide flared trousers with peasant blouse, layered beaded jewellery, barefoot or espadrilles; riviera = loose beach waves or silk scarf over hair, white linen wide-leg trousers or flowing maxi dress, Breton stripe shirt, straw tote bag, tortoiseshell sunglasses; sovereign = elaborate updo or voluminous curls with ornate gold crown, floor-length velvet or brocade gown in crimson/forest green/gold with ermine trim, heavy jewelled necklace and chandelier earrings. For acotar: Illyrian battle leathers. For athlete: performance athletic kit. For warhol: simple plain top so the graphic treatment dominates. For pets: describe the animal species and markings only — do not describe human features or clothing.
 
 For all other styles: Describe the style, cut, colour and fabric of clothing only. NEVER reproduce any text, logos, brand names or graphic prints. Replace branded items with generic equivalents (e.g. "oversized cream cotton sweatshirt" not "Country Road sweatshirt"). The generated image should never contain text or branding on clothing.`;
 
@@ -2306,8 +2426,14 @@ const STYLE_ANIMATE_PROMPTS = {
   athlete:     'Stadium lights pulse, crowd blur moves in background, dramatic atmosphere. Hold face still.',
   warhol:      'Colours shift and pulse in pop art style, graphic elements animate. Hold face still.',
   riviera:     'Ocean breeze moves hair gently, light shimmers on water, golden hour atmosphere. Hold face still.',
-  bohemian:    'Wildflowers sway in breeze, golden light shifts, dreamy atmospheric particles. Hold face still.',
+  bohemian:    'Flower crown petals flutter gently, string lights sway, golden festival atmosphere breathes. Hold face still.',
   sovereign:   'Candlelight flickers dramatically, velvet fabric moves subtly, dust motes drift in regal light. Hold face still.',
+  pets:        'Pet blinks slowly, ear twitches, fur ruffles in gentle breeze, candlelight flickers warmly. Hold animal face still.',
+  'st-moritz': 'Snow falls gently, fur coat moves in alpine breeze, champagne bubbles shimmer, warm chalet light flickers. Hold face still.',
+  samurai:     'Cherry blossom petals drift through frame, armour plates shift subtly, atmospheric mist moves. Hold face still.',
+  tennis:      'Tennis balls subtly roll, hair moves in court breeze, shadows shift in afternoon light. Hold face still.',
+  cyborg:      'Mechanical eye pulses with light, circuit traces glow and flicker, atmospheric industrial haze drifts. Hold face still.',
+  influencer:  'Hair moves gently in warm sea breeze, golden light shifts on skin, ambient lifestyle atmosphere breathes. Hold face still.',
 };
 
 let currentGeneratedImageUrl = null;
@@ -2425,5 +2551,6 @@ async function showVideo(videoUrl) {
 }
 
 </script>
+<div class="upgrade-toast" id="upgradToast">✦ Upgrade to Creator to unlock this world</div>
 </body>
 </html>

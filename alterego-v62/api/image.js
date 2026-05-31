@@ -14,6 +14,30 @@ export default async function handler(req, res) {
   try {
     const { prompt, imageBase64, mediaType, style, userId, selectedModel } = req.body;
 
+    // ── THEME TIER ENFORCEMENT ────────────────────────────────────────
+    const THEME_TIERS = {
+      'pets': 'creator', 'st-moritz': 'creator', 'samurai': 'creator',
+      'tennis': 'creator', 'cycling': 'creator', 'cyborg': 'creator', 'influencer': 'creator',
+    };
+    const TIER_RANK = { standard: 0, creator: 1, pro: 2 };
+
+    if (style && THEME_TIERS[style]) {
+      const supabaseCheck = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+      const { data: profileCheck } = await supabaseCheck
+        .from('profiles').select('model_tier, unlocked_models').eq('id', userId).single();
+      const userTier = profileCheck?.model_tier || 'standard';
+      const userUnlocked = profileCheck?.unlocked_models || [];
+      // Beta override must be theme-specific: only the exact theme keys present
+      // in the user's unlocked_models bypass the tier gate. "has unlocked
+      // anything" would leak every Creator theme to every beta tester.
+      const themeUnlockedByCode = userUnlocked.includes(style);
+      const requiredRank = TIER_RANK[THEME_TIERS[style]] ?? 1;
+      const userRank = TIER_RANK[userTier] ?? 0;
+      if (!themeUnlockedByCode && userRank < requiredRank) {
+        return res.status(403).json({ error: 'This theme requires a Creator or Pro account. Upgrade to unlock.' });
+      }
+    }
+
     // ── CREDIT CHECK BEFORE GENERATION ──────────────────────────────
     if (userId) {
       const supabase = createClient(
@@ -58,6 +82,11 @@ export default async function handler(req, res) {
       riviera:    0.70,
       bohemian:   0.65,
       sovereign:  0.65,
+      // Pets — LOW id_weight on purpose. PuLID is trained on human faces;
+      // a high weight forces human facial geometry onto an animal muzzle
+      // (humanisation drift). Low weight lets the prompt's animal anatomy win
+      // while still carrying the pet's colouring/markings from the reference.
+      pets:       0.50,
     };
 
     const idWeight = idWeightByStyle[style] ?? 0.75;
@@ -116,36 +145,6 @@ export default async function handler(req, res) {
         console.log('nano-faceswap pipeline error:', pipelineErr.message);
         // Fall through to PuLID
       }
-    }
-
-    // ── INSTANT CHARACTER (fal-ai/instant-character) ───────────────
-    if (selectedModel === 'instant-character' && imageBase64) {
-      const imageDataUrl = `data:${mediaType || 'image/jpeg'};base64,${imageBase64}`;
-      try {
-        console.log('instant-character: generating with face reference');
-        const icRes = await fetch('https://fal.run/fal-ai/instant-character', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Key ${falKey}`
-          },
-          body: JSON.stringify({
-            prompt: fullPrompt,
-            image_url: imageDataUrl,
-            num_inference_steps: 28,
-            guidance_scale: 5.0,
-            num_images: 1
-          })
-        });
-        const icData = await icRes.json();
-        console.log('instant-character status:', icRes.status);
-        if (icRes.ok && icData.images?.length > 0) return res.status(200).json({ images: icData.images });
-        if (icRes.ok && icData.image?.url) return res.status(200).json({ images: [icData.image] });
-        console.log('instant-character FAILED:', JSON.stringify(icData).slice(0, 300));
-      } catch (icErr) {
-        console.log('instant-character exception:', icErr.message);
-      }
-      // Fall through to PuLID if instant-character fails
     }
 
     // ── FLUX-PULID ───────────────────────────────────────────────────

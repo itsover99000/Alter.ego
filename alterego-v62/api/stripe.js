@@ -8,6 +8,15 @@ const CREDIT_PACKS = {
   'price_1TXaqNHrmvKRw6jom0yKVc4h': 100, // Pro
 };
 
+// Permanent tier derived from purchase — highest ever bought wins
+const TIER_MAP = {
+  'price_1TXaqMHrmvKRw6joRElli2MC': 'standard',  // Starter
+  'price_1TXaqNHrmvKRw6joLn6joNdC': 'creator',   // Creator
+  'price_1TXaqNHrmvKRw6jom0yKVc4h': 'pro',        // Pro
+};
+
+const TIER_RANK = { standard: 0, creator: 1, pro: 2 };
+
 async function stripeRequest(path, method = 'GET', body = null) {
   const opts = {
     method,
@@ -47,7 +56,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ url: session.url });
     }
 
-    // ── VERIFY PAYMENT + ADD CREDITS ──────────────────────
+    // ── VERIFY PAYMENT + ADD CREDITS + STAMP TIER ─────────
     if (action === 'verify_payment') {
       const session = await stripeRequest(`/checkout/sessions/${sessionId}`);
       if (session.error) return res.status(400).json({ error: session.error.message });
@@ -58,14 +67,12 @@ export default async function handler(req, res) {
       const creditsToAdd = CREDIT_PACKS[pid];
       if (!creditsToAdd || !uid) return res.status(400).json({ error: 'Invalid session metadata' });
 
-      // Inline env vars — not module-level — ensures they're read at runtime
       const supabase = createClient(
         process.env.SUPABASE_URL,
         process.env.SUPABASE_SERVICE_KEY
       );
 
       // ── DUPLICATE PAYMENT PREVENTION ──────────────────
-      // Check if this session_id has already been processed
       const { data: existingPayment } = await supabase
         .from('payments')
         .select('id, credits_added')
@@ -73,24 +80,31 @@ export default async function handler(req, res) {
         .single();
 
       if (existingPayment) {
-        // Already processed — return current credits without adding again
         const { data: profile } = await supabase
-          .from('profiles').select('credits').eq('id', uid).single();
+          .from('profiles').select('credits, model_tier').eq('id', uid).single();
         return res.status(200).json({
           success: true,
           credits: profile?.credits || 0,
+          tier: profile?.model_tier || 'standard',
           added: 0,
           duplicate: true
         });
       }
 
       const { data: profile, error: fetchErr } = await supabase
-        .from('profiles').select('credits').eq('id', uid).single();
+        .from('profiles').select('credits, model_tier').eq('id', uid).single();
       if (fetchErr) return res.status(500).json({ error: fetchErr.message });
 
       const newCredits = (profile.credits || 0) + creditsToAdd;
+
+      // Stamp tier — permanent, highest ever bought wins
+      const newTier = TIER_MAP[pid] || 'standard';
+      const currentTierRank = TIER_RANK[profile?.model_tier] ?? 0;
+      const newTierRank = TIER_RANK[newTier] ?? 0;
+      const tierToSet = newTierRank > currentTierRank ? newTier : (profile?.model_tier || 'standard');
+
       const { error: updateErr } = await supabase
-        .from('profiles').update({ credits: newCredits }).eq('id', uid);
+        .from('profiles').update({ credits: newCredits, model_tier: tierToSet }).eq('id', uid);
       if (updateErr) return res.status(500).json({ error: updateErr.message });
 
       // Record payment so it can't be replayed
@@ -103,7 +117,7 @@ export default async function handler(req, res) {
         currency: session.currency,
       });
 
-      return res.status(200).json({ success: true, credits: newCredits, added: creditsToAdd });
+      return res.status(200).json({ success: true, credits: newCredits, added: creditsToAdd, tier: tierToSet });
     }
 
     return res.status(400).json({ error: 'Unknown action' });
