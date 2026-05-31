@@ -5,10 +5,10 @@ const THEME_TIERS = {
   'pets':      'creator',
   'st-moritz': 'creator',
   'samurai':   'creator',
-  'tennis':    'creator',
-  'cycling':   'creator',
   'cyborg':    'creator',
-  'influencer':'creator',
+  'old-money': 'creator',
+  'dark-academia': 'creator',
+  'western':   'creator',
 };
 
 const TIER_RANK = { standard: 0, creator: 1, pro: 2 };

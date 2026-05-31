@@ -17,7 +17,8 @@ export default async function handler(req, res) {
     // ── THEME TIER ENFORCEMENT ────────────────────────────────────────
     const THEME_TIERS = {
       'pets': 'creator', 'st-moritz': 'creator', 'samurai': 'creator',
-      'tennis': 'creator', 'cycling': 'creator', 'cyborg': 'creator', 'influencer': 'creator',
+      'cyborg': 'creator', 'old-money': 'creator',
+      'dark-academia': 'creator', 'western': 'creator',
     };
     const TIER_RANK = { standard: 0, creator: 1, pro: 2 };
 
@@ -66,7 +67,6 @@ export default async function handler(req, res) {
       campaign:   0.85,
       // Medium face lock — editorial/street, face matters but so does scene
       editorial:  0.8,
-      streetwear: 0.75,
       athlete:    0.75,
       // Loose face lock — atmosphere styles, scene is the hero
       cinematic:  0.65,
@@ -87,6 +87,9 @@ export default async function handler(req, res) {
       // (humanisation drift). Low weight lets the prompt's animal anatomy win
       // while still carrying the pet's colouring/markings from the reference.
       pets:       0.50,
+      'old-money': 0.65,
+      'dark-academia': 0.65,
+      western:    0.65,
     };
 
     const idWeight = idWeightByStyle[style] ?? 0.75;
