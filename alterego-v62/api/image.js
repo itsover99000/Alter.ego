@@ -101,6 +101,54 @@ export default async function handler(req, res) {
     const fullPrompt = `${prompt}, ${skinDetail}, ${noBackground}`;
     const negativePrompt = `cartoon, illustration, CGI, render, fake, plastic, low quality, blurry face, distorted face, ugly, deformed, white background, plain background, ${noBranding}, watermark`;
 
+    // ── PETS — DEDICATED IMAGE-EDIT PATH (nano-banana-2/edit) ────────
+    // Pets must keep the ACTUAL animal — exact coat colour, muzzle colour,
+    // and every marking from the user's photo. Face-ID (PuLID) and face-swap
+    // both fail at this: PuLID humanises animal faces, face-swap only swaps the
+    // face region and re-colours the coat/muzzle from the generated target.
+    // An instruction-edit model edits the SCENE around the preserved subject,
+    // so the dog's real markings survive. This branch is Pets-only; human
+    // themes are completely untouched below.
+    if (style === 'pets' && imageBase64) {
+      const petImageUrl = `data:${mediaType || 'image/jpeg'};base64,${imageBase64}`;
+      // The styleDescriptions prompt describes the regal scene/wardrobe; we wrap
+      // it as an EDIT instruction that prioritises preserving the animal exactly.
+      const editInstruction =
+        `Keep the exact same animal from the photo with its precise breed, face, ` +
+        `fur colour, muzzle colour, eye colour and every marking and pattern ` +
+        `completely unchanged and faithfully preserved — do not alter the animal's ` +
+        `coat or features in any way. Only restyle the surroundings, wardrobe and ` +
+        `lighting: ${prompt}. The animal must remain a true four-legged animal in a ` +
+        `natural pose, photorealistic, not anthropomorphic.`;
+
+      try {
+        console.log('pets: nano-banana-2/edit — preserving animal, restyling scene');
+        const editRes = await fetch('https://fal.run/fal-ai/nano-banana-2/edit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Key ${falKey}` },
+          body: JSON.stringify({
+            prompt: editInstruction,
+            image_urls: [petImageUrl],
+            aspect_ratio: '3:4',
+            resolution: '1K',
+            num_images: 1
+          })
+        });
+        const editData = await editRes.json();
+        console.log('pets nano-banana-2/edit status:', editRes.status);
+
+        const editUrl = editData.images?.[0]?.url || editData.image?.url;
+        if (editRes.ok && editUrl) {
+          console.log('pets: edit complete — markings preserved');
+          return res.status(200).json({ images: [{ url: editUrl }] });
+        }
+        console.log('pets edit failed, falling through to PuLID:', JSON.stringify(editData).slice(0, 300));
+        // Fall through to PuLID below if the edit path fails — Pets never hard-breaks.
+      } catch (petErr) {
+        console.log('pets edit exception, falling through to PuLID:', petErr.message);
+      }
+    }
+
     // ── NANABANA + FACE SWAP PIPELINE ───────────────────────────────
     // Step 1: Generate with nano-banana-pro (muapi) for high quality
     // Step 2: Swap selfie face onto the generated image (fal face swap)
