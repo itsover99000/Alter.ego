@@ -82,11 +82,14 @@ export default async function handler(req, res) {
       riviera:    0.70,
       bohemian:   0.65,
       sovereign:  0.65,
-      // Pets — LOW id_weight on purpose. PuLID is trained on human faces;
-      // a high weight forces human facial geometry onto an animal muzzle
-      // (humanisation drift). Low weight lets the prompt's animal anatomy win
-      // while still carrying the pet's colouring/markings from the reference.
-      pets:       0.50,
+      // Pets — moderate-high id_weight. PuLID is trained on human faces, so very
+      // high values force human facial geometry onto an animal muzzle (humanisation
+      // drift). But the prompts now strongly enforce four-legged / non-anthropomorphic,
+      // which lets us push higher for better pet likeness without as much drift.
+      // 0.62 = closer match to the actual pet's face/markings while resisting humanising.
+      // Levers: drop toward 0.55 if faces start looking human; raise toward 0.68 if
+      // markings/likeness still too generic.
+      pets:       0.62,
       'old-money': 0.65,
       'dark-academia': 0.65,
       western:    0.65,
@@ -174,7 +177,7 @@ export default async function handler(req, res) {
             negative_prompt: negativePrompt,
             image_size: 'portrait_4_3',
             num_inference_steps: 28,          // reduced from 50 — fits Vercel 10s limit
-            guidance_scale: style === 'headshot' || style === 'cover' ? 4.5 : 5.5,
+            guidance_scale: style === 'headshot' || style === 'cover' ? 4.5 : (style === 'pets' ? 6.5 : 5.5),
             id_weight: idWeight,
             true_cfg: 1.0,
             num_images: 1,
