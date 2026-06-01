@@ -1962,6 +1962,14 @@ document.querySelectorAll('.style-btn').forEach(btn => {
     // Pets-only: reveal the boy/girl toggle
     const petGenderRow = document.getElementById('petGenderRow');
     if (petGenderRow) petGenderRow.style.display = (selectedStyle === 'pets') ? 'block' : 'none';
+    // Pets uses its own dedicated edit path — the model picker does nothing there, so hide
+    // the whole model-selector wrap on Pets. The wrap is otherwise always visible once the
+    // user is signed in (it also holds the access-code input), so we only remove .visible
+    // for Pets and restore it for every other theme. Guard so we don't reveal it pre-sign-in.
+    const modelSelectorWrap = document.getElementById('modelSelectorWrap');
+    if (modelSelectorWrap && currentUser) {
+      modelSelectorWrap.classList.toggle('visible', selectedStyle !== 'pets');
+    }
   });
 });
 
