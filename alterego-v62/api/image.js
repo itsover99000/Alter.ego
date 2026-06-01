@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   if (!falKey) return res.status(500).json({ error: { message: 'Fal API key not configured' } });
 
   try {
-    const { prompt, imageBase64, mediaType, style, userId, selectedModel } = req.body;
+    const { prompt, imageBase64, mediaType, style, userId, selectedModel, petGender } = req.body;
 
     // ── THEME TIER ENFORCEMENT ────────────────────────────────────────
     const THEME_TIERS = {
@@ -113,13 +113,21 @@ export default async function handler(req, res) {
       const petImageUrl = `data:${mediaType || 'image/jpeg'};base64,${imageBase64}`;
       // The styleDescriptions prompt describes the regal scene/wardrobe; we wrap
       // it as an EDIT instruction that prioritises preserving the animal exactly.
+      // Gender styling: the model can't tell a dog's sex from a photo, so the user
+      // tells us. When set, steer the regal styling male/female; otherwise neutral.
+      const genderClause = petGender === 'male'
+        ? ' The pet is male — use masculine regal styling (a king-like or lordly presentation).'
+        : petGender === 'female'
+        ? ' The pet is female — use feminine regal styling (a queen-like or ladylike presentation).'
+        : ' Use elegant gender-neutral regal styling.';
+
       const editInstruction =
         `Keep the exact same animal from the photo with its precise breed, face, ` +
         `fur colour, muzzle colour, eye colour and every marking and pattern ` +
         `completely unchanged and faithfully preserved — do not alter the animal's ` +
         `coat or features in any way. Only restyle the surroundings, wardrobe and ` +
-        `lighting: ${prompt}. The animal must remain a true four-legged animal in a ` +
-        `natural pose, photorealistic, not anthropomorphic.`;
+        `lighting: ${prompt}.` + genderClause + ` The animal must remain a true ` +
+        `four-legged animal in a natural pose, photorealistic, not anthropomorphic.`;
 
       try {
         console.log('pets: nano-banana-2/edit — preserving animal, restyling scene');

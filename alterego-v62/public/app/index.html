@@ -1189,6 +1189,13 @@
       <span class="status-dot" id="statusDot"></span>
       AI Image Prompt <span id="promptEditHint" style="display:none;font-size:9px;color:rgba(200,240,90,0.6);margin-left:6px;letter-spacing:0.04em">— tap to edit</span>
     </div>
+    <div id="petGenderRow" style="display:none;margin-bottom:14px">
+      <div class="prompt-label" style="margin-bottom:8px">Your pet is a…</div>
+      <div style="display:flex;gap:8px">
+        <button type="button" class="pet-gender-btn" data-gender="male" style="flex:1;padding:10px;font-family:DM Mono,monospace;font-size:12px;letter-spacing:0.04em;color:rgba(240,237,230,0.75);background:rgba(240,237,230,0.04);border:0.5px solid rgba(240,237,230,0.1);border-radius:8px;cursor:pointer;transition:all 0.15s">🐕 Boy</button>
+        <button type="button" class="pet-gender-btn" data-gender="female" style="flex:1;padding:10px;font-family:DM Mono,monospace;font-size:12px;letter-spacing:0.04em;color:rgba(240,237,230,0.75);background:rgba(240,237,230,0.04);border:0.5px solid rgba(240,237,230,0.1);border-radius:8px;cursor:pointer;transition:all 0.15s">🐩 Girl</button>
+      </div>
+    </div>
     <textarea id="promptBox" class="prompt-box" style="resize:vertical;min-height:120px;width:100%;font-family:DM Mono,monospace;font-size:12px;line-height:1.8;color:rgba(240,237,230,0.75);background:rgba(240,237,230,0.04);border:0.5px solid rgba(240,237,230,0.1);border-radius:8px;padding:16px;outline:none;transition:border-color 0.15s" placeholder="Your prompt will appear here — edit before generating..." readonly></textarea>
 
 
@@ -1795,6 +1802,7 @@ function getStyleDesc(style) {
 }
 
 let selectedStyle = 'cinematic';
+let petGender = null; // 'male' | 'female' — only used for the Pets theme
 
 // ── Model selector state ─────────────────────────────────────────────────────
 let selectedModel = 'flux-pulid';
@@ -1951,6 +1959,24 @@ document.querySelectorAll('.style-btn').forEach(btn => {
     document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     selectedStyle = btn.dataset.style;
+    // Pets-only: reveal the boy/girl toggle
+    const petGenderRow = document.getElementById('petGenderRow');
+    if (petGenderRow) petGenderRow.style.display = (selectedStyle === 'pets') ? 'block' : 'none';
+  });
+});
+
+// Pet gender toggle (Pets theme only)
+document.querySelectorAll('.pet-gender-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    petGender = btn.dataset.gender;
+    document.querySelectorAll('.pet-gender-btn').forEach(b => {
+      b.style.background = 'rgba(240,237,230,0.04)';
+      b.style.borderColor = 'rgba(240,237,230,0.1)';
+      b.style.color = 'rgba(240,237,230,0.75)';
+    });
+    btn.style.background = 'rgba(200,240,90,0.12)';
+    btn.style.borderColor = 'rgba(200,240,90,0.6)';
+    btn.style.color = '#c8f05a';
   });
 });
 
@@ -2232,6 +2258,7 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
           imageBase64: uploadedImageBase64,
           mediaType: uploadedMediaType,
           style: selectedStyle,
+          petGender: petGender,
           userId: currentUser?.id || null,
           selectedModel: selectedModel || 'flux-pulid'
         })
