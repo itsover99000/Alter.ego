@@ -2290,6 +2290,13 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
       throw new Error((data.error?.message || 'No image returned') + ' | keys: ' + debugInfo);
     }
 
+    // Credits are now deducted server-side in /api/image and the new balance is
+    // returned here — update the display immediately rather than waiting on the
+    // fire-and-forget generate-complete call.
+    if (data.credits !== undefined && data.credits !== null) {
+      document.getElementById('creditCount').textContent = data.credits;
+    }
+
     imageLoading.style.display = 'none';
     imageStatusDot.style.display = 'none';
 

@@ -11,6 +11,31 @@ export default async function handler(req, res) {
   const falKey = process.env.FAL_API_KEY;
   if (!falKey) return res.status(500).json({ error: { message: 'Fal API key not configured' } });
 
+  // Credit-deduction state hoisted to function scope so BOTH the try-body and
+  // the catch block can refund on a total failure (an exception thrown after we
+  // deducted but before any image returned must still refund).
+  let creditDeducted = false;
+  let creditCost = 1;
+  let newCreditBalance = null;
+  let creditSupabase = null;
+  let creditUserId = null;
+
+  const refundCredit = async () => {
+    if (!creditDeducted || !creditSupabase || !creditUserId) return;
+    try {
+      const { data: p } = await creditSupabase
+        .from('profiles').select('credits').eq('id', creditUserId).single();
+      if (p) {
+        await creditSupabase.from('profiles')
+          .update({ credits: (p.credits || 0) + creditCost })
+          .eq('id', creditUserId);
+        console.log(`image.js: refunded ${creditCost} credit(s) to ${creditUserId} after total generation failure`);
+      }
+    } catch (e) {
+      console.log('image.js refund error:', e.message);
+    }
+  };
+
   try {
     const { prompt, imageBase64, mediaType, style, userId, selectedModel, petGender } = req.body;
 
@@ -39,18 +64,66 @@ export default async function handler(req, res) {
       }
     }
 
-    // ── CREDIT CHECK BEFORE GENERATION ──────────────────────────────
+    // ── ATOMIC CREDIT DEDUCTION BEFORE GENERATION ───────────────────
+    // The credit is deducted HERE, server-side, before the fal call — not in a
+    // separate client-triggered /api/generate-complete call. This closes two
+    // leaks: (1) concurrent requests can no longer all pass a read-only check
+    // before any deducts, and (2) a client that never calls generate-complete
+    // can no longer generate for free.
+    //
+    // Atomicity comes from the Postgres function deduct_credits_if_available,
+    // which does check-and-decrement in a single locked statement and returns
+    // the new balance, or NULL when the balance is insufficient / the race was
+    // lost. The .rpc() call runs SERVER-SIDE with the service key (compliant
+    // with the no-client-DB rule — the rule forbids sb.from()/sb.rpc() in the
+    // browser, not on the server).
+    //
+    // REQUIRES the SQL function to exist — run DEPLOY_credit_race_fix.sql in
+    // Supabase BEFORE deploying this code, or every generation will fail.
+    //
+    // creditCost is read once into a single variable so the deduct amount and
+    // the later refund amount can never drift apart.
+    creditUserId = userId || null;
+
     if (userId) {
-      const supabase = createClient(
+      creditSupabase = createClient(
         process.env.SUPABASE_URL,
         process.env.SUPABASE_SERVICE_KEY
       );
-      const { data: profile } = await supabase
-        .from('profiles').select('credits').eq('id', userId).single();
-      if (!profile || profile.credits <= 0) {
+
+      // Per-model credit cost, defaulting hard to 1. Future-proofs paid models /
+      // a multi-credit Pets without reintroducing a hardcoded magic number.
+      const resolvedModel = selectedModel || 'flux-pulid';
+      try {
+        const { data: modelRecord } = await creditSupabase
+          .from('models').select('credit_cost').eq('key', resolvedModel).eq('active', true).single();
+        if (modelRecord && Number.isFinite(modelRecord.credit_cost)) {
+          creditCost = modelRecord.credit_cost;
+        }
+      } catch (e) {
+        console.log('credit_cost lookup failed, defaulting to 1:', e.message);
+      }
+      if (!Number.isFinite(creditCost) || creditCost < 1) creditCost = 1;
+
+      // Atomic check-and-decrement. Returns new balance on success, NULL if declined.
+      const { data: rpcResult, error: rpcErr } = await creditSupabase
+        .rpc('deduct_credits_if_available', { p_user_id: userId, p_cost: creditCost });
+
+      if (rpcErr) {
+        console.log('deduct_credits_if_available error:', rpcErr.message);
+        return res.status(500).json({ error: { message: 'Credit system error. Please try again.' } });
+      }
+
+      // NULL (or no value) => guard failed: insufficient credits / lost the race.
+      // A real number (including 0) => the deduction applied.
+      if (rpcResult === null || rpcResult === undefined) {
         return res.status(402).json({ error: { message: 'No credits remaining. Please purchase more to continue.' } });
       }
+
+      creditDeducted = true;
+      newCreditBalance = Number(rpcResult);
     }
+
 
     const skinDetail = 'natural skin texture, visible pores, subtle skin imperfections, film grain on skin, NOT smooth, NOT airbrushed, NOT plastic skin';
     const noBranding = 'no text on clothing, no logos, no brand names, no graphic tees, no printed text, no writing on clothes';
@@ -148,7 +221,7 @@ export default async function handler(req, res) {
         const editUrl = editData.images?.[0]?.url || editData.image?.url;
         if (editRes.ok && editUrl) {
           console.log('pets: edit complete — markings preserved');
-          return res.status(200).json({ images: [{ url: editUrl }] });
+          return res.status(200).json({ images: [{ url: editUrl }], credits: newCreditBalance });
         }
         console.log('pets edit failed, falling through to PuLID:', JSON.stringify(editData).slice(0, 300));
         // Fall through to PuLID below if the edit path fails — Pets never hard-breaks.
@@ -199,7 +272,7 @@ export default async function handler(req, res) {
         const swapUrl = swapData.image?.url || swapData.images?.[0]?.url;
         if (swapRes.ok && swapUrl) {
           console.log('nano-faceswap: pipeline complete');
-          return res.status(200).json({ images: [{ url: swapUrl }] });
+          return res.status(200).json({ images: [{ url: swapUrl }], credits: newCreditBalance });
         }
         console.log('face-swap failed:', JSON.stringify(swapData).slice(0, 300));
         // Fall through to PuLID if face swap fails
@@ -251,8 +324,8 @@ export default async function handler(req, res) {
           console.log('flux-pulid OK:', pulidStatus);
         }
 
-        if (pulidRes.ok && pulidData.images?.length > 0) return res.status(200).json({ images: pulidData.images });
-        if (pulidRes.ok && pulidData.image?.url) return res.status(200).json({ images: [pulidData.image] });
+        if (pulidRes.ok && pulidData.images?.length > 0) return res.status(200).json({ images: pulidData.images, credits: newCreditBalance });
+        if (pulidRes.ok && pulidData.image?.url) return res.status(200).json({ images: [pulidData.image], credits: newCreditBalance });
 
       } catch (pulidErr) {
         console.log('flux-pulid exception:', pulidErr.message);
@@ -287,13 +360,18 @@ export default async function handler(req, res) {
       console.log('flux-pro FAILED:', fluxRes.status, JSON.stringify(fluxData).slice(0, 400));
     }
 
-    if (fluxData.images?.length > 0) return res.status(200).json({ images: fluxData.images });
-    if (fluxData.image?.url) return res.status(200).json({ images: [fluxData.image] });
+    if (fluxData.images?.length > 0) return res.status(200).json({ images: fluxData.images, credits: newCreditBalance });
+    if (fluxData.image?.url) return res.status(200).json({ images: [fluxData.image], credits: newCreditBalance });
 
-    return res.status(500).json({ error: { message: fluxData.detail || 'Generation failed' } });
+    // Total failure — the entire chain (PuLID → flux-pro) returned no image.
+    // Refund the credit we deducted up front, then report the failure.
+    await refundCredit();
+    return res.status(500).json({ error: { message: fluxData.detail || 'Generation failed' }, refunded: creditDeducted });
 
   } catch (err) {
     console.log('api/image.js top-level error:', err.message);
-    return res.status(500).json({ error: { message: err.message } });
+    // An exception after deduction but before any image returned must refund.
+    await refundCredit();
+    return res.status(500).json({ error: { message: err.message }, refunded: creditDeducted });
   }
 }

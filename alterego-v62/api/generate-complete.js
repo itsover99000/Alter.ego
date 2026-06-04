@@ -1,30 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 
-// ── muapi polling ────────────────────────────────────────────────────────────
-// muapi returns an async job ID. We poll until status = 'completed' or timeout.
-async function pollMuapi(jobId, muapiKey, maxAttempts = 30, intervalMs = 2000) {
-  const pollUrl = `https://muapi.ai/api/v1/predictions/${jobId}`;
-  for (let i = 0; i < maxAttempts; i++) {
-    await new Promise(r => setTimeout(r, intervalMs));
-    const pollRes = await fetch(pollUrl, {
-      headers: { 'x-api-key': muapiKey }
-    });
-    const data = await pollRes.json();
-    console.log(`muapi poll ${i + 1}:`, data.status);
-    if (data.status === 'completed' || data.status === 'succeeded') {
-      // Try multiple output shapes muapi uses
-      const url = data.output?.image_url
-        || data.output?.outputs?.[0]
-        || data.outputs?.[0]
-        || data.output?.urls?.get;
-      if (url) return url;
-    }
-    if (data.status === 'failed' || data.status === 'error') {
-      throw new Error(`muapi job failed: ${data.error || 'unknown error'}`);
-    }
-  }
-  throw new Error('muapi generation timed out');
-}
+// ── /api/generate-complete ───────────────────────────────────────────────────
+// Records a finished generation in the gallery (generations table) and bumps
+// total_generations. It does NOT deduct credits — credit deduction now happens
+// atomically, server-side, in /api/image BEFORE the fal call (see image.js and
+// DEPLOY_credit_race_fix.sql). Keeping deduction out of here is what makes the
+// deploy overlap safe: an old cached client that still calls this endpoint can
+// no longer double-charge, because this endpoint never touches credits.
+//
+// This endpoint is idempotent: if a row already exists for this user_id +
+// image_url it does nothing further, so being hit twice for the same image
+// (e.g. an old and a new client during the deploy window) yields exactly one
+// gallery row and one total_generations increment.
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -40,54 +27,29 @@ export default async function handler(req, res) {
     process.env.SUPABASE_SERVICE_KEY
   );
 
-  // ── Fetch user profile ───────────────────────────────────────────────────
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('credits, total_generations, model_tier, unlocked_models')
-    .eq('id', userId)
-    .single();
-
-  if (!profile) return res.status(404).json({ error: 'Profile not found' });
-
-  // ── Resolve model ────────────────────────────────────────────────────────
   const modelKey = selectedModel || 'flux-pulid';
 
-  // Fetch model record
-  const { data: modelRecord } = await supabase
-    .from('models')
-    .select('*')
-    .eq('key', modelKey)
-    .eq('active', true)
-    .single();
+  // ── IDEMPOTENCY GUARD ──────────────────────────────────────────────────────
+  // fal image URLs are unique per generation, so (user_id, image_url) reliably
+  // identifies a single generation. If it's already recorded, return early —
+  // no duplicate gallery row, no double increment.
+  const { data: existing } = await supabase
+    .from('generations')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('image_url', imageUrl)
+    .limit(1);
 
-  if (!modelRecord) return res.status(400).json({ error: 'Unknown model' });
-
-  // ── Entitlement check ────────────────────────────────────────────────────
-  const tier = profile.model_tier || 'standard';
-  const unlocked = profile.unlocked_models || [];
-  const isEntitled =
-    modelKey === 'flux-pulid' ||
-    tier === 'premium' ||
-    unlocked.includes(modelKey);
-
-  if (!isEntitled) {
-    return res.status(403).json({ error: 'You are not entitled to use this model. Unlock it with an access code or upgrade to Pro.' });
-  }
-
-  // ── Credit check ─────────────────────────────────────────────────────────
-  const creditCost = modelRecord.credit_cost || 1;
-  if (profile.credits < creditCost) {
-    return res.status(402).json({
-      error: `Not enough credits. This model costs ${creditCost} credit${creditCost > 1 ? 's' : ''}. You have ${profile.credits}.`
+  if (existing && existing.length > 0) {
+    const { data: profile } = await supabase
+      .from('profiles').select('credits').eq('id', userId).single();
+    return res.status(200).json({
+      credits: profile?.credits,
+      duplicate: true
     });
   }
 
-  // ── Deduct credits + save generation ────────────────────────────────────
-  await supabase.from('profiles').update({
-    credits: profile.credits - creditCost,
-    total_generations: (profile.total_generations || 0) + 1
-  }).eq('id', userId);
-
+  // ── RECORD THE GENERATION ──────────────────────────────────────────────────
   await supabase.from('generations').insert({
     user_id: userId,
     image_url: imageUrl,
@@ -96,9 +58,18 @@ export default async function handler(req, res) {
     model: modelKey
   });
 
+  // ── BUMP total_generations (credits are NOT touched here) ───────────────────
+  const { data: profile } = await supabase
+    .from('profiles').select('credits, total_generations').eq('id', userId).single();
+
+  if (profile) {
+    await supabase.from('profiles').update({
+      total_generations: (profile.total_generations || 0) + 1
+    }).eq('id', userId);
+  }
+
   return res.status(200).json({
-    credits: profile.credits - creditCost,
-    model: modelKey,
-    credit_cost: creditCost
+    credits: profile?.credits,
+    model: modelKey
   });
 }
