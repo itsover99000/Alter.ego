@@ -2086,13 +2086,15 @@ Respond ONLY with a valid JSON object. No markdown. No backticks. No explanation
 {
   "mood": "2-3 word mood descriptor",
   "lighting": "detected or ideal lighting style",
-  "features": "concise physical description to anchor the AI generation accurately",
+  "features": "concise physical description to anchor the AI generation accurately — MUST begin by stating the subject's apparent gender (man/woman) followed by approximate age range, then key facial structure, hair and complexion",
   "prompt": "the complete AI image generation prompt, 60-90 words, ready for Midjourney or DALL-E"
 }
 
 Style to incorporate: ${styleDesc}
 
 Structure the prompt as: subject description → clothing and accessories → pose and body language → environment/setting → mood/atmosphere → technical camera and lighting specs. Make it vivid, specific, and professional.
+
+GENDER ANCHOR (CRITICAL — applies to every human style): First determine the subject's apparent gender from the selfie. The "prompt" field MUST OPEN with an explicit identity anchor naming that gender and locking the face — for example begin with "Photorealistic full-body portrait of a [man/woman] in their [age range], preserving the subject's exact facial features, bone structure and gender from the photo, ...". This anchor is mandatory and must never be omitted, because some themes carry a strong gendered visual association (e.g. 1950s pin-up, fae/elf, bombshell, pop icon) that will otherwise override the subject's real gender and swap it. The anchor keeps the subject's true gender regardless of the theme's associations. Keep the anchor to one opening clause — state it clearly once, then proceed with the themed description; do not repeat it. (This rule does NOT apply to the pets style, which has no human gender.)
 
 FRAMING RULES: Always specify FULL BODY, HEAD-TO-TOE framing unless the style is headshot. Never describe close-up portrait or selfie framing. Always include environmental breathing room — the subject should occupy 60-70% of the frame with background visible.
 
