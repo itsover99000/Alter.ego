@@ -1952,7 +1952,18 @@ let generatedPrompt = '';
 
 function updateGenerateBtn() {
   const btn = document.getElementById('generateBtn');
+  // Pets requires a gender selection before analysing — the gender must be known
+  // at analysis time so Haiku writes it into the prompt (the model renders from the
+  // prompt text, so a gender chosen after analysis arrives too late to take effect).
+  if (selectedStyle === 'pets' && !petGender) {
+    btn.disabled = true;
+    btn.textContent = 'Select Boy or Girl first';
+    return;
+  }
   btn.disabled = !uploadedImageBase64;
+  if (btn.textContent === 'Select Boy or Girl first') {
+    btn.textContent = 'Analyse & Generate Prompt';
+  }
 }
 
 // Style buttons
@@ -1966,9 +1977,18 @@ document.querySelectorAll('.style-btn').forEach(btn => {
     document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     selectedStyle = btn.dataset.style;
-    // Pets-only: reveal the boy/girl toggle
+    // Pets-only: reveal the boy/girl toggle. Reset the selection when switching
+    // themes so a stale gender can't leak, and clear the buttons' active styling.
     const petGenderRow = document.getElementById('petGenderRow');
     if (petGenderRow) petGenderRow.style.display = (selectedStyle === 'pets') ? 'block' : 'none';
+    if (selectedStyle !== 'pets') {
+      petGender = null;
+      document.querySelectorAll('.pet-gender-btn').forEach(b => {
+        b.style.background = 'rgba(240,237,230,0.04)';
+        b.style.borderColor = 'rgba(240,237,230,0.1)';
+        b.style.color = 'rgba(240,237,230,0.75)';
+      });
+    }
     // Pets uses its own dedicated edit path — the model picker does nothing there, so hide
     // the whole model-selector wrap on Pets. The wrap is otherwise always visible once the
     // user is signed in (it also holds the access-code input), so we only remove .visible
@@ -1977,6 +1997,7 @@ document.querySelectorAll('.style-btn').forEach(btn => {
     if (modelSelectorWrap && currentUser) {
       modelSelectorWrap.classList.toggle('visible', selectedStyle !== 'pets');
     }
+    updateGenerateBtn();
   });
 });
 
@@ -1992,6 +2013,7 @@ document.querySelectorAll('.pet-gender-btn').forEach(btn => {
     btn.style.background = 'rgba(200,240,90,0.12)';
     btn.style.borderColor = 'rgba(200,240,90,0.6)';
     btn.style.color = '#c8f05a';
+    updateGenerateBtn();
   });
 });
 
@@ -2109,9 +2131,12 @@ SKIN: always include: natural skin texture, visible pores, subtle skin imperfect
 
 CLOTHING: This rule depends on the style being generated.
 
-For styles where the outfit must match the theme (acotar, cyberpunk, sci-fi, athlete, warhol, anime, painterly, cinematic, glamour, cover, campaign, bohemian, riviera, sovereign, st-moritz, old-money, dark-academia, western, samurai, cyborg): COMPLETELY IGNORE what the subject is wearing in the photo AND completely ignore their actual hair length or style. Do not describe their actual clothing or hair at all. Instead invent theme-appropriate wardrobe AND hair from scratch: bohemian = long loose wild wavy hair, flowing maxi dress or wide flared trousers with peasant blouse, layered beaded jewellery, barefoot or espadrilles; riviera = loose beach waves or silk scarf over hair, white linen wide-leg trousers or flowing maxi dress, Breton stripe shirt, straw tote bag, tortoiseshell sunglasses; sovereign = elaborate updo or voluminous curls with ornate gold crown, floor-length velvet or brocade gown in crimson/forest green/gold with ermine trim, heavy jewelled necklace and chandelier earrings; old-money = sleek low bun or neat ponytail, understated quiet-luxury tailoring in a muted palette of cream/camel/navy/oxblood/charcoal — belted wool wrap coat, cashmere turtleneck or cable knit, crisp white shirt, pleated trousers or midi skirt, silk headscarf, tortoiseshell sunglasses, pearl earrings, gold heirloom watch, structured leather top-handle bag, leather loafers or riding boots; NO logos, monograms or brand names anywhere. dark-academia = tweed or herringbone blazer, argyle or cable-knit sweater vest over a white collared shirt, a burgundy or rust necktie, pleated wool trousers or a pleated plaid skirt with knee-high socks, leather brogues or oxfords, round wire-frame spectacles, a beret or flat cap, a structured leather satchel, in a deep brown / oxblood / forest-green / charcoal palette — scholarly and moody, NO logos or brand names. western = denim trucker jacket or western shirt (denim or plaid flannel), optional suede fringed leather chaps over faded jeans, a tooled leather belt with a large ornate metal buckle, a felt or straw cowboy hat, a knotted bandana wild rag, leather work gloves, pointed cowboy boots; rugged warm earth-toned palette, authentic working-ranch styling, NO logos or brand names. For acotar: Illyrian battle leathers. For athlete: performance athletic kit. For warhol: simple plain top so the graphic treatment dominates. For cyborg: the subject must be visibly transformed into part-machine — fuse mechanical augmentation directly onto the face, head, neck or body (chrome or gold plating integrated into the skin, exposed mechanical vertebrae and cabling in the neck, circuit-trace lines across the face, a glowing optical or jaw implant, an ornate mechanical crown-frame fused to the skull). The human face stays recognisable but the body is half-machine. This is NOT a human wearing a robot costume or standing near a robot — the machinery is part of their body. For pets: describe the animal species and markings only — do not describe human features or clothing.
+For styles where the outfit must match the theme (acotar, cyberpunk, sci-fi, athlete, warhol, anime, painterly, cinematic, glamour, cover, campaign, bohemian, riviera, sovereign, st-moritz, old-money, dark-academia, western, samurai, cyborg): COMPLETELY IGNORE what the subject is wearing in the photo AND completely ignore their actual hair length or style. Do not describe their actual clothing or hair at all. Instead invent theme-appropriate wardrobe AND hair from scratch: bohemian = long loose wild wavy hair, flowing maxi dress or wide flared trousers with peasant blouse, layered beaded jewellery, barefoot or espadrilles; riviera = loose beach waves or silk scarf over hair, white linen wide-leg trousers or flowing maxi dress, Breton stripe shirt, straw tote bag, tortoiseshell sunglasses; sovereign = elaborate updo or voluminous curls with ornate gold crown, floor-length velvet or brocade gown in crimson/forest green/gold with ermine trim, heavy jewelled necklace and chandelier earrings; old-money = sleek low bun or neat ponytail, understated quiet-luxury tailoring in a muted palette of cream/camel/navy/oxblood/charcoal — belted wool wrap coat, cashmere turtleneck or cable knit, crisp white shirt, pleated trousers or midi skirt, silk headscarf, tortoiseshell sunglasses, pearl earrings, gold heirloom watch, structured leather top-handle bag, leather loafers or riding boots; NO logos, monograms or brand names anywhere. dark-academia = tweed or herringbone blazer, argyle or cable-knit sweater vest over a white collared shirt, a burgundy or rust necktie, pleated wool trousers or a pleated plaid skirt with knee-high socks, leather brogues or oxfords, round wire-frame spectacles, a beret or flat cap, a structured leather satchel, in a deep brown / oxblood / forest-green / charcoal palette — scholarly and moody, NO logos or brand names. western = denim trucker jacket or western shirt (denim or plaid flannel), optional suede fringed leather chaps over faded jeans, a tooled leather belt with a large ornate metal buckle, a felt or straw cowboy hat, a knotted bandana wild rag, leather work gloves, pointed cowboy boots; rugged warm earth-toned palette, authentic working-ranch styling, NO logos or brand names. For acotar: Illyrian battle leathers. For athlete: performance athletic kit. For warhol: simple plain top so the graphic treatment dominates. For cyborg: the subject must be visibly transformed into part-machine — fuse mechanical augmentation directly onto the face, head, neck or body (chrome or gold plating integrated into the skin, exposed mechanical vertebrae and cabling in the neck, circuit-trace lines across the face, a glowing optical or jaw implant, an ornate mechanical crown-frame fused to the skull). The human face stays recognisable but the body is half-machine. This is NOT a human wearing a robot costume or standing near a robot — the machinery is part of their body. For pets: describe the animal species and markings only — do not describe human features or clothing. If a pet sex is specified below, you MUST state it explicitly in the "prompt" field (e.g. open with "...portrait of a male [breed]..." or "...portrait of a female [breed]..."), as the sex cannot be read from the photo and must be carried by the prompt text.
 
-For all other styles: Describe the style, cut, colour and fabric of clothing only. NEVER reproduce any text, logos, brand names or graphic prints. Replace branded items with generic equivalents (e.g. "oversized cream cotton sweatshirt" not "Country Road sweatshirt"). The generated image should never contain text or branding on clothing.`;
+For all other styles: Describe the style, cut, colour and fabric of clothing only. NEVER reproduce any text, logos, brand names or graphic prints. Replace branded items with generic equivalents (e.g. "oversized cream cotton sweatshirt" not "Country Road sweatshirt"). The generated image should never contain text or branding on clothing.`
+  + (selectedStyle === 'pets' && petGender
+      ? `\n\nPET SEX (MANDATORY): The user has specified this pet is ${petGender === 'male' ? 'MALE (a boy)' : 'FEMALE (a girl)'}. You MUST open the "prompt" field by naming the animal as explicitly ${petGender === 'male' ? 'male' : 'female'} — e.g. "Museum-quality oil portrait of a ${petGender === 'male' ? 'male' : 'female'} [breed] ...". State the sex word in the prompt itself; do not omit it.`
+      : '');
 
   // Retry up to 3 times on overload (529) or server error (500)
   const fetchWithRetry = async (retries = 3, delay = 2000) => {
