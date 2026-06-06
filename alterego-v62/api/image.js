@@ -166,6 +166,12 @@ export default async function handler(req, res) {
       'old-money': 0.65,
       'dark-academia': 0.65,
       western:    0.65,
+      // Cyborg — was falling through to the 0.75 default, which locked the human
+      // face too hard and resisted the mechanical augmentation (chrome plating,
+      // circuitry, implants) fusing onto it. 0.55 keeps the face recognisable while
+      // giving the machinery room to render. Lever: raise toward 0.62 if faces drift
+      // off-likeness; drop toward 0.50 if the mechanical detail still reads too subtle.
+      cyborg:     0.55,
     };
 
     const idWeight = idWeightByStyle[style] ?? 0.75;
@@ -189,17 +195,17 @@ export default async function handler(req, res) {
       // Gender styling: the model can't tell a dog's sex from a photo, so the user
       // tells us. When set, steer the regal styling male/female; otherwise neutral.
       const genderClause = petGender === 'male'
-        ? ' The pet is male — use masculine regal styling (a king-like or lordly presentation).'
+        ? ' The animal is a MALE dog — present it explicitly as male, with masculine regal styling (a king-like, lordly presentation).'
         : petGender === 'female'
-        ? ' The pet is female — use feminine regal styling (a queen-like or ladylike presentation).'
+        ? ' The animal is a FEMALE dog — present it explicitly as female, with feminine regal styling (a queen-like, ladylike presentation).'
         : ' Use elegant gender-neutral regal styling.';
 
       const editInstruction =
         `Keep the exact same animal from the photo with its precise breed, face, ` +
         `fur colour, muzzle colour, eye colour and every marking and pattern ` +
         `completely unchanged and faithfully preserved — do not alter the animal's ` +
-        `coat or features in any way. Only restyle the surroundings, wardrobe and ` +
-        `lighting: ${prompt}.` + genderClause + ` The animal must remain a true ` +
+        `coat or features in any way.` + genderClause + ` Only restyle the surroundings, wardrobe and ` +
+        `lighting: ${prompt}.` + ` The animal must remain a true ` +
         `four-legged animal in a natural pose, photorealistic, not anthropomorphic.`;
 
       try {
