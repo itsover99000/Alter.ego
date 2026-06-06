@@ -197,9 +197,9 @@ export default async function handler(req, res) {
       // (the model cannot read sex from a clothed seated dog, so gender must be carried
       // by renderable styling cues, not the word alone).
       const genderClause = petGender === 'male'
-        ? ' Present the dog as MALE with distinctly masculine regalia: a bold king-like crown or coronet, a deep crimson, navy or forest-green velvet cape with gold trim and fur-lined collar, a heavy ornate medallion or chain-of-office, a sturdy jewelled collar with strong squared settings; commanding lordly bearing, a king or prince register.'
+        ? ' Present the dog as MALE with distinctly masculine regalia: a bold king-like crown or coronet, a deep crimson, navy or forest-green velvet cape with gold trim and fur-lined collar, a heavy ornate medallion or chain-of-office, a sturdy jewelled collar with strong squared settings; a strong, broad, commanding masculine expression and lordly bearing, a king or prince register.'
         : petGender === 'female'
-        ? ' Present the dog as FEMALE with distinctly feminine regalia: a delicate jewelled tiara or floral coronet, a soft blush, lilac, rose, cream or pale-gold silk or satin cape with lace or ruffled trim and pearl detailing, a dainty pearl-and-gem necklace, a slender collar with rounded settings and floral motifs; graceful elegant bearing, a queen or princess register with soft floral accents.'
+        ? ' Present the dog as FEMALE and make the dog clearly read as a girl: render a soft, gentle, refined and delicately feminine expression — softer gaze, gentler relaxed face, a graceful and dainty presence (while keeping the exact same breed, fur colour and every marking faithfully preserved). Dress her in distinctly feminine regalia: a delicate jewelled tiara or floral coronet, a soft blush, lilac, rose, cream or pale-gold silk or satin cape with lace or ruffled trim and pearl detailing, a dainty pearl-and-gem necklace, a slender collar with rounded settings and floral motifs; elegant graceful bearing, a queen or princess register with soft floral accents.'
         : ' Use elegant gender-neutral regal styling.';
 
       const editInstruction =
