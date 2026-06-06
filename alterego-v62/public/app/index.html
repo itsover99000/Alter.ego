@@ -1157,6 +1157,14 @@
     </div>
   </div>
 
+  <div id="petGenderRow" style="display:none;margin-bottom:14px">
+    <div class="prompt-label" style="margin-bottom:8px">Your pet is a…</div>
+    <div style="display:flex;gap:8px">
+      <button type="button" class="pet-gender-btn" data-gender="male" style="flex:1;padding:10px;font-family:DM Mono,monospace;font-size:12px;letter-spacing:0.04em;color:rgba(240,237,230,0.75);background:rgba(240,237,230,0.04);border:0.5px solid rgba(240,237,230,0.1);border-radius:8px;cursor:pointer;transition:all 0.15s">🐕 Boy</button>
+      <button type="button" class="pet-gender-btn" data-gender="female" style="flex:1;padding:10px;font-family:DM Mono,monospace;font-size:12px;letter-spacing:0.04em;color:rgba(240,237,230,0.75);background:rgba(240,237,230,0.04);border:0.5px solid rgba(240,237,230,0.1);border-radius:8px;cursor:pointer;transition:all 0.15s">🐩 Girl</button>
+    </div>
+  </div>
+
   <button class="generate-btn" id="generateBtn" disabled>Analyse &amp; Generate Prompt</button>
   <div class="error-msg" id="errorMsg"></div>
 
@@ -1188,13 +1196,6 @@
     <div class="prompt-label">
       <span class="status-dot" id="statusDot"></span>
       AI Image Prompt <span id="promptEditHint" style="display:none;font-size:9px;color:rgba(200,240,90,0.6);margin-left:6px;letter-spacing:0.04em">— tap to edit</span>
-    </div>
-    <div id="petGenderRow" style="display:none;margin-bottom:14px">
-      <div class="prompt-label" style="margin-bottom:8px">Your pet is a…</div>
-      <div style="display:flex;gap:8px">
-        <button type="button" class="pet-gender-btn" data-gender="male" style="flex:1;padding:10px;font-family:DM Mono,monospace;font-size:12px;letter-spacing:0.04em;color:rgba(240,237,230,0.75);background:rgba(240,237,230,0.04);border:0.5px solid rgba(240,237,230,0.1);border-radius:8px;cursor:pointer;transition:all 0.15s">🐕 Boy</button>
-        <button type="button" class="pet-gender-btn" data-gender="female" style="flex:1;padding:10px;font-family:DM Mono,monospace;font-size:12px;letter-spacing:0.04em;color:rgba(240,237,230,0.75);background:rgba(240,237,230,0.04);border:0.5px solid rgba(240,237,230,0.1);border-radius:8px;cursor:pointer;transition:all 0.15s">🐩 Girl</button>
-      </div>
     </div>
     <textarea id="promptBox" class="prompt-box" style="resize:vertical;min-height:120px;width:100%;font-family:DM Mono,monospace;font-size:12px;line-height:1.8;color:rgba(240,237,230,0.75);background:rgba(240,237,230,0.04);border:0.5px solid rgba(240,237,230,0.1);border-radius:8px;padding:16px;outline:none;transition:border-color 0.15s" placeholder="Your prompt will appear here — edit before generating..." readonly></textarea>
 
