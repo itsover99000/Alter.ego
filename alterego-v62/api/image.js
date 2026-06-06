@@ -196,10 +196,13 @@ export default async function handler(req, res) {
       // tells us. When set, steer the regal styling male/female with VISIBLE regalia
       // (the model cannot read sex from a clothed seated dog, so gender must be carried
       // by renderable styling cues, not the word alone).
+      // King/Queen styling choice (a styling register, not a biological-sex claim —
+      // sex cannot be reliably rendered on a clothed seated dog, so we offer the
+      // aesthetic the model CAN deliver: kingly vs queenly regalia and bearing).
       const genderClause = petGender === 'male'
-        ? ' Present the dog as MALE with distinctly masculine regalia: a bold king-like crown or coronet, a deep crimson, navy or forest-green velvet cape with gold trim and fur-lined collar, a heavy ornate medallion or chain-of-office, a sturdy jewelled collar with strong squared settings; a strong, broad, commanding masculine expression and lordly bearing, a king or prince register.'
+        ? ' Style this as a KING portrait — distinctly masculine, kingly regalia: a bold crown or coronet, a deep crimson, navy or forest-green velvet cape with gold trim and fur-lined collar, a heavy ornate medallion or chain-of-office, a sturdy jewelled collar with strong squared settings; a strong, broad, commanding bearing, a king or prince register.'
         : petGender === 'female'
-        ? ' Present the dog as FEMALE and make the dog clearly read as a girl: render a soft, gentle, refined and delicately feminine expression — softer gaze, gentler relaxed face, a graceful and dainty presence (while keeping the exact same breed, fur colour and every marking faithfully preserved). Dress her in distinctly feminine regalia: a delicate jewelled tiara or floral coronet, a soft blush, lilac, rose, cream or pale-gold silk or satin cape with lace or ruffled trim and pearl detailing, a dainty pearl-and-gem necklace, a slender collar with rounded settings and floral motifs; elegant graceful bearing, a queen or princess register with soft floral accents.'
+        ? ' Style this as a QUEEN portrait — distinctly feminine, queenly styling: render a soft, gentle, refined and delicately graceful expression (while keeping the exact same breed, fur colour and every marking faithfully preserved), dressed in a delicate jewelled tiara, a rich jewel-tone velvet cape or robe (deep crimson, burgundy, emerald or sapphire) with gold or silver trim and elegant detailing, a dainty pearl-and-gem necklace and pearl detailing, a slender collar with rounded settings; elegant graceful regal bearing, a queen or princess register.'
         : ' Use elegant gender-neutral regal styling.';
 
       const editInstruction =
