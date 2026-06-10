@@ -1280,17 +1280,30 @@ async function initAuth() {
   const isOAuthReturn = urlParams.has('code');
   // NOTE: do NOT replaceState here to clean ?code= — Supabase needs it for PKCE exchange
 
-  // Handle password reset redirect
-  if (urlParams.get('type') === 'recovery') {
+  // Handle password reset redirect. Show the reset form, but DO NOT return early —
+  // the recovery link arrives with ?code= (PKCE) and Supabase needs the
+  // onAuthStateChange listener below to exchange it into a recovery session before
+  // updateUser({password}) can work. Returning here skipped that and caused
+  // "Auth session missing". We set a flag so the listener keeps us on the reset
+  // form instead of proceeding into the signed-in app.
+  const isRecovery = urlParams.get('type') === 'recovery';
+  if (isRecovery) {
+    window.__isPasswordRecovery = true;
     document.getElementById('authGate').style.display = 'flex';
     document.getElementById('appLoader').style.display = 'none';
     switchTab('reset');
-    return;
+    // intentionally NO return — fall through so the listener registers
   }
 
   // Listen for auth changes FIRST so we catch the PKCE code exchange
   sb.auth.onAuthStateChange(async (event, session) => {
     console.log('Auth event:', event, session?.user?.email);
+    // During password recovery, the recovery session is established by this event —
+    // that is exactly what updateUser({password}) needs. But do NOT proceed into the
+    // signed-in app; keep the user on the reset form until they submit a new password.
+    if (window.__isPasswordRecovery) {
+      return;
+    }
     if (event === 'SIGNED_IN' && session?.user) {
       await onSignedIn(session.user);
     } else if (event === 'SIGNED_OUT') {
@@ -1476,8 +1489,22 @@ async function handleResetPassword() {
     showMsg(msg, 'error', error.message);
   } else {
     showMsg(msg, 'success', 'Password updated! Signing you in...');
-    setTimeout(() => {
+    window.__isPasswordRecovery = false;
+    setTimeout(async () => {
       document.getElementById('authGate').style.display = 'none';
+      // The recovery session is now a full session — enter the app.
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (session?.user) {
+          await onSignedIn(session.user);
+          // clean the recovery params from the URL
+          window.history.replaceState({}, '', 'https://alter-ego.photography/app/');
+        } else {
+          showAuthGate();
+        }
+      } catch (e) {
+        showAuthGate();
+      }
     }, 1500);
   }
 }
