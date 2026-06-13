@@ -1,8 +1,8 @@
-import { createClient } from '@supabase/supabase-js';
+import { applyCors, requireUser } from '../lib/auth.js';
 
 // ── /api/generate-complete ───────────────────────────────────────────────────
 // Records a finished generation in the gallery (generations table) and bumps
-// total_generations. It does NOT deduct credits — credit deduction now happens
+// total_generations. It does NOT deduct credits — credit deduction happens
 // atomically, server-side, in /api/image BEFORE the fal call (see image.js and
 // DEPLOY_credit_race_fix.sql). Keeping deduction out of here is what makes the
 // deploy overlap safe: an old cached client that still calls this endpoint can
@@ -10,29 +10,26 @@ import { createClient } from '@supabase/supabase-js';
 //
 // This endpoint is idempotent: if a row already exists for this user_id +
 // image_url it does nothing further, so being hit twice for the same image
-// (e.g. an old and a new client during the deploy window) yields exactly one
-// gallery row and one total_generations increment.
+// yields exactly one gallery row and one total_generations increment.
+//
+// v133: userId is now taken from the verified JWT, not the body, so a caller
+// can no longer write gallery rows onto someone else's account.
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  applyCors(req, res);
   if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { userId, imageUrl, style, prompt, selectedModel } = req.body;
-  if (!userId || !imageUrl) return res.status(400).json({ error: 'Missing fields' });
+  const auth = await requireUser(req, res);
+  if (!auth) return;
+  const { userId, supabase } = auth;
 
-  const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_KEY
-  );
+  const { imageUrl, style, prompt, selectedModel } = req.body;
+  if (!imageUrl) return res.status(400).json({ error: 'Missing imageUrl' });
 
   const modelKey = selectedModel || 'flux-pulid';
 
   // ── IDEMPOTENCY GUARD ──────────────────────────────────────────────────────
-  // fal image URLs are unique per generation, so (user_id, image_url) reliably
-  // identifies a single generation. If it's already recorded, return early —
-  // no duplicate gallery row, no double increment.
   const { data: existing } = await supabase
     .from('generations')
     .select('id')

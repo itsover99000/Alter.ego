@@ -1,21 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
+import { applyCors, requireUser } from '../lib/auth.js';
+import { grantCreditsForSession } from '../lib/stripe-grant.js';
 
 const STRIPE_SECRET = process.env.Stripe_secret_key;
-
-const CREDIT_PACKS = {
-  'price_1TXaqMHrmvKRw6joRElli2MC': 10,  // Starter
-  'price_1TXaqNHrmvKRw6joLn6joNdC': 30,  // Creator
-  'price_1TXaqNHrmvKRw6jom0yKVc4h': 100, // Pro
-};
-
-// Permanent tier derived from purchase — highest ever bought wins
-const TIER_MAP = {
-  'price_1TXaqMHrmvKRw6joRElli2MC': 'standard',  // Starter
-  'price_1TXaqNHrmvKRw6joLn6joNdC': 'creator',   // Creator
-  'price_1TXaqNHrmvKRw6jom0yKVc4h': 'pro',        // Pro
-};
-
-const TIER_RANK = { standard: 0, creator: 1, pro: 2 };
 
 async function stripeRequest(path, method = 'GET', body = null) {
   const opts = {
@@ -31,13 +18,19 @@ async function stripeRequest(path, method = 'GET', body = null) {
 }
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  applyCors(req, res);
   if (req.method === 'OPTIONS') return res.status(200).end();
 
+  // Both actions require a signed-in user. For checkout, this guarantees the
+  // userId stamped into Stripe metadata (which later determines who gets the
+  // credits) is the authenticated caller — not an arbitrary id from the body.
+  const auth = await requireUser(req, res);
+  if (!auth) return;
+
   try {
-    const { action, priceId, userId, userEmail, sessionId } = req.body;
+    const { action, priceId, sessionId } = req.body;
+    const userId = auth.userId;
+    const userEmail = auth.user.email;
 
     // ── CREATE CHECKOUT SESSION ────────────────────────────
     if (action === 'create_checkout') {
@@ -57,67 +50,29 @@ export default async function handler(req, res) {
     }
 
     // ── VERIFY PAYMENT + ADD CREDITS + STAMP TIER ─────────
+    // This is the "user returned to the success page" path. The webhook
+    // (/api/stripe-webhook) is the safety net for when they don't. Both call
+    // the SAME idempotent grant helper, so whichever runs first grants once and
+    // the other is a no-op.
     if (action === 'verify_payment') {
       const session = await stripeRequest(`/checkout/sessions/${sessionId}`);
       if (session.error) return res.status(400).json({ error: session.error.message });
       if (session.payment_status !== 'paid') return res.status(400).json({ error: 'Payment not completed' });
 
-      const uid = session.metadata?.userId;
-      const pid = session.metadata?.priceId;
-      const creditsToAdd = CREDIT_PACKS[pid];
-      if (!creditsToAdd || !uid) return res.status(400).json({ error: 'Invalid session metadata' });
+      // Defence-in-depth: the session's userId must match the signed-in caller,
+      // so one user can't claim another's checkout session.
+      if (session.metadata?.userId && session.metadata.userId !== userId) {
+        return res.status(403).json({ error: 'Session does not belong to this user' });
+      }
 
       const supabase = createClient(
         process.env.SUPABASE_URL,
         process.env.SUPABASE_SERVICE_KEY
       );
 
-      // ── DUPLICATE PAYMENT PREVENTION ──────────────────
-      const { data: existingPayment } = await supabase
-        .from('payments')
-        .select('id, credits_added')
-        .eq('stripe_session_id', sessionId)
-        .single();
-
-      if (existingPayment) {
-        const { data: profile } = await supabase
-          .from('profiles').select('credits, model_tier').eq('id', uid).single();
-        return res.status(200).json({
-          success: true,
-          credits: profile?.credits || 0,
-          tier: profile?.model_tier || 'standard',
-          added: 0,
-          duplicate: true
-        });
-      }
-
-      const { data: profile, error: fetchErr } = await supabase
-        .from('profiles').select('credits, model_tier').eq('id', uid).single();
-      if (fetchErr) return res.status(500).json({ error: fetchErr.message });
-
-      const newCredits = (profile.credits || 0) + creditsToAdd;
-
-      // Stamp tier — permanent, highest ever bought wins
-      const newTier = TIER_MAP[pid] || 'standard';
-      const currentTierRank = TIER_RANK[profile?.model_tier] ?? 0;
-      const newTierRank = TIER_RANK[newTier] ?? 0;
-      const tierToSet = newTierRank > currentTierRank ? newTier : (profile?.model_tier || 'standard');
-
-      const { error: updateErr } = await supabase
-        .from('profiles').update({ credits: newCredits, model_tier: tierToSet }).eq('id', uid);
-      if (updateErr) return res.status(500).json({ error: updateErr.message });
-
-      // Record payment so it can't be replayed
-      await supabase.from('payments').insert({
-        user_id: uid,
-        stripe_session_id: sessionId,
-        price_id: pid,
-        credits_added: creditsToAdd,
-        amount_total: session.amount_total,
-        currency: session.currency,
-      });
-
-      return res.status(200).json({ success: true, credits: newCredits, added: creditsToAdd, tier: tierToSet });
+      const result = await grantCreditsForSession(supabase, session);
+      if (!result.success) return res.status(400).json({ error: result.error });
+      return res.status(200).json(result);
     }
 
     return res.status(400).json({ error: 'Unknown action' });

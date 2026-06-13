@@ -1,16 +1,38 @@
 // /api/email.js
 // Unified transactional email sender via Resend
 // Handles: welcome, purchase_confirmation, password_reset
+//
+// v133 hardening: previously this accepted any { type, to } and sent our
+// branded email to any address — an open relay that could be scripted to spam
+// or phish using our verified domain's reputation. It now (1) requires a
+// signed-in user and (2) only ever sends to that user's OWN verified email,
+// ignoring any `to` the client supplies. The welcome email therefore moved
+// from right-after-signUp (no session yet) to first sign-in (see app onSignedIn).
+
+import { applyCors, requireUser } from '../lib/auth.js';
+
+const ALLOWED_TYPES = new Set(['welcome', 'purchase_confirmation', 'password_reset']);
 
 export default async function handler(req, res) {
+  applyCors(req, res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { type, to, data } = req.body;
+  // Must be signed in. The recipient is forced to the caller's own verified
+  // address — the body's `to` is no longer trusted.
+  const auth = await requireUser(req, res);
+  if (!auth) return;
+  const to = auth.user.email;
 
-  if (!type || !to) {
-    return res.status(400).json({ error: 'Missing required fields: type, to' });
+  const { type, data } = req.body;
+
+  if (!type || !ALLOWED_TYPES.has(type)) {
+    return res.status(400).json({ error: 'Unknown email type' });
+  }
+  if (!to) {
+    return res.status(400).json({ error: 'No verified email on account' });
   }
 
   const RESEND_API_KEY = process.env.RESEND_API_KEY;

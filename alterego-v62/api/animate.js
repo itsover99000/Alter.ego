@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
-
-const ANIMATE_CREDIT_COST = 8; // ~$0.56 for 5s Kling v3 Pro
+import { applyCors, requireUser } from '../lib/auth.js';
+import { ANIMATE_CREDIT_COST, creditBack, recordAnimateJob } from '../lib/animate-credits.js';
 
 // Style-specific default animation prompts
 const STYLE_PROMPTS = {
@@ -25,33 +25,52 @@ const STYLE_PROMPTS = {
 const DEFAULT_PROMPT = 'Gentle breathing, subtle atmospheric movement, cinematic motion. Hold face still.';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  applyCors(req, res);
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const falKey = process.env.FAL_API_KEY;
   if (!falKey) return res.status(500).json({ error: 'FAL_API_KEY not configured' });
 
-  const { userId, imageUrl, style, animatePrompt, duration = '5' } = req.body;
-  if (!userId || !imageUrl) return res.status(400).json({ error: 'Missing userId or imageUrl' });
+  // ── AUTH ── userId from the verified JWT, not the body.
+  const auth = await requireUser(req, res);
+  if (!auth) return;
+  const userId = auth.userId;
 
-  // ── Credit check ─────────────────────────────────────────────────────────
+  const { imageUrl, style, animatePrompt, duration = '5' } = req.body;
+  if (!imageUrl) return res.status(400).json({ error: 'Missing imageUrl' });
+
   const supabase = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_KEY
   );
 
-  const { data: profile } = await supabase
-    .from('profiles').select('credits').eq('id', userId).single();
+  // ── ATOMIC CREDIT DEDUCTION (race-safe) ───────────────────────────────────
+  // v133: switched from read-then-write (which let two concurrent animate calls
+  // both pass the check before either deducted) to the same atomic RPC image.js
+  // uses. Deducts up front; we refund below if the Kling SUBMISSION fails, and
+  // animate-poll refunds if the job later FAILS or times out.
+  const { data: deductResult, error: deductErr } = await supabase
+    .rpc('deduct_credits_if_available', { p_user_id: userId, p_cost: ANIMATE_CREDIT_COST });
 
-  if (!profile) return res.status(404).json({ error: 'Profile not found' });
-  if (profile.credits < ANIMATE_CREDIT_COST) {
+  if (deductErr) {
+    console.log('animate deduct error:', deductErr.message);
+    return res.status(500).json({ error: 'Credit system error. Please try again.' });
+  }
+  // NULL/undefined => insufficient credits or lost race.
+  if (deductResult === null || deductResult === undefined) {
     return res.status(402).json({
-      error: `Animating costs ${ANIMATE_CREDIT_COST} credits. You have ${profile.credits}.`
+      error: `Animating costs ${ANIMATE_CREDIT_COST} credits — you don't have enough.`
     });
   }
+
+  // Refund helper for the submission-failure paths below. These happen before
+  // any pollable request_id exists, so a plain credit-back is safe (nothing for
+  // the client to replay).
+  const refund = async () => {
+    try { await creditBack(supabase, userId); }
+    catch (e) { console.log('animate refund error:', e.message); }
+  };
 
   // ── Build prompt ──────────────────────────────────────────────────────────
   const prompt = animatePrompt || STYLE_PROMPTS[style?.toLowerCase()] || DEFAULT_PROMPT;
@@ -80,36 +99,35 @@ export default async function handler(req, res) {
     console.log('kling submit status:', submitRes.status);
 
     if (!submitRes.ok) {
+      await refund(); // submission rejected — give the credits back
       return res.status(500).json({
-        error: submitData.detail || submitData.error || 'Kling submission failed'
+        error: submitData.detail || submitData.error || 'Kling submission failed',
+        refunded: true
       });
     }
 
-    // Check if synchronous result
+    // Credits were already deducted atomically up front.
+    // Synchronous result:
     if (submitData.video?.url) {
-      // Deduct credits
-      await supabase.from('profiles')
-        .update({ credits: profile.credits - ANIMATE_CREDIT_COST })
-        .eq('id', userId);
-
       return res.status(200).json({ videoUrl: submitData.video.url });
     }
 
-    // Async — return request_id for client polling
+    // Async — return request_id for client polling.
     const requestId = submitData.request_id;
     if (!requestId) {
-      return res.status(500).json({ error: 'Kling did not return a request ID' });
+      await refund(); // nothing to poll — give the credits back
+      return res.status(500).json({ error: 'Kling did not return a request ID', refunded: true });
     }
 
-    // Deduct credits on submission
-    await supabase.from('profiles')
-      .update({ credits: profile.credits - ANIMATE_CREDIT_COST })
-      .eq('id', userId);
+    // Record the job so animate-poll can refund it at most once if it later
+    // FAILS or times out (replay protection).
+    await recordAnimateJob(supabase, userId, requestId);
 
     return res.status(202).json({ requestId, status: 'processing' });
 
   } catch (err) {
     console.log('animate error:', err.message);
-    return res.status(500).json({ error: err.message });
+    await refund(); // exception before a pollable job existed — refund
+    return res.status(500).json({ error: err.message, refunded: true });
   }
 }

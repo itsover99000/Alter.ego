@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { applyCors, requireUser } from '../lib/auth.js';
 
 // Theme tier requirements — hardcoded, no new table needed
 const THEME_TIERS = {
@@ -14,19 +14,14 @@ const THEME_TIERS = {
 const TIER_RANK = { standard: 0, creator: 1, pro: 2 };
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  applyCors(req, res);
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { userId } = req.body;
-  if (!userId) return res.status(400).json({ error: 'Missing userId' });
-
-  const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_KEY
-  );
+  // Entitlements are computed for the signed-in user from the JWT.
+  const auth = await requireUser(req, res);
+  if (!auth) return;
+  const { userId, supabase } = auth;
 
   const { data: profile } = await supabase
     .from('profiles')

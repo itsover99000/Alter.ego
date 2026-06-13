@@ -1250,6 +1250,23 @@ let sb = null;
 
 let currentUser = null;
 
+// ── authedFetch ───────────────────────────────────────
+// Wraps fetch() to attach the current Supabase session token so the server can
+// verify the caller and derive the trusted userId from the JWT (v133 security).
+// Every /api call that touches a user's credits/profile/gallery goes through
+// this instead of bare fetch(). Body no longer needs to carry userId — the
+// server ignores it and uses the token's identity.
+async function authedFetch(url, options = {}) {
+  let token = null;
+  try {
+    const { data } = await sb.auth.getSession();
+    token = data?.session?.access_token || null;
+  } catch (e) { /* no session */ }
+  const headers = Object.assign({}, options.headers || {});
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return fetch(url, Object.assign({}, options, { headers }));
+}
+
 // Init auth state
 function hideLoader() {
   try {
@@ -1356,6 +1373,21 @@ async function onSignedIn(user) {
     // Show access code section immediately on sign-in
     const msw = document.getElementById('modelSelectorWrap');
     if (msw) msw.classList.add('visible');
+
+  // Welcome email — fire once, now authenticated. The server forces the
+  // recipient to the signed-in user's own verified address. A localStorage
+  // guard keeps it to one send per device (worst case: a returning user on a
+  // brand-new device gets one extra welcome — harmless).
+  try {
+    if (!localStorage.getItem('ae_welcomed')) {
+      localStorage.setItem('ae_welcomed', '1');
+      authedFetch('/api/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'welcome' })
+      }).catch(e => console.error('Welcome email failed:', e));
+    }
+  } catch (e) { /* localStorage unavailable — skip */ }
 }
 
 function onSignedOut() {
@@ -1368,10 +1400,10 @@ function onSignedOut() {
 
 async function loadProfile() {
   try {
-    const res = await fetch('/api/profile', {
+    const res = await authedFetch('/api/user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: currentUser.id })
+      body: JSON.stringify({ action: 'profile' })
     });
     const data = await res.json();
     if (data.credits !== undefined) {
@@ -1384,10 +1416,10 @@ async function loadProfile() {
 
 async function loadGenerations() {
   try {
-    const res = await fetch('/api/generations', {
+    const res = await authedFetch('/api/user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: currentUser.id })
+      body: JSON.stringify({ action: 'generations' })
     });
     const data = await res.json();
     const gens = data.generations;
@@ -1546,12 +1578,8 @@ async function handleSignUp() {
     showMsg(msg, 'error', error.message);
   } else {
     showMsg(msg, 'success', 'Account created! Check your email to confirm.');
-    // Send welcome email
-    fetch('/api/email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'welcome', to: email })
-    }).catch(e => console.error('Welcome email failed:', e));
+    // Welcome email now fires on first sign-in (see onSignedIn) — at signup
+    // there is no session yet, so an authed call here would be rejected.
   }
 }
 
@@ -1566,7 +1594,7 @@ async function handleBuyCredits(priceId) {
   if (!currentUser) return;
   closeCreditsModal();
   try {
-    const res = await fetch('/api/stripe', {
+    const res = await authedFetch('/api/stripe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'create_checkout', priceId, userId: currentUser.id, userEmail: currentUser.email })
@@ -1578,7 +1606,7 @@ async function handleBuyCredits(priceId) {
 }
 async function handlePaymentSuccess(sessionId) {
   try {
-    const res = await fetch('/api/stripe', {
+    const res = await authedFetch('/api/stripe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'verify_payment', sessionId, userId: currentUser.id })
@@ -1727,10 +1755,10 @@ const styleDescriptions = {
     'full body sci-fi underwater, subject in pressurised deep-sea research station corridor, bioluminescent sea creatures visible through porthole windows, wide structured dive suit, teal and midnight blue palette, Avatar aesthetic, dramatic lighting'
   ],
   glamour: [
-    'full body old Hollywood glamour portrait, subject in a dramatic floor-length crimson silk gown with off-shoulder sweetheart neckline and long trailing skirt with high slit, seated on grand marble staircase of a palatial mansion interior, voluminous dark curled hair, bold makeup, gold strappy heels, gazing toward camera with smouldering confidence, warm amber candlelit interior light, rich dark wood and stone architecture, Vogue Italia cinematic quality',
+    'full body old Hollywood glamour portrait, subject seated on the grand marble staircase of a palatial mansion interior, bold confident styling, gazing toward camera with smouldering confidence, warm amber candlelit interior light, rich dark wood and stone architecture, Vogue Italia cinematic quality. If the subject is a man: a sharply tailored midnight-black or burgundy velvet tuxedo with satin lapels, an open dress shirt, a loosened black bow tie, polished patent shoes, perfectly groomed hair, a magnetic old-Hollywood-leading-man presence. If the subject is a woman: a dramatic floor-length crimson silk gown with an off-shoulder sweetheart neckline and a long trailing skirt with a high slit, voluminous dark curled hair, bold makeup, gold strappy heels.',
     'full body black and white glamour editorial, subject wearing a deep plunge V-neck ivory silk shirt dramatically open at chest with wide-leg black tailored trousers, statement diamond choker necklace, bold rings, standing on a sun-drenched terrace or red carpet exterior, hands clasped in front, gaze just off-camera chin slightly lifted, confident magnetic presence, Cannes Film Festival red carpet energy, sharp editorial quality',
     'upper body black and white glamour portrait, subject wearing an open white dress shirt unbuttoned to chest with sleeves rolled, seated leaning forward with one hand near face, perfectly groomed hair with natural movement, dark charcoal seamless backdrop, single soft key light from above sculpting strong jaw and cheekbones, smouldering gaze just past lens, quiet masculine sensuality, old Hollywood Helmut Newton quality',
-    'full body noir glamour portrait, subject in elegant black wide-brim hat, long black leather gloves, structured black coat with plunging neckline, seated in a velvet armchair in a dark moody interior, head tilted with eyes closed and lips slightly parted in a moment of quiet drama, single overhead spotlight, wisps of atmospheric smoke around, rich black and white, 1950s Hollywood film noir energy, Pirelli Calendar quality'
+    'full body noir glamour portrait, subject seated in a velvet armchair in a dark moody interior, head tilted in a moment of quiet drama, single overhead spotlight, wisps of atmospheric smoke around, rich black and white, 1950s Hollywood film noir energy, Pirelli Calendar quality. If the subject is a man: a black wide-brim fedora tilted low, a structured black overcoat over a dark open-collar shirt, leather gloves, a brooding shadowed jaw, a hard-boiled film-noir bearing. If the subject is a woman: an elegant black wide-brim hat, long black leather gloves, a structured black coat with a plunging neckline, eyes closed and lips slightly parted.'
   ],
   acotar: [
     'full body dark fantasy portrait, subject as an Illyrian Fae warrior standing on the edge of a crumbling stone cliff, deep mountain canyon behind with twin glowing moons in a deep blue-black starlit sky, wearing fitted obsidian battle leathers with silver armour shoulder plates and intricate bioluminescent Illyrian tattoos glowing blue-white across chest and arms, dark flowing cape billowing in wind, face turned 20-30 degrees toward camera with fierce otherworldly intensity, dramatic cool blue moonlight uplighting, ACOTAR Night Court aesthetic, cinematic epic fantasy scale',
@@ -1757,22 +1785,22 @@ const styleDescriptions = {
     'professional headshot, minimalist clean aesthetic, subject in elegant business attire, seamless studio background, Rembrandt lighting setup, direct confident eye contact, award-winning corporate portrait photography, Fortune 500 executive energy'
   ],
   riviera: [
-    'full body Riviera portrait, subject walking slowly along a terracotta-tiled Portofino harbour terrace in pure side profile, loose beach-wave hair tousled by sea breeze, wearing white wide-leg linen trousers and a Breton navy-and-white stripe relaxed shirt tied at waist, oversized tortoiseshell cat-eye sunglasses, rattan tote bag over shoulder, completely unaware of camera, pastel-coloured harbour buildings and moored white yachts behind, bright Mediterranean midday light, Kodachrome saturated colour, Slim Aarons leisure aesthetic, full body candid frame',
-    'full body Mediterranean lifestyle portrait, subject seated on ancient stone steps in a narrow Cinque Terre laneway, loose tousled hair with a silk scarf tied loosely at the neck, wearing a flowing sage-green halterneck maxi dress with gentle movement, espadrille wedge sandals, small leather crossbody bag, looking off toward the shimmering sea at the bottom of the lane, warm afternoon sun casting long shadows across worn stone, Kodachrome pastels, graceful full body frame with colourful village visible behind',
-    'full body Riviera editorial, subject standing at the prow of a classic wooden sailboat on open Mediterranean water, loose wavy hair blowing back in sea wind, wearing wide-leg white linen palazzo trousers and a yellow halter corset top, large straw hat held in one hand, gaze directed off across the water with complete relaxed confidence, deep azure sea and cloudless blue sky, bright saturated Mediterranean light, Slim Aarons yacht aesthetic, Kodachrome colour quality, full body breathing room',
-    'full body Riviera cafe portrait, subject seated sideways on a cafe chair at a grand white hotel terrace overlooking the sea, loose sun-kissed beach waves, wearing a navy-and-cream Breton stripe wrap dress belted at the waist, wedge espadrilles, small rattan clutch on the table beside a café au lait, gaze directed lazily off toward the horizon not acknowledging camera, warm dappled light through palm fronds, Cannes Film Festival elegance meets everyday leisure, Kodachrome warm film tones, full body candid frame'
+    'full body Riviera portrait, subject walking slowly along a terracotta-tiled Portofino harbour terrace in pure side profile, hair tousled by sea breeze, completely unaware of camera, pastel-coloured harbour buildings and moored white yachts behind, bright Mediterranean midday light, Kodachrome saturated colour, Slim Aarons leisure aesthetic, full body candid frame. If the subject is a man: white wide-leg linen trousers and an open-collar short-sleeve Cuban camp shirt in navy or cream, loose dry hair, tortoiseshell sunglasses, leather loafers, a relaxed jet-set bearing. If the subject is a woman: loose beach-wave hair, white wide-leg linen trousers and a Breton navy-and-white stripe relaxed shirt tied at the waist, oversized tortoiseshell cat-eye sunglasses, a rattan tote bag over the shoulder.',
+    'full body Mediterranean lifestyle portrait, subject seated on ancient stone steps in a narrow Cinque Terre laneway, looking off toward the shimmering sea at the bottom of the lane, warm afternoon sun casting long shadows across worn stone, Kodachrome pastels, graceful full body frame with colourful village visible behind. If the subject is a man: tousled dry hair, a pale-blue or white short-sleeve linen shirt half-unbuttoned and tailored cream linen shorts or trousers, espadrille loafers, a relaxed easy posture. If the subject is a woman: loose tousled hair with a silk scarf tied loosely at the neck, a flowing sage-green halterneck maxi dress with gentle movement, espadrille wedge sandals, a small leather crossbody bag.',
+    'full body Riviera editorial, subject standing at the prow of a classic wooden sailboat on open Mediterranean water, hair blowing back in sea wind, gaze directed off across the water with complete relaxed confidence, deep azure sea and cloudless blue sky, bright saturated Mediterranean light, Slim Aarons yacht aesthetic, Kodachrome colour quality, full body breathing room. If the subject is a man: wide-leg white linen trousers and a crisp open white linen shirt unbuttoned over a tanned chest, sleeves rolled, a straw Panama hat held in one hand, deck shoes. If the subject is a woman: wide-leg white linen palazzo trousers and a yellow halter top, a large straw hat held in one hand.',
+    'full body Riviera cafe portrait, subject seated sideways on a cafe chair at a grand white hotel terrace overlooking the sea, gaze directed lazily off toward the horizon not acknowledging camera, warm dappled light through palm fronds, Cannes Film Festival elegance meets everyday leisure, Kodachrome warm film tones, full body candid frame. If the subject is a man: sun-kissed hair, a navy-and-cream Breton stripe knit polo or linen shirt and tailored cream trousers, a café au lait on the table beside woven-leather loafers, an easy reclined posture. If the subject is a woman: loose sun-kissed beach waves, a navy-and-cream Breton stripe wrap dress belted at the waist, wedge espadrilles, a small rattan clutch on the table beside a café au lait.'
   ],
   bohemian: [
-    'full body bohemian portrait, subject standing in golden hour meadow with knee-high wildflowers and grasses, long wild wavy hair blowing loose in the wind with tiny wildflowers woven through, wearing a flowing tiered maxi dress in warm terracotta and rust paisley print with wide bell sleeves, leather wrap sandals, layered amber bead necklaces and turquoise rings, gaze lifted to the horizon with eyes slightly closed, warm Kodachrome 1970s film tones, sun flare from low golden sun behind, Woodstock summer of love aesthetic, full head-to-toe breathing room',
-    'full body 1970s bohemian editorial, subject mid-stride through a sun-drenched red rock canyon trail, long loose wavy hair in a thin fabric headband, wearing ultra-wide high-waisted flared trousers in dusty rust with a flowing open kimono-style jacket in floral embroidered silk, leather fringe crossbody bag, stacked wooden platform sandals, looking back over shoulder with a free easy smile, warm amber desert light, Laurel Canyon singer-songwriter aesthetic, Kodachrome warm grain, full body trail landscape frame',
-    'full body festival bohemian portrait, subject arms raised dancing freely in a sun-soaked field of white wildflowers, long wild curly hair loose with a woven flower crown, wearing a wide-sleeved burnt orange printed peasant dress with folk embroidery and a leather belt, bare feet in grass, face lifted toward sky mid-laugh completely lost in the moment, golden late afternoon light flooding the frame, warm analogue film quality, 1971 Glastonbury energy, full body joyful frame',
-    'full body bohemian lifestyle portrait, subject seated cross-legged on a woven Moroccan rug, long hair loosely braided with gold thread woven through, wearing wide palazzo trousers in rich jewel-toned ikat print and a loose off-shoulder embroidered top in cream cotton, stacked silver and turquoise bangles, warm candlelight and lantern glow casting amber patterns on tiled riad walls, holding a vintage teacup looking down with quiet contemplative expression, Marrakech bohemian interior aesthetic, warm film tones, full body intimate frame'
+    'full body bohemian portrait, subject standing in golden hour meadow with knee-high wildflowers and grasses, gaze lifted to the horizon, warm Kodachrome 1970s film tones, sun flare from low golden sun behind, Woodstock summer of love aesthetic, full head-to-toe breathing room. If the subject is a man: shoulder-length tousled hair with a thin leather or beaded headband, an open embroidered suede or denim waistcoat over a loose linen shirt with rolled sleeves, flared corduroy or denim trousers, layered leather-and-bead necklaces, leather boots, an easy free-spirited stance. If the subject is a woman: long wild wavy hair blowing loose with tiny wildflowers woven through, a flowing tiered maxi dress in warm terracotta and rust paisley print with wide bell sleeves, leather wrap sandals, layered amber bead necklaces and turquoise rings.',
+    'full body 1970s bohemian editorial, subject mid-stride through a sun-drenched red rock canyon trail, looking back over shoulder with a free easy smile, warm amber desert light, Laurel Canyon singer-songwriter aesthetic, Kodachrome warm grain, full body trail landscape frame. If the subject is a man: longish loose hair, an open floral or paisley shirt over a tan suede fringed jacket, wide flared jeans, a leather guitar strap or fringe satchel across the body, suede boots. If the subject is a woman: long loose wavy hair in a thin fabric headband, ultra-wide high-waisted flared trousers in dusty rust with a flowing open kimono-style jacket in floral embroidered silk, a leather fringe crossbody bag, stacked wooden platform sandals.',
+    'full body festival bohemian portrait, subject in a sun-soaked field of white wildflowers, face lifted toward sky mid-laugh completely lost in the moment, golden late afternoon light flooding the frame, warm analogue film quality, 1971 Glastonbury energy, full body joyful frame. If the subject is a man: arms loose at sides with an easy grin, tousled hair with a bandana headband, an open loose-weave shirt and a beaded necklace, flared trousers, bare feet or leather sandals. If the subject is a woman: arms raised dancing freely, long wild curly hair loose with a woven flower crown, a wide-sleeved burnt orange printed peasant dress with folk embroidery and a leather belt, bare feet in grass.',
+    'full body bohemian lifestyle portrait, subject seated cross-legged on a woven Moroccan rug, holding a vintage teacup looking down with a quiet contemplative expression, warm candlelight and lantern glow casting amber patterns on tiled riad walls, Marrakech bohemian interior aesthetic, warm film tones, full body intimate frame. If the subject is a man: longish hair loosely tied back, an open embroidered tunic or kaftan-style shirt over loose linen trousers, a layered bead necklace and leather cuff, relaxed grounded posture. If the subject is a woman: long hair loosely braided with gold thread woven through, wide palazzo trousers in rich jewel-toned ikat print and a loose off-shoulder embroidered cream cotton top, stacked silver and turquoise bangles.'
   ],
   sovereign: [
-    'full body royal portrait, subject standing in a vast gothic throne room before a towering crimson velvet throne on raised steps, elaborate updo with voluminous curls and an ornate gold crown set with rubies and emeralds, wearing a floor-length deep crimson velvet gown with heavy gold embroidery across the bodice, ermine-trimmed long cape, multi-strand pearl and ruby necklace, chandelier earrings, posture commanding and perfectly upright, gaze forward with absolute untouchable authority, warm Rembrandt chiaroscuro from tall lancet windows, Van Dyck royal portraiture oil painting quality, full head-to-toe sovereign frame',
-    'full body regal portrait, subject seated in a gilded baroque throne of deep purple velvet in a soaring palace hall with white and gold Corinthian columns, voluminous curled hair crowned with an intricate gold filigree crown set with sapphires, wearing a structured Tudor-style forest green velvet court gown with gold brocade panels and lace cuffs, jewelled choker and long pendant earrings, hands folded in lap, gaze directed just past the viewer with serene ancient authority, warm chandelier light from above, Old Masters portrait texture, commanding cinematic full body frame',
-    'full body sovereign portrait, subject standing at the top of a sweeping marble palace staircase, elaborate updo pinned with gold ornaments and a jewelled crown, wearing a dramatic full-length gold and burgundy brocade damask ceremonial gown with fur-trimmed collar and long embroidered train pooling on the steps behind, heavy jewelled statement necklace and chandelier earrings, one hand resting on marble balustrade with quiet authority, gaze forward with absolute regal composure, warm candlelight and chandelier glow from gilded ceiling above, Renaissance court aesthetic, Holbein portraiture quality, full cinematic royal frame',
-    'full body royal editorial portrait, subject standing before an arched palace window with formal baroque gardens visible behind, centre-parted hair in a structured updo with an ornate gold crown, wearing a floor-length off-shoulder burgundy velvet court gown with gold embroidered bodice set with rubies and sapphires, heavy gold statement necklace layered with pearls, long white lace gloves, posture perfectly erect chin lifted, gaze directed just off-camera with centuries of quiet power, dramatic single overhead light sculpting strong regal features, Van Dyck and Velazquez court portrait quality, full body commanding frame'
+    'full body royal portrait, subject standing in a vast gothic throne room before a towering crimson velvet throne on raised steps, posture commanding and perfectly upright, gaze forward with absolute untouchable authority, warm Rembrandt chiaroscuro from tall lancet windows, Van Dyck royal portraiture oil painting quality, full head-to-toe sovereign frame. If the subject is a man: an ornate gold crown, a richly embroidered crimson and gold doublet with a fur-lined ermine cape across the shoulders, a heavy gold chain-of-office, ceremonial gloves, a commanding kingly bearing. If the subject is a woman: an elaborate updo with voluminous curls and an ornate gold crown set with rubies and emeralds, a floor-length deep crimson velvet gown with heavy gold embroidery across the bodice, an ermine-trimmed long cape, a multi-strand pearl and ruby necklace, chandelier earrings.',
+    'full body regal portrait, subject seated in a gilded baroque throne of deep purple velvet in a soaring palace hall with white and gold Corinthian columns, hands composed, gaze directed just past the viewer with serene ancient authority, warm chandelier light from above, Old Masters portrait texture, commanding cinematic full body frame. If the subject is a man: a forest-green and gold brocade royal coat with a high embroidered collar and gold frogging, a jewelled order-sash across the chest, a gold signet ring, a regal upright bearing. If the subject is a woman: voluminous curled hair crowned with an intricate gold filigree crown set with sapphires, a structured Tudor-style forest green velvet court gown with gold brocade panels and lace cuffs, a jewelled choker and long pendant earrings.',
+    'full body sovereign portrait, subject standing at the top of a sweeping marble palace staircase, one hand resting on the marble balustrade with quiet authority, gaze forward with absolute regal composure, warm candlelight and chandelier glow from a gilded ceiling above, Renaissance court aesthetic, Holbein portraiture quality, full cinematic royal frame. If the subject is a man: a jewelled crown or coronet, a full-length gold and burgundy brocade ceremonial robe with a fur-trimmed collar and a long embroidered train, a heavy medallion of state, a commanding stance. If the subject is a woman: an elaborate updo pinned with gold ornaments and a jewelled crown, a dramatic full-length gold and burgundy brocade damask ceremonial gown with a fur-trimmed collar and long embroidered train pooling on the steps behind, a heavy jewelled statement necklace and chandelier earrings.',
+    'full body royal editorial portrait, subject standing before an arched palace window with formal baroque gardens visible behind, posture perfectly erect with chin lifted, gaze directed just off-camera with centuries of quiet power, dramatic single overhead light sculpting strong regal features, Van Dyck and Velazquez court portrait quality, full body commanding frame. If the subject is a man: neatly groomed hair with an ornate gold crown, a burgundy velvet doublet with gold-embroidered panels set with rubies and sapphires, a layered gold chain and pendant, white ceremonial gloves. If the subject is a woman: centre-parted hair in a structured updo with an ornate gold crown, a floor-length off-shoulder burgundy velvet court gown with a gold embroidered bodice set with rubies and sapphires, a heavy gold statement necklace layered with pearls, long white lace gloves.'
   ],
 
   'old-money': [
@@ -1810,7 +1838,7 @@ const styleDescriptions = {
     'full body portrait of subject in 1970s St Moritz alpine luxury, wearing an oversized vintage fur coat in rich brown or cream, large tinted aviator sunglasses, colour-blocked ski knit underneath in mustard yellow and white, reclining on a wooden sun lounger on a chalet terrace with snow-covered Alps rising behind, crystal champagne glasses on a small wooden table beside them, heavy saturated Kodachrome film grain with vintage 1970s analogue texture, Slim Aarons jet-set photography aesthetic, golden alpine sun, warm and effortlessly glamorous',
     'full body subject posed leaning against a vintage Porsche 911 in midnight blue, snowy St Moritz chalet village in background, a cream fur-trimmed coat draped over a white turtleneck knit and tailored wide-leg ivory trousers, tortoiseshell sunglasses, diamond ring catching the light, fresh snow on the road, crisp mountain air atmosphere, heavy saturated Kodachrome 1970s colour palette with pronounced vintage film grain, Slim Aarons leisure photography quality',
     'portrait of subject seated inside a St Moritz chalet interior, roaring stone fireplace behind them, wearing a luxurious cream shearling coat, layers of gold chains and diamonds at the neck, glass of red wine in hand, warm amber firelight, vintage hunting trophies and ski equipment on timber walls, 1970s jet-set social scene energy, heavy Kodachrome film grain with rich vintage analogue texture, atmospheric and intimate',
-    'subject stepping off a vintage St Moritz mountain railway train into falling snow, wearing a dramatic floor-length red dress with deep plunging neckline and a voluminous fur hat, layered pearl and gold necklaces, oversized dark sunglasses, snow falling softly around them, crowd of similarly glamorous figures blurred behind, heavy saturated 1970s Kodachrome colour with pronounced vintage film grain, editorial fashion meets documentary photography energy',
+    'subject stepping off a vintage St Moritz mountain railway train into falling snow, oversized dark sunglasses, snow falling softly around them, crowd of similarly glamorous figures blurred behind, heavy saturated 1970s Kodachrome colour with pronounced vintage film grain, editorial fashion meets documentary photography energy. If the subject is a man: a tailored camel or charcoal wool overcoat over a roll-neck knit, a fur-trimmed collar, leather gloves, a confident jet-set bearing. If the subject is a woman: a dramatic floor-length red dress with a deep plunging neckline and a voluminous fur hat, layered pearl and gold necklaces.',
     'full-body portrait of the subject seated deep in a deep green velvet wingback chair with brass nail-head trim inside a St Moritz alpine chalet, direct unbothered gaze toward the camera with a slight knowing smile at just the corner of the mouth, wearing a sharp tailored ivory suit with wide lapels and open collar with no tie, a chunky gold watch and multiple strands of gold chains catching the firelight, holding a crystal glass of deep red wine loosely in one hand, behind them a monumental stone fireplace roaring with amber flames casting dramatic raking light across timber-panelled walls lined with vintage hunting trophies and antique ski equipment, a surrounding cast of well-dressed companions in fur coats and tailored suits visible but slightly out of focus in the background with nobody looking at the camera except the subject, camera angle elevated and shot from above at approximately 30 degrees with the subject looking up slightly toward the lens, Kodachrome film grain and rich analogue texture, 1970s jet-set atmosphere, intimate and atmospheric, natural skin texture with visible pores and grainy film quality, 60mm lens, warm colour grading, subject occupies roughly 65% of frame with the ambient room visible, mood of the weekend after the season ended and nobody went home'
   ],
 
@@ -1850,7 +1878,7 @@ let lockedThemes = [];
 async function loadModels(userId) {
   if (!userId) return;
   try {
-    const res = await fetch('/api/models', {
+    const res = await authedFetch('/api/models', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId })
@@ -1950,7 +1978,7 @@ document.getElementById('accessCodeBtn').addEventListener('click', async () => {
   msg.className = 'access-code-msg';
 
   try {
-    const res = await fetch('/api/redeem-access-code', {
+    const res = await authedFetch('/api/redeem-access-code', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: currentUser.id, code })
@@ -2161,7 +2189,7 @@ SKIN: always include: natural skin texture, visible pores, subtle skin imperfect
 
 CLOTHING: This rule depends on the style being generated.
 
-For styles where the outfit must match the theme (acotar, cyberpunk, sci-fi, athlete, warhol, anime, painterly, cinematic, glamour, cover, campaign, bohemian, riviera, sovereign, st-moritz, old-money, dark-academia, western, samurai, cyborg): COMPLETELY IGNORE what the subject is wearing in the photo AND completely ignore their actual hair length or style. Do not describe their actual clothing or hair at all. Instead invent theme-appropriate wardrobe AND hair from scratch: campaign = bold high-fashion editorial styling — follow the specific gender-matched wardrobe given in the style description above (men get sharp menswear tailoring; women get the specified feminine looks with skirts, separates, colour-combinations and bags as described), modern groomed hair, confident editorial pose, NO logos or brand names. bohemian = long loose wild wavy hair, flowing maxi dress or wide flared trousers with peasant blouse, layered beaded jewellery, barefoot or espadrilles; riviera = loose beach waves or silk scarf over hair, white linen wide-leg trousers or flowing maxi dress, Breton stripe shirt, straw tote bag, tortoiseshell sunglasses; sovereign = elaborate updo or voluminous curls with ornate gold crown, floor-length velvet or brocade gown in crimson/forest green/gold with ermine trim, heavy jewelled necklace and chandelier earrings; old-money = understated quiet-luxury heritage tailoring, gender-aware: IF THE SUBJECT IS A MAN — neatly groomed short hair; soft-shouldered tailoring in taupe, camel, olive, grey, brown, navy or a burgundy blazer; a crisp white, cream, lake-blue or pale-blue shirt (open collar or fine knit polo), optional cashmere turtleneck or cable knit; pleated trousers in grey, cream, brown or navy; brown leather loafers or riding boots; a gold or silver heirloom watch; optional tortoiseshell sunglasses; NO handbag, NO skirt, NO pearl earrings. IF THE SUBJECT IS A WOMAN — sleek low bun, neat ponytail or silk headscarf; elegant separates in beige, cream, tan, navy, grey, soft blush-pink, oxblood or a navy-and-yellow or navy-and-white pairing; a navy polo with white collar, navy-and-white striped shirt, light-blue button-down, fine knit top or cashmere turtleneck; white wide-leg trousers or a pleated midi skirt; a woven or textured leather belt in tan or black; pearl earrings; tortoiseshell sunglasses; a structured leather top-handle bag; leather loafers or riding boots. Both: muted refined heritage palette broadened with olive/burgundy/lake-blue/navy-yellow/grey-blush accents, NO logos, monograms or brand names anywhere. dark-academia = tweed or herringbone blazer, argyle or cable-knit sweater vest over a white collared shirt, a burgundy or rust necktie, pleated wool trousers or a pleated plaid skirt with knee-high socks, leather brogues or oxfords, round wire-frame spectacles, a beret or flat cap, a structured leather satchel, in a deep brown / oxblood / forest-green / charcoal palette — scholarly and moody, NO logos or brand names. western = denim trucker jacket or western shirt (denim or plaid flannel), optional suede fringed leather chaps over faded jeans, a tooled leather belt with a large ornate metal buckle, a felt or straw cowboy hat, a knotted bandana wild rag, leather work gloves, pointed cowboy boots; rugged warm earth-toned palette, authentic working-ranch styling, NO logos or brand names. For acotar: Illyrian battle leathers. For athlete: performance athletic kit. For warhol: simple plain top so the graphic treatment dominates. For cyborg: the subject must be visibly transformed into part-machine — fuse mechanical augmentation directly onto the face, head, neck or body (chrome or gold plating integrated into the skin, exposed mechanical vertebrae and cabling in the neck, circuit-trace lines across the face, a glowing optical or jaw implant, an ornate mechanical crown-frame fused to the skull). The human face stays recognisable but the body is half-machine. This is NOT a human wearing a robot costume or standing near a robot — the machinery is part of their body. For pets: describe the animal species and markings only — do not describe human features or clothing. If a King or Queen styling is specified below, dress the portrait in the corresponding kingly or queenly regalia described there.
+For styles where the outfit must match the theme (acotar, cyberpunk, sci-fi, athlete, warhol, anime, painterly, cinematic, glamour, cover, campaign, bohemian, riviera, sovereign, st-moritz, old-money, dark-academia, western, samurai, cyborg): COMPLETELY IGNORE what the subject is wearing in the photo AND completely ignore their actual hair length or style. Do not describe their actual clothing or hair at all. Instead invent theme-appropriate wardrobe AND hair from scratch: campaign = bold high-fashion editorial styling — follow the specific gender-matched wardrobe given in the style description above (men get sharp menswear tailoring; women get the specified feminine looks with skirts, separates, colour-combinations and bags as described), modern groomed hair, confident editorial pose, NO logos or brand names. bohemian = flowing layered boho styling with natural loose hair, earthy embroidered fabrics and beads (IF THE SUBJECT IS A MAN: an open embroidered waistcoat or kimono-style jacket over a loose linen shirt, flared corduroy or denim trousers, leather boots, layered bead necklaces — NO dress, NO skirt, NO maxi dress; IF THE SUBJECT IS A WOMAN: a flowing maxi dress or wide flared trousers with a peasant blouse, leather sandals, layered beaded jewellery); riviera = relaxed Mediterranean resort styling with sea-breeze hair, tortoiseshell sunglasses (IF THE SUBJECT IS A MAN: white or cream wide-leg linen trousers and an open-collar linen or Cuban camp shirt, sleeves rolled, leather loafers — NO dress, NO maxi dress, NO halter top; IF THE SUBJECT IS A WOMAN: white linen wide-leg trousers with a Breton stripe shirt, or a flowing maxi dress, a straw tote bag); sovereign = full royal court regalia with a crown or coronet (IF THE SUBJECT IS A MAN: an embroidered crimson-and-gold doublet or royal coat with a fur-lined ermine cape, a heavy gold chain-of-office, ceremonial gloves — NO gown, NO chandelier earrings; IF THE SUBJECT IS A WOMAN: a floor-length velvet or brocade gown in crimson/forest green/gold with ermine trim, a heavy jewelled necklace and chandelier earrings, an elaborate updo); old-money = understated quiet-luxury heritage tailoring, gender-aware: IF THE SUBJECT IS A MAN — neatly groomed short hair; soft-shouldered tailoring in taupe, camel, olive, grey, brown, navy or a burgundy blazer; a crisp white, cream, lake-blue or pale-blue shirt (open collar or fine knit polo), optional cashmere turtleneck or cable knit; pleated trousers in grey, cream, brown or navy; brown leather loafers or riding boots; a gold or silver heirloom watch; optional tortoiseshell sunglasses; NO handbag, NO skirt, NO pearl earrings. IF THE SUBJECT IS A WOMAN — sleek low bun, neat ponytail or silk headscarf; elegant separates in beige, cream, tan, navy, grey, soft blush-pink, oxblood or a navy-and-yellow or navy-and-white pairing; a navy polo with white collar, navy-and-white striped shirt, light-blue button-down, fine knit top or cashmere turtleneck; white wide-leg trousers or a pleated midi skirt; a woven or textured leather belt in tan or black; pearl earrings; tortoiseshell sunglasses; a structured leather top-handle bag; leather loafers or riding boots. Both: muted refined heritage palette broadened with olive/burgundy/lake-blue/navy-yellow/grey-blush accents, NO logos, monograms or brand names anywhere. dark-academia = tweed or herringbone blazer, argyle or cable-knit sweater vest over a white collared shirt, a burgundy or rust necktie, pleated wool trousers or a pleated plaid skirt with knee-high socks, leather brogues or oxfords, round wire-frame spectacles, a beret or flat cap, a structured leather satchel, in a deep brown / oxblood / forest-green / charcoal palette — scholarly and moody, NO logos or brand names. western = denim trucker jacket or western shirt (denim or plaid flannel), optional suede fringed leather chaps over faded jeans, a tooled leather belt with a large ornate metal buckle, a felt or straw cowboy hat, a knotted bandana wild rag, leather work gloves, pointed cowboy boots; rugged warm earth-toned palette, authentic working-ranch styling, NO logos or brand names. For acotar: Illyrian battle leathers. For athlete: performance athletic kit. For warhol: simple plain top so the graphic treatment dominates. For cyborg: the subject must be visibly transformed into part-machine — fuse mechanical augmentation directly onto the face, head, neck or body (chrome or gold plating integrated into the skin, exposed mechanical vertebrae and cabling in the neck, circuit-trace lines across the face, a glowing optical or jaw implant, an ornate mechanical crown-frame fused to the skull). The human face stays recognisable but the body is half-machine. This is NOT a human wearing a robot costume or standing near a robot — the machinery is part of their body. For pets: describe the animal species and markings only — do not describe human features or clothing. If a King or Queen styling is specified below, dress the portrait in the corresponding kingly or queenly regalia described there.
 
 For all other styles: Describe the style, cut, colour and fabric of clothing only. NEVER reproduce any text, logos, brand names or graphic prints. Replace branded items with generic equivalents (e.g. "oversized cream cotton sweatshirt" not "Country Road sweatshirt"). The generated image should never contain text or branding on clothing.`
   + (selectedStyle === 'pets' && petGender
@@ -2173,7 +2201,7 @@ For all other styles: Describe the style, cut, colour and fabric of clothing onl
   // Retry up to 3 times on overload (529) or server error (500)
   const fetchWithRetry = async (retries = 3, delay = 2000) => {
     for (let i = 0; i < retries; i++) {
-      const response = await fetch('/api/generate', {
+      const response = await authedFetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -2324,7 +2352,7 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
 
     let response;
     {
-      response = await fetch('/api/image', {
+      response = await authedFetch('/api/image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -2375,11 +2403,10 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
 
     // Deduct credit + save generation via server API (bypasses RLS)
     if (currentUser) {
-      fetch('/api/generate-complete', {
+      authedFetch('/api/generate-complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: currentUser.id,
           imageUrl: imageUrl,
           style: selectedStyle,
           prompt: generatedPrompt,
@@ -2566,7 +2593,7 @@ function showAnimateSection(imageUrl) {
 async function pollKlingJob(requestId, maxAttempts = 60, intervalMs = 5000) {
   for (let i = 0; i < maxAttempts; i++) {
     await new Promise(r => setTimeout(r, intervalMs));
-    const res = await fetch('/api/animate-poll', {
+    const res = await authedFetch('/api/animate-poll', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ requestId, userId: currentUser?.id })
@@ -2581,7 +2608,7 @@ async function pollKlingJob(requestId, maxAttempts = 60, intervalMs = 5000) {
   }
   // Timeout — refund via separate call
   try {
-    await fetch('/api/animate-poll', {
+    await authedFetch('/api/animate-poll', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ requestId, userId: currentUser?.id, refundOnly: true })
@@ -2604,7 +2631,7 @@ document.getElementById('animateBtn').addEventListener('click', async () => {
   document.getElementById('videoResult').classList.remove('visible');
 
   try {
-    const res = await fetch('/api/animate', {
+    const res = await authedFetch('/api/animate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

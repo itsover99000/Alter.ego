@@ -1,19 +1,18 @@
-import { createClient } from '@supabase/supabase-js';
+import { applyCors, requireUser } from '../lib/auth.js';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  applyCors(req, res);
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { userId, code } = req.body;
-  if (!userId || !code) return res.status(400).json({ error: 'Missing userId or code' });
+  // The code gets redeemed onto the SIGNED-IN user, taken from the JWT — so a
+  // caller can't redeem a limited-use code onto an arbitrary account.
+  const auth = await requireUser(req, res);
+  if (!auth) return;
+  const { userId, supabase } = auth;
 
-  const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_KEY
-  );
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: 'Missing code' });
 
   // Look up the access code
   const { data: accessCode } = await supabase

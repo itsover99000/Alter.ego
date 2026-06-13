@@ -1,12 +1,20 @@
 import { createClient } from '@supabase/supabase-js';
+import { applyCors, requireUser } from '../lib/auth.js';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  applyCors(req, res);
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  // ── AUTH ────────────────────────────────────────────────────────────────
+  // userId now comes from the verified JWT, NOT the body. This closes the
+  // biggest hole: previously a request with no userId skipped the whole credit
+  // block (`if (userId)`) yet still ran the paid fal generation — free images
+  // on our bill. With a required, trusted userId the credit path always runs.
+  const auth = await requireUser(req, res);
+  if (!auth) return;
+  const authedUserId = auth.userId;
 
   const falKey = process.env.FAL_API_KEY;
   if (!falKey) return res.status(500).json({ error: { message: 'Fal API key not configured' } });
@@ -37,7 +45,9 @@ export default async function handler(req, res) {
   };
 
   try {
-    const { prompt, imageBase64, mediaType, style, userId, selectedModel, petGender } = req.body;
+    const { prompt, imageBase64, mediaType, style, selectedModel, petGender } = req.body;
+    // Identity is the verified JWT's user, never the request body.
+    const userId = authedUserId;
 
     // ── THEME TIER ENFORCEMENT ────────────────────────────────────────
     const THEME_TIERS = {
