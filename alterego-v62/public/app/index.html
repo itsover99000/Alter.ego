@@ -1274,11 +1274,23 @@ async function getAccessToken(maxWaitMs = 1500) {
   }
 }
 
-async function authedFetch(url, options = {}) {
+async function authedFetch(url, options = {}, _retried) {
   const token = await getAccessToken();
   const headers = Object.assign({}, options.headers || {});
   if (token) headers['Authorization'] = `Bearer ${token}`;
-  return fetch(url, Object.assign({}, options, { headers }));
+  const res = await fetch(url, Object.assign({}, options, { headers }));
+
+  // v135: the cached session can carry an EXPIRED access_token (e.g. opening the
+  // app fresh from an email link in a browser that hasn't been used in a while).
+  // getSession() hands back that stale token, so the request 401s even though the
+  // UI looks signed in. On a 401, force a token refresh and retry once. This is
+  // what was actually breaking "0 credits / empty gallery from the email link" —
+  // not a not-ready-yet token (that was the v134 guess).
+  if (res.status === 401 && !_retried) {
+    try { await sb.auth.refreshSession(); } catch (e) { /* refresh token may be dead */ }
+    return authedFetch(url, options, true);
+  }
+  return res;
 }
 
 // Init auth state
@@ -1347,8 +1359,16 @@ async function initAuth() {
         // Only show auth gate if not waiting for PKCE code exchange
         showAuthGate();
       }
+    } else if (event === 'TOKEN_REFRESHED') {
+      // v135: when the cached token was stale, Supabase auto-refreshes shortly
+      // after load and fires this. Re-pull profile + gallery so a first fetch that
+      // 401'd on the stale token gets corrected (no more lingering 0 credits).
+      if (session?.user && currentUser) {
+        loadProfile();
+        loadGenerations();
+      }
     }
-    // Deliberately ignore: TOKEN_REFRESHED, USER_UPDATED
+    // Deliberately ignore: USER_UPDATED
   });
 
   // Also check existing session for non-OAuth returns
@@ -1388,20 +1408,17 @@ async function onSignedIn(user) {
     const msw = document.getElementById('modelSelectorWrap');
     if (msw) msw.classList.add('visible');
 
-  // Welcome email — fire once, now authenticated. The server forces the
-  // recipient to the signed-in user's own verified address. A localStorage
-  // guard keeps it to one send per device (worst case: a returning user on a
-  // brand-new device gets one extra welcome — harmless).
-  try {
-    if (!localStorage.getItem('ae_welcomed')) {
-      localStorage.setItem('ae_welcomed', '1');
-      authedFetch('/api/email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'welcome' })
-      }).catch(e => console.error('Welcome email failed:', e));
-    }
-  } catch (e) { /* localStorage unavailable — skip */ }
+  // Welcome email — the SERVER decides whether to actually send it, using a
+  // per-account `welcomed_at` claim (see /api/email). So we can safely request it
+  // on every sign-in: a returning user's request is a no-op server-side, and only
+  // a genuinely new account (welcomed_at still null) ever receives one. No
+  // per-device localStorage guard — that was what mis-welcomed existing users on
+  // new browsers.
+  authedFetch('/api/email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: 'welcome' })
+  }).catch(e => console.error('Welcome email request failed:', e));
 }
 
 function onSignedOut() {
@@ -1412,19 +1429,13 @@ function onSignedOut() {
   const grid = document.getElementById('genGrid'); if(grid) grid.innerHTML = '';
 }
 
-async function loadProfile(_retry) {
+async function loadProfile() {
   try {
     const res = await authedFetch('/api/user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'profile' })
     });
-    // If the session attached a beat late and we still got 401, wait and retry
-    // once before giving up — prevents a stale 0-credit render.
-    if (res.status === 401 && !_retry) {
-      await new Promise(r => setTimeout(r, 600));
-      return loadProfile(true);
-    }
     const data = await res.json();
     if (data.credits !== undefined) {
       document.getElementById('creditCount').textContent = data.credits ?? 0;
@@ -1434,17 +1445,13 @@ async function loadProfile(_retry) {
   }
 }
 
-async function loadGenerations(_retry) {
+async function loadGenerations() {
   try {
     const res = await authedFetch('/api/user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'generations' })
     });
-    if (res.status === 401 && !_retry) {
-      await new Promise(r => setTimeout(r, 600));
-      return loadGenerations(true);
-    }
     const data = await res.json();
     const gens = data.generations;
     if (gens && gens.length > 0) {

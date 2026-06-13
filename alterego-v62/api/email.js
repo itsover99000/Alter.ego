@@ -10,6 +10,7 @@
 // from right-after-signUp (no session yet) to first sign-in (see app onSignedIn).
 
 import { applyCors, requireUser } from '../lib/auth.js';
+import { createClient } from '@supabase/supabase-js';
 
 const ALLOWED_TYPES = new Set(['welcome', 'purchase_confirmation', 'password_reset']);
 
@@ -33,6 +34,35 @@ export default async function handler(req, res) {
   }
   if (!to) {
     return res.status(400).json({ error: 'No verified email on account' });
+  }
+
+  // ── WELCOME GATE (v135b) ───────────────────────────────────────────────────
+  // The welcome email must reach a genuinely NEW account exactly once — never a
+  // returning user, on any device. The old client-side localStorage guard was
+  // per-device, so existing users got "welcomed" again on a new browser/phone.
+  // The reliable signal is the account itself: a `welcomed_at` column on
+  // profiles. We atomically claim it (set welcomed_at only if currently null) and
+  // only send if THIS request won the claim. Per-account, race-proof, no resends.
+  if (type === 'welcome') {
+    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+    // Conditional update: stamp welcomed_at only when it's still null, and only
+    // return a row if we were the one who set it.
+    const { data: claimed, error: claimErr } = await supabase
+      .from('profiles')
+      .update({ welcomed_at: new Date().toISOString() })
+      .eq('id', auth.userId)
+      .is('welcomed_at', null)
+      .select('id');
+
+    if (claimErr) {
+      // Don't hard-fail the sign-in flow over an email; just skip.
+      return res.status(200).json({ sent: false, reason: 'welcome claim error' });
+    }
+    if (!claimed || claimed.length === 0) {
+      // Already welcomed (or not a new account) — do nothing.
+      return res.status(200).json({ sent: false, reason: 'already welcomed' });
+    }
+    // Won the claim → fall through and actually send the welcome email.
   }
 
   const RESEND_API_KEY = process.env.RESEND_API_KEY;
