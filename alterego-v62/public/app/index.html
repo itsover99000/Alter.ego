@@ -1697,11 +1697,23 @@ document.addEventListener('DOMContentLoaded', () => {
   // Use longer timeout when returning from OAuth redirect (access_token in hash)
   const isOAuthReturn = new URLSearchParams(window.location.search).has('code');
   const fallbackTimer = setTimeout(() => {
+    // Watchdog: only force the auth gate if we're genuinely still stuck on the
+    // loader. v135b: this MUST be crash-proof and must NOT fire on a successful
+    // load. Previously it blind-accessed appLoader.style — but appLoader is
+    // removed from the DOM ~400ms after a successful sign-in, so a late-firing
+    // watchdog hit null.style and threw, killing all JS (0 credits, no gallery).
+    // Now: if the user is already signed in, or the main app is visible, do
+    // nothing; and every DOM access is null-guarded.
+    if (currentUser) return;
+    const mainApp = document.getElementById('mainApp');
+    if (mainApp && mainApp.style.display !== 'none' && mainApp.style.display !== '') return;
     console.warn('Auth timeout — forcing auth gate');
-    document.getElementById('appLoader').style.display = 'none';
-    document.getElementById('authGate').style.display = 'flex';
-    document.getElementById('mainApp').style.display = 'none';
-  }, isOAuthReturn ? 15000 : 5000);
+    const loaderEl = document.getElementById('appLoader');
+    if (loaderEl) loaderEl.style.display = 'none';
+    const gateEl = document.getElementById('authGate');
+    if (gateEl) gateEl.style.display = 'flex';
+    if (mainApp) mainApp.style.display = 'none';
+  }, isOAuthReturn ? 15000 : 8000);
 
   try {
     sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -1714,8 +1726,8 @@ document.addEventListener('DOMContentLoaded', () => {
   } catch(e) {
     console.error('Supabase init failed:', e);
     clearTimeout(fallbackTimer);
-    document.getElementById('appLoader').style.display = 'none';
-    document.getElementById('authGate').style.display = 'flex';
+    const loaderEl = document.getElementById('appLoader'); if (loaderEl) loaderEl.style.display = 'none';
+    const gateEl = document.getElementById('authGate'); if (gateEl) gateEl.style.display = 'flex';
     return;
   }
 
@@ -1731,8 +1743,8 @@ document.addEventListener('DOMContentLoaded', () => {
     .catch(e => {
       console.error('initAuth failed:', e);
       clearTimeout(fallbackTimer);
-      document.getElementById('appLoader').style.display = 'none';
-      document.getElementById('authGate').style.display = 'flex';
+      const loaderEl = document.getElementById('appLoader'); if (loaderEl) loaderEl.style.display = 'none';
+      const gateEl = document.getElementById('authGate'); if (gateEl) gateEl.style.display = 'flex';
     });
 });
 
