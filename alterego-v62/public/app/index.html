@@ -1256,12 +1256,26 @@ let currentUser = null;
 // Every /api call that touches a user's credits/profile/gallery goes through
 // this instead of bare fetch(). Body no longer needs to carry userId — the
 // server ignores it and uses the token's identity.
+// Resolve the current access token, briefly waiting for the Supabase session to
+// finish restoring from storage. Fixes the v134 race where the app, opened fresh
+// from an email link, called /api/* before the session was ready — sending no
+// token, getting 401, and rendering 0 credits / empty gallery until a manual
+// sign-out/in. Tries a few times over ~1.5s, then gives up (returns null).
+async function getAccessToken(maxWaitMs = 1500) {
+  const start = Date.now();
+  while (true) {
+    try {
+      const { data } = await sb.auth.getSession();
+      const token = data?.session?.access_token || null;
+      if (token) return token;
+    } catch (e) { /* not ready yet */ }
+    if (Date.now() - start >= maxWaitMs) return null;
+    await new Promise(r => setTimeout(r, 150));
+  }
+}
+
 async function authedFetch(url, options = {}) {
-  let token = null;
-  try {
-    const { data } = await sb.auth.getSession();
-    token = data?.session?.access_token || null;
-  } catch (e) { /* no session */ }
+  const token = await getAccessToken();
   const headers = Object.assign({}, options.headers || {});
   if (token) headers['Authorization'] = `Bearer ${token}`;
   return fetch(url, Object.assign({}, options, { headers }));
@@ -1398,13 +1412,19 @@ function onSignedOut() {
   const grid = document.getElementById('genGrid'); if(grid) grid.innerHTML = '';
 }
 
-async function loadProfile() {
+async function loadProfile(_retry) {
   try {
     const res = await authedFetch('/api/user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'profile' })
     });
+    // If the session attached a beat late and we still got 401, wait and retry
+    // once before giving up — prevents a stale 0-credit render.
+    if (res.status === 401 && !_retry) {
+      await new Promise(r => setTimeout(r, 600));
+      return loadProfile(true);
+    }
     const data = await res.json();
     if (data.credits !== undefined) {
       document.getElementById('creditCount').textContent = data.credits ?? 0;
@@ -1414,13 +1434,17 @@ async function loadProfile() {
   }
 }
 
-async function loadGenerations() {
+async function loadGenerations(_retry) {
   try {
     const res = await authedFetch('/api/user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'generations' })
     });
+    if (res.status === 401 && !_retry) {
+      await new Promise(r => setTimeout(r, 600));
+      return loadGenerations(true);
+    }
     const data = await res.json();
     const gens = data.generations;
     if (gens && gens.length > 0) {
