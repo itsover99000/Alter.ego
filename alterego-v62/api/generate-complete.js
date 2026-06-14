@@ -1,19 +1,23 @@
 import { applyCors, requireUser } from '../lib/auth.js';
 
 // ── /api/generate-complete ───────────────────────────────────────────────────
-// Records a finished generation in the gallery (generations table) and bumps
-// total_generations. It does NOT deduct credits — credit deduction happens
-// atomically, server-side, in /api/image BEFORE the fal call (see image.js and
-// DEPLOY_credit_race_fix.sql). Keeping deduction out of here is what makes the
-// deploy overlap safe: an old cached client that still calls this endpoint can
-// no longer double-charge, because this endpoint never touches credits.
+// Records a finished generation in the `generations` table and bumps
+// total_generations. Handles BOTH images and (v139) animated videos via the
+// `type` field:
+//   type 'image' (default) → a still from /api/image
+//   type 'video'           → a Kling animation; also stores source_image_url
+//                            (which still it was animated from)
 //
-// This endpoint is idempotent: if a row already exists for this user_id +
-// image_url it does nothing further, so being hit twice for the same image
-// yields exactly one gallery row and one total_generations increment.
+// It does NOT deduct credits — deduction happens atomically server-side in
+// /api/image (images) and /api/animate (videos) BEFORE the fal call. Keeping
+// deduction out of here makes deploy-overlap safe and keeps this endpoint a pure
+// recorder.
 //
-// v133: userId is now taken from the verified JWT, not the body, so a caller
-// can no longer write gallery rows onto someone else's account.
+// Idempotent: keyed on (user_id, image_url). Being hit twice for the same media
+// yields exactly one row and one total_generations increment.
+//
+// Folding video recording in here (rather than a new endpoint) keeps us at 11
+// Vercel functions — one slot still free under the 12 ceiling.
 
 export default async function handler(req, res) {
   applyCors(req, res);
@@ -24,12 +28,14 @@ export default async function handler(req, res) {
   if (!auth) return;
   const { userId, supabase } = auth;
 
-  const { imageUrl, style, prompt, selectedModel } = req.body;
+  const { imageUrl, style, prompt, selectedModel, type, sourceImageUrl } = req.body;
   if (!imageUrl) return res.status(400).json({ error: 'Missing imageUrl' });
 
-  const modelKey = selectedModel || 'flux-pulid';
+  const mediaType = type === 'video' ? 'video' : 'image';
+  const modelKey = selectedModel || (mediaType === 'video' ? 'kling-v3-pro' : 'flux-pulid');
 
   // ── IDEMPOTENCY GUARD ──────────────────────────────────────────────────────
+  // Keyed on the media URL (image_url holds the video URL for videos too).
   const { data: existing } = await supabase
     .from('generations')
     .select('id')
@@ -47,13 +53,18 @@ export default async function handler(req, res) {
   }
 
   // ── RECORD THE GENERATION ──────────────────────────────────────────────────
-  await supabase.from('generations').insert({
+  const row = {
     user_id: userId,
     image_url: imageUrl,
     style: style || '',
     prompt: prompt || '',
-    model: modelKey
-  });
+    model: modelKey,
+    type: mediaType,
+  };
+  if (mediaType === 'video' && sourceImageUrl) {
+    row.source_image_url = sourceImageUrl;
+  }
+  await supabase.from('generations').insert(row);
 
   // ── BUMP total_generations (credits are NOT touched here) ───────────────────
   const { data: profile } = await supabase
@@ -67,6 +78,7 @@ export default async function handler(req, res) {
 
   return res.status(200).json({
     credits: profile?.credits,
-    model: modelKey
+    model: modelKey,
+    type: mediaType
   });
 }

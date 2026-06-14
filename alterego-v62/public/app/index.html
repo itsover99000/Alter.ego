@@ -636,6 +636,25 @@
     font-family: 'DM Mono', monospace; font-size: 9px;
     letter-spacing: 0.06em; text-transform: uppercase; color: rgba(240,237,230,0.6);
   }
+  /* Load more button (v139) */
+  .load-more-btn {
+    display: block; width: 100%; margin-top: 10px; padding: 9px;
+    background: rgba(240,237,230,0.04); border: 0.5px solid rgba(240,237,230,0.12);
+    border-radius: 8px; color: rgba(240,237,230,0.6); cursor: pointer;
+    font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase; transition: background 0.2s;
+  }
+  .load-more-btn:hover { background: rgba(240,237,230,0.08); }
+  .load-more-btn:disabled { opacity: 0.4; cursor: default; }
+  /* Video thumbnail play badge (v139) */
+  .gen-thumb-play {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    z-index: 2; width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(10,10,10,0.55); backdrop-filter: blur(3px);
+    border: 0.5px solid rgba(200,240,90,0.5); color: #c8f05a;
+    display: flex; align-items: center; justify-content: center; font-size: 13px;
+    pointer-events: none;
+  }
 
 
   /* ── Model Selector ── */
@@ -1229,7 +1248,7 @@
     <div style="height:0.5px;background:rgba(240,237,230,0.07);margin:16px 0"></div>
     <div style="font-family:DM Mono,monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(240,237,230,0.35);margin-bottom:12px;display:flex;align-items:center;gap:8px">
       <span id="imageStatusDot" style="display:none;width:6px;height:6px;border-radius:50%;background:#c8f05a;animation:blink 1.2s ease-in-out infinite;flex-shrink:0"></span>
-      Generated Image
+      <span id="imageAreaLabel">Generated Image</span>
     </div>
     <div id="imageContainer" style="border-radius:10px;overflow:hidden;background:rgba(240,237,230,0.03);border:0.5px solid rgba(240,237,230,0.08);min-height:180px;display:flex;align-items:center;justify-content:center">
       <div id="imageLoading" style="font-family:DM Mono,monospace;font-size:11px;color:rgba(240,237,230,0.3);text-align:center;padding:40px 20px">
@@ -1253,6 +1272,14 @@
   <div class="gen-gallery" id="genGallery">
     <div class="gen-gallery-label">Recent Generations · tap to reuse or animate</div>
     <div class="gen-grid" id="genGrid"></div>
+    <button class="load-more-btn" id="loadMoreImages" style="display:none">Load more</button>
+  </div>
+
+  <!-- Animations gallery (v139) — videos render here, separate from stills -->
+  <div class="gen-gallery" id="vidGallery">
+    <div class="gen-gallery-label">Animations · tap to play</div>
+    <div class="gen-grid" id="vidGrid"></div>
+    <button class="load-more-btn" id="loadMoreVideos" style="display:none">Load more</button>
   </div>
 
 </div>
@@ -1438,12 +1465,16 @@ async function onSignedIn(user) {
 
   // Always load the user's data (idempotent, order-independent).
   loadProfile();
-  loadGenerations();
+  loadGenerations(true);
+  loadVideos(true);
 }
 
 function onSignedOut() {
   currentUser = null;
   window.__signedInSetupDone = false;
+  imagesOffset = 0; videosOffset = 0;
+  const vidGal = document.getElementById('vidGallery'); if(vidGal) vidGal.classList.remove('visible');
+  const vidGrid = document.getElementById('vidGrid'); if(vidGrid) vidGrid.innerHTML = '';
   const ub = document.getElementById('userBar'); if(ub) ub.classList.remove('visible');
   const cc = document.getElementById('creditCount'); if(cc) cc.textContent = '0';
   const gallery = document.getElementById('genGallery'); if(gallery) gallery.classList.remove('visible');
@@ -1466,28 +1497,87 @@ async function loadProfile() {
   }
 }
 
-async function loadGenerations() {
+// ── Image gallery (paged, 24 per page) ──────────────────────────────────────
+let imagesOffset = 0;
+async function loadGenerations(reset) {
   try {
+    if (reset) imagesOffset = 0;
     const res = await authedFetch('/api/user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'generations' })
+      body: JSON.stringify({ action: 'generations', mediaType: 'image', offset: imagesOffset })
     });
     const data = await res.json();
-    const gens = data.generations;
-    if (gens && gens.length > 0) {
-      const grid = document.getElementById('genGrid');
-      if (!grid) return;
-      grid.innerHTML = gens.map(g => `
+    const gens = data.generations || [];
+    const grid = document.getElementById('genGrid');
+    if (!grid) return;
+
+    const html = gens.map(g => `
         <div class="gen-thumb" onclick="reuseGeneration('${g.image_url}','${(g.style||'').replace(/'/g,"\'")}')">
           <img src="${g.image_url}" alt="${g.style || 'generation'}" loading="lazy">
           <div class="gen-thumb-animate">✦ Animate</div>
           <div class="gen-thumb-label">${g.style || '—'}</div>
         </div>
       `).join('');
+
+    if (imagesOffset === 0) grid.innerHTML = html; else grid.insertAdjacentHTML('beforeend', html);
+
+    if (gens.length > 0) {
       const gal = document.getElementById('genGallery'); if(gal) gal.classList.add('visible');
     }
+    imagesOffset += gens.length;
+    const moreBtn = document.getElementById('loadMoreImages');
+    if (moreBtn) moreBtn.style.display = data.hasMore ? 'block' : 'none';
   } catch(e) { console.error('loadGenerations error:', e); }
+}
+
+// ── Animations gallery (videos, paged, 24 per page) ─────────────────────────
+let videosOffset = 0;
+async function loadVideos(reset) {
+  try {
+    if (reset) videosOffset = 0;
+    const res = await authedFetch('/api/user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'generations', mediaType: 'video', offset: videosOffset })
+    });
+    const data = await res.json();
+    const vids = data.generations || [];
+    const grid = document.getElementById('vidGrid');
+    if (!grid) return;
+
+    const html = vids.map(v => {
+      const poster = v.source_image_url || '';
+      const inner = poster
+        ? `<img src="${poster}" alt="animation" loading="lazy">`
+        : `<video src="${v.image_url}" muted preload="metadata" style="width:100%;height:100%;object-fit:cover"></video>`;
+      return `
+        <div class="gen-thumb" onclick="playVideo('${v.image_url}')">
+          ${inner}
+          <div class="gen-thumb-play">▶</div>
+          <div class="gen-thumb-label">${v.style || 'animation'}</div>
+        </div>`;
+    }).join('');
+
+    if (videosOffset === 0) grid.innerHTML = html; else grid.insertAdjacentHTML('beforeend', html);
+
+    const gal = document.getElementById('vidGallery');
+    if (gal) gal.classList.toggle('visible', (videosOffset + vids.length) > 0);
+    videosOffset += vids.length;
+    const moreBtn = document.getElementById('loadMoreVideos');
+    if (moreBtn) moreBtn.style.display = data.hasMore ? 'block' : 'none';
+  } catch(e) { console.error('loadVideos error:', e); }
+}
+
+// Tap a stored animation → play it in the video result window.
+function playVideo(url) {
+  const player = document.getElementById('videoPlayer');
+  const result = document.getElementById('videoResult');
+  if (!player || !result) return;
+  player.src = url;
+  result.classList.add('visible');
+  result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  player.play();
 }
 
 function reuseGeneration(url, style) {
@@ -1504,12 +1594,17 @@ function reuseGeneration(url, style) {
   imageContainer.appendChild(img);
   document.getElementById('imageSaveRow').style.display = 'block';
 
+  // Confirmation: label the result window so the user knows THIS image is the one
+  // queued for animation (the only other cue was the prompt text changing).
+  const lbl = document.getElementById('imageAreaLabel');
+  if (lbl) lbl.textContent = '✦ Selected for animation' + (style ? ' · ' + style : '');
+
   // Make this gallery image usable in the video generator: wire it into the same
   // animate flow a fresh generation uses. Pass the image's OWN style so the motion
   // prompt is matched to it (not whatever style chip is currently selected).
   showAnimateSection(url, style);
 
-  // Scroll to the generated image so user sees it + save/animate
+  // Scroll the selected image clearly into view (mobile: it's above the gallery).
   document.getElementById('imageArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -2408,6 +2503,7 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
   imageError.style.display = 'none';
   imageSaveRow.style.display = 'none';
   imageStatusDot.style.display = 'inline-block';
+  const _lbl = document.getElementById('imageAreaLabel'); if (_lbl) _lbl.textContent = 'Generated Image';
 
   // Remove any existing image
   const existingImg = imageContainer.querySelector('img');
@@ -2487,7 +2583,7 @@ document.getElementById('generateImageBtn').addEventListener('click', async () =
         if (data.credits !== undefined) {
           document.getElementById('creditCount').textContent = data.credits;
         }
-        loadGenerations();
+        loadGenerations(true);
       }).catch(e => console.error('generate-complete error:', e));
     }
 
@@ -2741,6 +2837,16 @@ document.getElementById('animateBtn').addEventListener('click', async () => {
   }
 });
 
+// Load-more buttons (v139) — fetch the next page of 24 and append.
+document.getElementById('loadMoreImages')?.addEventListener('click', (e) => {
+  const b = e.currentTarget; b.disabled = true; b.textContent = 'Loading…';
+  loadGenerations(false).finally(() => { b.disabled = false; b.textContent = 'Load more'; });
+});
+document.getElementById('loadMoreVideos')?.addEventListener('click', (e) => {
+  const b = e.currentTarget; b.disabled = true; b.textContent = 'Loading…';
+  loadVideos(false).finally(() => { b.disabled = false; b.textContent = 'Load more'; });
+});
+
 async function showVideo(videoUrl) {
   const player = document.getElementById('videoPlayer');
   const dl = document.getElementById('videoDownload');
@@ -2748,6 +2854,23 @@ async function showVideo(videoUrl) {
   player.src = videoUrl;
   result.classList.add('visible');
   player.play();
+
+  // v139: persist the animation to the gallery (separate "Animations" section).
+  // Records via the extended /api/generate-complete (type:'video'), storing which
+  // still it came from. Fire-and-forget; then refresh the animations gallery.
+  try {
+    authedFetch('/api/generate-complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'video',
+        imageUrl: videoUrl,
+        sourceImageUrl: currentGeneratedImageUrl || '',
+        style: currentAnimateStyle || selectedStyle || '',
+        prompt: document.getElementById('animatePrompt')?.value || ''
+      })
+    }).then(() => { loadVideos(true); }).catch(e => console.error('save video failed:', e));
+  } catch (e) { console.error('save video error:', e); }
 
   // Fetch video as blob for proper download
   try {

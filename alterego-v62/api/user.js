@@ -33,14 +33,34 @@ export default async function handler(req, res) {
   }
 
   if (action === 'generations') {
-    const { data, error } = await supabase
+    // v139: supports media-type filtering ('image' | 'video') and offset paging
+    // for the gallery "Load more" (24 per page). Defaults preserve old behaviour.
+    const PAGE = 24;
+    const mediaType = req.body?.mediaType === 'video' ? 'video' : 'image';
+    const offset = Math.max(0, parseInt(req.body?.offset, 10) || 0);
+
+    let query = supabase
       .from('generations')
       .select('*')
-      .eq('user_id', userId)
+      .eq('user_id', userId);
+
+    // Rows created before v139 have NULL type — treat those as images so the
+    // existing history still shows in the image gallery.
+    if (mediaType === 'video') {
+      query = query.eq('type', 'video');
+    } else {
+      query = query.or('type.eq.image,type.is.null');
+    }
+
+    const { data, error } = await query
       .order('created_at', { ascending: false })
-      .limit(12);
+      .range(offset, offset + PAGE - 1);
+
     if (error) return res.status(500).json({ error: error.message });
-    return res.status(200).json({ generations: data || [] });
+
+    // hasMore: did we get a full page? (If so, there may be more.)
+    const hasMore = (data || []).length === PAGE;
+    return res.status(200).json({ generations: data || [], hasMore, offset, mediaType });
   }
 
   return res.status(400).json({ error: 'Unknown action' });
