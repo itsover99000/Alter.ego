@@ -612,8 +612,24 @@
     background: rgba(240,237,230,0.04); cursor: pointer; position: relative;
     transition: opacity 0.2s;
   }
-  .gen-thumb:hover { opacity: 0.8; }
+  .gen-thumb:hover { opacity: 0.92; }
   .gen-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  /* "tap to animate" affordance overlay */
+  .gen-thumb-animate {
+    position: absolute; top: 6px; right: 6px; z-index: 2;
+    display: flex; align-items: center; gap: 3px;
+    padding: 3px 7px; border-radius: 999px;
+    background: rgba(10,10,10,0.6); backdrop-filter: blur(4px);
+    border: 0.5px solid rgba(200,240,90,0.4);
+    font-family: 'DM Mono', monospace; font-size: 8px; font-weight: 500;
+    letter-spacing: 0.08em; text-transform: uppercase; color: #c8f05a;
+    opacity: 0; transition: opacity 0.2s; pointer-events: none;
+  }
+  .gen-thumb:hover .gen-thumb-animate { opacity: 1; }
+  /* Touch devices have no hover — keep the hint always visible there */
+  @media (hover: none) {
+    .gen-thumb-animate { opacity: 0.85; }
+  }
   .gen-thumb-label {
     position: absolute; bottom: 0; left: 0; right: 0;
     padding: 5px 8px; background: linear-gradient(transparent, rgba(10,10,10,0.8));
@@ -1235,7 +1251,7 @@
 
   <!-- Generation history gallery -->
   <div class="gen-gallery" id="genGallery">
-    <div class="gen-gallery-label">Recent Generations</div>
+    <div class="gen-gallery-label">Recent Generations · tap to reuse or animate</div>
     <div class="gen-grid" id="genGrid"></div>
   </div>
 
@@ -1465,6 +1481,7 @@ async function loadGenerations() {
       grid.innerHTML = gens.map(g => `
         <div class="gen-thumb" onclick="reuseGeneration('${g.image_url}','${(g.style||'').replace(/'/g,"\'")}')">
           <img src="${g.image_url}" alt="${g.style || 'generation'}" loading="lazy">
+          <div class="gen-thumb-animate">✦ Animate</div>
           <div class="gen-thumb-label">${g.style || '—'}</div>
         </div>
       `).join('');
@@ -1486,7 +1503,13 @@ function reuseGeneration(url, style) {
   img.style.cssText = 'width:100%;display:block;border-radius:10px';
   imageContainer.appendChild(img);
   document.getElementById('imageSaveRow').style.display = 'block';
-  // Scroll to the generated image so user sees it + save buttons
+
+  // Make this gallery image usable in the video generator: wire it into the same
+  // animate flow a fresh generation uses. Pass the image's OWN style so the motion
+  // prompt is matched to it (not whatever style chip is currently selected).
+  showAnimateSection(url, style);
+
+  // Scroll to the generated image so user sees it + save/animate
   document.getElementById('imageArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -2621,15 +2644,20 @@ const STYLE_ANIMATE_PROMPTS = {
 };
 
 let currentGeneratedImageUrl = null;
+let currentAnimateStyle = null; // style used for the animate prompt + call (fresh gen or reused gallery image)
 
-function showAnimateSection(imageUrl) {
+function showAnimateSection(imageUrl, styleOverride) {
   currentGeneratedImageUrl = imageUrl;
+  // The style to use for the animate motion prompt + the /api/animate call. For a
+  // fresh generation this is the selected style; for a reused gallery image it's
+  // that image's own saved style (passed in), so its motion matches its look.
+  currentAnimateStyle = styleOverride || selectedStyle;
   const section = document.getElementById('animateSection');
   const promptBox = document.getElementById('animatePrompt');
   if (!section || !promptBox) return;
 
   // Pre-populate with style-specific prompt
-  promptBox.value = STYLE_ANIMATE_PROMPTS[selectedStyle] || 'Gentle breathing, subtle atmospheric movement, cinematic motion. Hold face still.';
+  promptBox.value = STYLE_ANIMATE_PROMPTS[currentAnimateStyle] || 'Gentle breathing, subtle atmospheric movement, cinematic motion. Hold face still.';
 
   section.classList.add('visible');
   // Hide previous video
@@ -2685,7 +2713,7 @@ document.getElementById('animateBtn').addEventListener('click', async () => {
       body: JSON.stringify({
         userId: currentUser.id,
         imageUrl: currentGeneratedImageUrl,
-        style: selectedStyle,
+        style: currentAnimateStyle || selectedStyle,
         animatePrompt: prompt,
         duration
       })
