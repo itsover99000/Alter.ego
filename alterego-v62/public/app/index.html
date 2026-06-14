@@ -1206,6 +1206,10 @@
   <!-- Animate Section — appears after successful generation -->
   <div class="animate-section" id="animateSection">
     <div class="animate-label">✦ Animate with Kling 3.0</div>
+    <div id="animateSelectedPreview" style="display:none;margin-bottom:12px">
+      <div style="font-family:DM Mono,monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#c8f05a;margin-bottom:6px">✦ Selected for animation</div>
+      <img id="animateSelectedImg" src="" alt="selected" style="width:100%;max-height:280px;object-fit:cover;display:block;border-radius:10px;border:0.5px solid rgba(200,240,90,0.35)">
+    </div>
     <textarea class="animate-prompt-box" id="animatePrompt" placeholder="Describe the motion..."></textarea>
     <div class="animate-cost">8 credits · 5s or 10s · Kling v3 Pro · fal.ai</div>
     <div class="animate-controls">
@@ -1581,31 +1585,13 @@ function playVideo(url) {
 }
 
 function reuseGeneration(url, style) {
-  // Show image in result area
-  const imageArea = document.getElementById('imageArea');
-  const imageContainer = document.getElementById('imageContainer');
-  imageArea.style.display = 'block';
-  const existing = imageContainer.querySelector('img');
-  if (existing) existing.remove();
-  document.getElementById('imageLoading').style.display = 'none';
-  const img = document.createElement('img');
-  img.src = url;
-  img.style.cssText = 'width:100%;display:block;border-radius:10px';
-  imageContainer.appendChild(img);
-  document.getElementById('imageSaveRow').style.display = 'block';
-
-  // Confirmation: label the result window so the user knows THIS image is the one
-  // queued for animation (the only other cue was the prompt text changing).
-  const lbl = document.getElementById('imageAreaLabel');
-  if (lbl) lbl.textContent = '✦ Selected for animation' + (style ? ' · ' + style : '');
-
-  // Make this gallery image usable in the video generator: wire it into the same
-  // animate flow a fresh generation uses. Pass the image's OWN style so the motion
-  // prompt is matched to it (not whatever style chip is currently selected).
+  // Wire this gallery image into the animate flow. The selected-image preview now
+  // lives at the top of the animate section (see showAnimateSection), so that's
+  // the single clear confirmation + control surface — scroll the user there.
   showAnimateSection(url, style);
 
-  // Scroll the selected image clearly into view (mobile: it's above the gallery).
-  document.getElementById('imageArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const section = document.getElementById('animateSection');
+  if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // saveGeneration is handled server-side by /api/generate-complete (bypasses RLS)
@@ -2751,6 +2737,16 @@ function showAnimateSection(imageUrl, styleOverride) {
   const section = document.getElementById('animateSection');
   const promptBox = document.getElementById('animatePrompt');
   if (!section || !promptBox) return;
+
+  // Show the selected image right here, above the prompt + Animate button, so the
+  // user has a clear "this is what you're about to animate" confirmation attached
+  // to the controls (the standalone result window above was easy to scroll past).
+  const prev = document.getElementById('animateSelectedPreview');
+  const prevImg = document.getElementById('animateSelectedImg');
+  if (prev && prevImg && imageUrl) {
+    prevImg.src = imageUrl;
+    prev.style.display = 'block';
+  }
 
   // Pre-populate with style-specific prompt
   promptBox.value = STYLE_ANIMATE_PROMPTS[currentAnimateStyle] || 'Gentle breathing, subtle atmospheric movement, cinematic motion. Hold face still.';
