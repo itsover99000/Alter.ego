@@ -607,6 +607,25 @@
     text-transform: uppercase; color: rgba(240,237,230,0.35); margin-bottom: 10px;
   }
   .gen-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  /* Horizontal scroll row (v142) — animations gallery. ~3 thumbs visible, swipe for more. */
+  .gen-hscroll {
+    display: flex; gap: 6px; overflow-x: auto; overflow-y: hidden;
+    scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+  .gen-hscroll::-webkit-scrollbar { height: 4px; }
+  .gen-hscroll::-webkit-scrollbar-thumb { background: rgba(240,237,230,0.15); border-radius: 4px; }
+  .gen-hscroll .gen-thumb {
+    flex: 0 0 calc((100% - 12px) / 3); scroll-snap-align: start;
+  }
+  .gen-hscroll .hscroll-more {
+    flex: 0 0 64px; scroll-snap-align: start; aspect-ratio: 3/4;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; background: rgba(240,237,230,0.04);
+    border: 0.5px solid rgba(240,237,230,0.12); cursor: pointer;
+    font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: rgba(240,237,230,0.5); text-align: center;
+  }
   .gen-thumb {
     aspect-ratio: 3/4; overflow: hidden; border-radius: 6px;
     background: rgba(240,237,230,0.04); cursor: pointer; position: relative;
@@ -1208,7 +1227,8 @@
     <div class="animate-label">✦ Animate with Kling 3.0</div>
     <div id="animateSelectedPreview" style="display:none;margin-bottom:12px">
       <div style="font-family:DM Mono,monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#c8f05a;margin-bottom:6px">✦ Selected for animation</div>
-      <img id="animateSelectedImg" src="" alt="selected" style="width:100%;max-height:280px;object-fit:cover;display:block;border-radius:10px;border:0.5px solid rgba(200,240,90,0.35)">
+      <img id="animateSelectedImg" src="" alt="selected" style="width:100%;max-height:420px;object-fit:contain;display:block;border-radius:10px;border:0.5px solid rgba(200,240,90,0.35);background:rgba(240,237,230,0.03)">
+      <a id="animateSelectedSave" download="alter-ego.png" style="display:block;margin-top:8px;padding:11px;background:transparent;border:0.5px solid rgba(200,240,90,0.3);border-radius:8px;font-family:Syne,sans-serif;font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:#c8f05a;cursor:pointer;text-align:center;text-decoration:none">↓ Save Image</a>
     </div>
     <textarea class="animate-prompt-box" id="animatePrompt" placeholder="Describe the motion..."></textarea>
     <div class="animate-cost">8 credits · 5s or 10s · Kling v3 Pro · fal.ai</div>
@@ -1272,18 +1292,17 @@
 
   </div>
 
-  <!-- Generation history gallery -->
+  <!-- Animations gallery (v139) — videos, horizontal scroll, ABOVE the stills (v142) -->
+  <div class="gen-gallery" id="vidGallery">
+    <div class="gen-gallery-label">Animations · tap to play · swipe for more →</div>
+    <div class="gen-hscroll" id="vidGrid"></div>
+  </div>
+
+  <!-- Generation history gallery (stills, vertical grid, 24 + load more) -->
   <div class="gen-gallery" id="genGallery">
     <div class="gen-gallery-label">Recent Generations · tap to reuse or animate</div>
     <div class="gen-grid" id="genGrid"></div>
     <button class="load-more-btn" id="loadMoreImages" style="display:none">Load more</button>
-  </div>
-
-  <!-- Animations gallery (v139) — videos render here, separate from stills -->
-  <div class="gen-gallery" id="vidGallery">
-    <div class="gen-gallery-label">Animations · tap to play</div>
-    <div class="gen-grid" id="vidGrid"></div>
-    <button class="load-more-btn" id="loadMoreVideos" style="display:none">Load more</button>
   </div>
 
 </div>
@@ -1563,13 +1582,20 @@ async function loadVideos(reset) {
         </div>`;
     }).join('');
 
+    // Remove any existing in-row "more" tile before (re)appending.
+    const oldMore = grid.querySelector('.hscroll-more');
+    if (oldMore) oldMore.remove();
+
     if (videosOffset === 0) grid.innerHTML = html; else grid.insertAdjacentHTML('beforeend', html);
 
     const gal = document.getElementById('vidGallery');
     if (gal) gal.classList.toggle('visible', (videosOffset + vids.length) > 0);
     videosOffset += vids.length;
-    const moreBtn = document.getElementById('loadMoreVideos');
-    if (moreBtn) moreBtn.style.display = data.hasMore ? 'block' : 'none';
+
+    // If there are more animations, add a tap tile at the end of the row.
+    if (data.hasMore) {
+      grid.insertAdjacentHTML('beforeend', `<div class="hscroll-more" onclick="loadVideos(false)">→ more</div>`);
+    }
   } catch(e) { console.error('loadVideos error:', e); }
 }
 
@@ -2746,6 +2772,16 @@ function showAnimateSection(imageUrl, styleOverride) {
   if (prev && prevImg && imageUrl) {
     prevImg.src = imageUrl;
     prev.style.display = 'block';
+    // Wire the Save button — fetch as blob for a clean download, fall back to the
+    // direct URL if the fetch is blocked.
+    const saveLink = document.getElementById('animateSelectedSave');
+    if (saveLink) {
+      saveLink.href = imageUrl;
+      saveLink.download = 'alter-ego-' + Date.now() + '.png';
+      fetch(imageUrl).then(r => r.blob()).then(blob => {
+        saveLink.href = URL.createObjectURL(blob);
+      }).catch(() => { /* keep direct URL fallback */ });
+    }
   }
 
   // Pre-populate with style-specific prompt
@@ -2833,14 +2869,11 @@ document.getElementById('animateBtn').addEventListener('click', async () => {
   }
 });
 
-// Load-more buttons (v139) — fetch the next page of 24 and append.
+// Load-more button (v139) — images grid fetches the next page of 24 and appends.
+// (Animations row uses an in-row "→ more" tile instead — see loadVideos.)
 document.getElementById('loadMoreImages')?.addEventListener('click', (e) => {
   const b = e.currentTarget; b.disabled = true; b.textContent = 'Loading…';
   loadGenerations(false).finally(() => { b.disabled = false; b.textContent = 'Load more'; });
-});
-document.getElementById('loadMoreVideos')?.addEventListener('click', (e) => {
-  const b = e.currentTarget; b.disabled = true; b.textContent = 'Loading…';
-  loadVideos(false).finally(() => { b.disabled = false; b.textContent = 'Load more'; });
 });
 
 async function showVideo(videoUrl) {
