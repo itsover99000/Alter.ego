@@ -1347,26 +1347,24 @@ async function initAuth() {
     if (window.__isPasswordRecovery) {
       return;
     }
-    if (event === 'SIGNED_IN' && session?.user) {
-      await onSignedIn(session.user);
-    } else if (event === 'SIGNED_OUT') {
+
+    if (event === 'SIGNED_OUT') {
       onSignedOut();
       showAuthGate();
-    } else if (event === 'INITIAL_SESSION') {
-      if (session?.user) {
-        await onSignedIn(session.user);
-      } else if (!isOAuthReturn) {
-        // Only show auth gate if not waiting for PKCE code exchange
-        showAuthGate();
-      }
-    } else if (event === 'TOKEN_REFRESHED') {
-      // v135: when the cached token was stale, Supabase auto-refreshes shortly
-      // after load and fires this. Re-pull profile + gallery so a first fetch that
-      // 401'd on the stale token gets corrected (no more lingering 0 credits).
-      if (session?.user && currentUser) {
-        loadProfile();
-        loadGenerations();
-      }
+      return;
+    }
+
+    // v136b: ORDER-INDEPENDENT sign-in. On a cold load Supabase can fire these in
+    // any order — we saw TOKEN_REFRESHED arrive BEFORE INITIAL_SESSION/SIGNED_IN,
+    // which made the old code skip the profile/gallery load (its guard required
+    // currentUser to already be set). Result: signed in, but 0 credits / no gallery
+    // until a manual reload. Now: ANY event that yields a valid session drives the
+    // signed-in path, and onSignedIn is idempotent so multiple events are harmless.
+    if (session?.user) {
+      await onSignedIn(session.user);
+    } else if (event === 'INITIAL_SESSION' && !isOAuthReturn) {
+      // No session and not mid-PKCE exchange → genuinely signed out.
+      showAuthGate();
     }
     // Deliberately ignore: USER_UPDATED
   });
@@ -1394,35 +1392,42 @@ async function initAuth() {
 async function onSignedIn(user) {
   currentUser = user;
   showMainApp();
-  if (window.__pendingPayment) {
-    const sid = window.__pendingPayment;
-    window.__pendingPayment = null;
-    await handlePaymentSuccess(sid);
-  }
-  document.getElementById('userBar').classList.add('visible');
-  document.getElementById('userEmail').textContent = user.email;
-  await loadProfile();
-  await loadGenerations();
+
+  // v136b: this can now be called by more than one auth event (SIGNED_IN,
+  // INITIAL_SESSION, TOKEN_REFRESHED) in any order. Guard the one-time setup so
+  // it runs once, but ALWAYS (re)load profile + gallery — that's the data the
+  // user actually needs on screen, and loading it twice is harmless.
+  if (!window.__signedInSetupDone) {
+    window.__signedInSetupDone = true;
+
+    if (window.__pendingPayment) {
+      const sid = window.__pendingPayment;
+      window.__pendingPayment = null;
+      await handlePaymentSuccess(sid);
+    }
+    const ub = document.getElementById('userBar'); if (ub) ub.classList.add('visible');
+    const ue = document.getElementById('userEmail'); if (ue) ue.textContent = user.email;
     loadModels(currentUser.id);
-    // Show access code section immediately on sign-in
     const msw = document.getElementById('modelSelectorWrap');
     if (msw) msw.classList.add('visible');
 
-  // Welcome email — the SERVER decides whether to actually send it, using a
-  // per-account `welcomed_at` claim (see /api/email). So we can safely request it
-  // on every sign-in: a returning user's request is a no-op server-side, and only
-  // a genuinely new account (welcomed_at still null) ever receives one. No
-  // per-device localStorage guard — that was what mis-welcomed existing users on
-  // new browsers.
-  authedFetch('/api/email', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type: 'welcome' })
-  }).catch(e => console.error('Welcome email request failed:', e));
+    // Welcome email — server decides whether to actually send (per-account
+    // welcomed_at claim). Safe to request once on first setup.
+    authedFetch('/api/email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'welcome' })
+    }).catch(e => console.error('Welcome email request failed:', e));
+  }
+
+  // Always load the user's data (idempotent, order-independent).
+  loadProfile();
+  loadGenerations();
 }
 
 function onSignedOut() {
   currentUser = null;
+  window.__signedInSetupDone = false;
   const ub = document.getElementById('userBar'); if(ub) ub.classList.remove('visible');
   const cc = document.getElementById('creditCount'); if(cc) cc.textContent = '0';
   const gallery = document.getElementById('genGallery'); if(gallery) gallery.classList.remove('visible');
