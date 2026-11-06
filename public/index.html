@@ -3,314 +3,307 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ALTER.EGO — Become Someone Else</title>
-<meta name="description" content="Upload a selfie. Pick a style. Watch yourself transform into a cinematic, editorial, or sci-fi alter ego. Powered by AI.">
+<title>ALTER.EGO — Another dimension of you</title>
+<meta name="description" content="One photo. Twenty-three dimensions. Upload a selfie and watch yourself transform into a cinematic, sci-fi, Renaissance or cyberpunk alter ego. Powered by AI.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root { --black:#0a0a0a; --white:#f5f3ee; --accent:#c8f05a; --mid:#888; --border:rgba(10,10,10,0.1); }
-  html { scroll-behavior: smooth; }
-  body { background:var(--white); color:var(--black); font-family:'DM Mono',monospace; overflow-x:hidden; }
+  :root {
+    --bg:#0a0b0a; --ink:#f5f3ee; --mid:#8a8f88;
+    --green:#c8f05a; --amber:#e8a24c; --cyan:#3fd8e0; --violet:#9b6cf0; --pink:#f06c9b;
+    --line:rgba(255,255,255,0.1);
+  }
+  html { scroll-behavior:smooth; }
+  body { background:var(--bg); color:var(--ink); font-family:'DM Mono',monospace; overflow-x:hidden; }
+  h1,h2,h3 { font-family:'Poppins',sans-serif; font-weight:500; letter-spacing:-0.02em; line-height:1.04; }
+  .eyebrow { font-size:10px; letter-spacing:0.3em; text-transform:uppercase; color:rgba(245,243,238,0.42); }
 
-  nav { position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:20px 40px; }
-  .nav-logo { font-family:'Syne',sans-serif; font-size:14px; font-weight:800; letter-spacing:0.16em; text-transform:uppercase; color:var(--white); text-decoration:none; mix-blend-mode:difference; }
-  .nav-cta { font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--black); text-decoration:none; border-bottom:1px solid var(--black); padding-bottom:2px; transition:opacity 0.2s; background:var(--accent); padding:8px 16px; border:none; font-family:'Syne',sans-serif; font-weight:700; }
-  .nav-cta:hover { opacity:0.8; }
+  /* ---------- NAV ---------- */
+  nav { position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:22px 44px; }
+  .nav-logo { font-family:'Poppins',sans-serif; font-size:16px; font-weight:600; letter-spacing:0.06em; color:var(--ink); text-decoration:none; }
+  .nav-logo b { color:var(--green); }
+  .nav-cta { font-family:'Poppins',sans-serif; font-weight:600; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; background:var(--ink); color:#0a0a0a; padding:9px 18px; border-radius:999px; text-decoration:none; transition:transform 0.2s; }
+  .nav-cta:hover { transform:translateY(-1px); }
 
-  .hero { min-height:100vh; display:grid; grid-template-columns:1fr 1fr; }
-  .hero-left { background:var(--black); display:flex; flex-direction:column; justify-content:flex-end; padding:100px 48px 60px; position:relative; overflow:hidden; }
-  .hero-tag { font-size:9px; letter-spacing:0.16em; text-transform:uppercase; color:rgba(245,243,238,0.35); margin-bottom:20px; }
-  .hero-title { font-family:'Playfair Display',serif; font-size:clamp(52px,6vw,88px); font-weight:900; line-height:0.92; color:var(--white); margin-bottom:32px; }
-  .hero-title em { font-style:italic; color:var(--accent); }
-  .hero-desc { font-size:11px; line-height:1.8; color:rgba(245,243,238,0.5); max-width:320px; margin-bottom:40px; letter-spacing:0.02em; }
-  .hero-btn { display:inline-flex; align-items:center; gap:12px; background:var(--accent); color:var(--black); text-decoration:none; padding:16px 32px; font-family:'Syne',sans-serif; font-size:11px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; transition:all 0.2s; width:fit-content; }
-  .hero-btn:hover { background:#d4f570; transform:translateY(-2px); }
+  /* ---------- HERO ---------- */
+  .stage { position:relative; min-height:100vh; display:flex; flex-direction:column; align-items:center; overflow:hidden; }
+  .stage::before { content:""; position:absolute; left:50%; top:72%; width:1300px; height:820px; transform:translate(-50%,-50%);
+    background:radial-gradient(ellipse, rgba(120,200,60,0.18), rgba(120,200,60,0.04) 48%, transparent 70%); pointer-events:none; }
+  .headline { position:relative; z-index:20; text-align:center; padding-top:120px; }
+  h1 { font-weight:500; font-size:clamp(40px,6.2vw,82px); }
+  .sub { font-size:12px; line-height:1.8; color:rgba(245,243,238,0.5); margin-top:18px; }
+  .cta { position:relative; z-index:20; margin-top:26px; display:inline-flex; align-items:center; gap:10px;
+    font-family:'Poppins',sans-serif; font-weight:600; font-size:12px; letter-spacing:0.1em; text-transform:uppercase;
+    background:rgba(16,18,16,0.6); border:1px solid rgba(255,255,255,0.14); color:var(--ink); padding:15px 32px; border-radius:999px;
+    text-decoration:none; backdrop-filter:blur(8px); transition:all 0.25s; }
+  .cta:hover { border-color:rgba(255,255,255,0.4); transform:translateY(-2px); }
 
-  .hero-right { background:var(--white); display:flex; flex-direction:column; justify-content:flex-end; padding:100px 48px 60px; gap:40px; }
-  .hero-big-num { font-family:'Playfair Display',serif; font-size:clamp(100px,14vw,200px); font-weight:900; line-height:0.85; color:var(--black); opacity:0.04; position:absolute; top:80px; right:40px; pointer-events:none; }
-  .hero-right-inner { position:relative; }
-  .hero-sub { font-size:11px; letter-spacing:0.04em; color:var(--mid); line-height:1.7; max-width:300px; margin-bottom:32px; }
-  .pills { display:flex; flex-wrap:wrap; gap:8px; }
-  .pill { border:0.5px solid rgba(10,10,10,0.15); padding:8px 14px; font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:var(--mid); transition:all 0.2s; }
-  .pill:hover, .pill.on { border-color:var(--black); color:var(--black); background:var(--black); color:var(--white); }
+  /* the convex-lens carousel — two intersected ellipse masks on one strip */
+  .carousel { position:relative; z-index:10; width:100%; max-width:1600px; margin-top:46px; }
+  .strip { display:flex; gap:0; height:clamp(320px,46vw,520px);
+    -webkit-mask:
+      radial-gradient(135% 150% at 50% -62%, transparent 0 60%, #000 60.3%),
+      radial-gradient(135% 150% at 50% 162%, transparent 0 60%, #000 60.3%);
+    -webkit-mask-composite:source-in;
+            mask:
+      radial-gradient(135% 150% at 50% -62%, transparent 0 60%, #000 60.3%),
+      radial-gradient(135% 150% at 50% 162%, transparent 0 60%, #000 60.3%);
+            mask-composite:intersect; }
+  .cell { flex:1 1 0; position:relative; overflow:hidden; min-width:0; border-right:2px solid var(--bg); }
+  .cell:last-child { border-right:none; }
+  .cell img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 35%; }
 
-  .marquee-wrap { overflow:hidden; border-top:0.5px solid var(--border); border-bottom:0.5px solid var(--border); padding:12px 0; }
-  .marquee-track { display:flex; gap:48px; animation:marquee 22s linear infinite; white-space:nowrap; }
-  .marquee-item { font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:var(--mid); flex-shrink:0; }
-  .marquee-dot { color:var(--accent); }
-  @keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+  /* ---------- SECTION 2 — PROOF ---------- */
+  .proof { position:relative; max-width:1340px; margin:0 auto; padding:120px 44px; }
+  .proof-head { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:44px; gap:24px; flex-wrap:wrap; }
+  .proof-head h2 { font-size:clamp(30px,4vw,54px); }
+  .proof-head .green { color:var(--green); }
+  .proof-head p { font-size:12px; line-height:1.8; color:rgba(245,243,238,0.5); max-width:320px; }
+  .proof-grid { display:grid; grid-template-columns:0.82fr 1.4fr; gap:20px; align-items:stretch; }
+  .input-col { position:relative; border-radius:16px; overflow:hidden; min-height:520px; background:#111 center/cover; }
+  .input-col .shade { position:absolute; inset:0; background:linear-gradient(to top, rgba(8,9,8,0.92) 0%, transparent 42%); }
+  .input-col .tag { position:absolute; left:22px; bottom:22px; z-index:2; }
+  .input-col .tag .k { font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:rgba(245,243,238,0.55); }
+  .input-col .tag .v { font-family:'Poppins',sans-serif; font-weight:500; font-size:17px; margin-top:4px; }
+  .input-col .arrow { position:absolute; right:-11px; top:50%; transform:translateY(-50%); z-index:4;
+    width:38px; height:38px; border-radius:50%; background:var(--green); color:#0a0a0a; display:grid; place-items:center; font-size:16px; box-shadow:0 0 0 6px var(--bg); }
+  .out-grid { display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:20px; }
+  .out { position:relative; border-radius:16px; overflow:hidden; min-height:250px; background:#111 center/cover; }
+  .out::after { content:""; position:absolute; inset:0; box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06); border-radius:16px; }
+  .out .face { position:absolute; left:16px; top:16px; z-index:2; width:34px; height:34px; border-radius:50%;
+    border:2px solid rgba(255,255,255,0.9); background:#111 center/cover; opacity:0; transition:opacity 0.3s; }
+  .out:hover .face { opacity:1; }
+  .proof-foot { margin-top:28px; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(245,243,238,0.32); }
 
-  .gallery { padding:100px 40px; }
-  .section-eyebrow { font-size:9px; letter-spacing:0.18em; text-transform:uppercase; color:var(--mid); margin-bottom:12px; }
-  .section-title { font-family:'Playfair Display',serif; font-size:clamp(32px,4vw,52px); font-weight:700; line-height:1.1; color:var(--black); }
-  .gallery-header { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:48px; }
-  .gallery-link { font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--black); text-decoration:none; border-bottom:1px solid var(--black); padding-bottom:2px; }
+  /* ---------- SECTION 3 — STYLE BROWSER ---------- */
+  .styles { position:relative; max-width:1340px; margin:0 auto; padding:40px 44px 130px; }
+  .styles-head { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:34px; gap:24px; flex-wrap:wrap; }
+  .styles-head h2 { font-size:clamp(28px,3.6vw,48px); }
+  .styles-head .count { color:var(--green); }
+  .styles-head .all { font-family:'Poppins',sans-serif; font-weight:500; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink); text-decoration:none; border-bottom:1px solid rgba(255,255,255,0.3); padding-bottom:3px; }
+  .browser { display:grid; grid-template-columns:1.5fr 1fr; gap:20px; height:520px; }
+  .feature { position:relative; border-radius:18px; overflow:hidden; background:#111 center 22%/cover; transition:background-image 0.4s; }
+  .feature .wash { position:absolute; inset:0; background:linear-gradient(105deg, rgba(8,9,8,0.86) 0%, rgba(8,9,8,0.35) 46%, transparent 72%); }
+  .feature .glow { position:absolute; inset:0; mix-blend-mode:screen; opacity:0.5; transition:background 0.4s; }
+  .feature .meta { position:absolute; left:38px; bottom:38px; z-index:3; max-width:380px; }
+  .feature .num { font-family:'Poppins',sans-serif; font-weight:300; font-size:13px; color:rgba(245,243,238,0.45); letter-spacing:0.1em; }
+  .feature .name { font-family:'Poppins',sans-serif; font-weight:500; font-size:clamp(30px,3.4vw,46px); line-height:1.02; margin:6px 0 10px; letter-spacing:-0.01em; }
+  .feature .desc { font-size:12px; line-height:1.75; color:rgba(245,243,238,0.62); }
+  .feature .btn { display:inline-flex; align-items:center; gap:8px; margin-top:20px;
+    font-family:'Poppins',sans-serif; font-weight:500; font-size:11px; letter-spacing:0.12em; text-transform:uppercase;
+    color:#0a0a0a; background:var(--accent,var(--green)); padding:11px 20px; border-radius:999px; text-decoration:none; transition:transform 0.2s; }
+  .feature .btn:hover { transform:translateY(-2px); }
+  .list { display:flex; flex-direction:column; border-radius:18px; overflow:hidden; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); }
+  .list .row { flex:1; display:flex; align-items:center; gap:16px; padding:0 22px; cursor:pointer; border-bottom:1px solid rgba(255,255,255,0.05); transition:background 0.2s; position:relative; min-height:0; }
+  .list .row:last-child { border-bottom:none; }
+  .list .row .idx { font-size:10px; color:rgba(245,243,238,0.3); width:22px; font-family:'Poppins',sans-serif; }
+  .list .row .nm { font-family:'Poppins',sans-serif; font-weight:500; font-size:15px; color:rgba(245,243,238,0.68); transition:color 0.2s; }
+  .list .row .dot { width:6px; height:6px; border-radius:50%; margin-left:auto; opacity:0.5; }
+  .list .row:hover { background:rgba(255,255,255,0.04); }
+  .list .row:hover .nm { color:var(--ink); }
+  .list .row.active { background:rgba(200,240,90,0.08); }
+  .list .row.active .nm { color:var(--green); }
+  .list .row.active::before { content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--green); }
 
-  .g-item { overflow:hidden; position:relative; background:#111; }
-  .g-item img { width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.6s ease; }
-  .g-item:hover img { transform:scale(1.04); }
-  .g-label { position:absolute; bottom:12px; left:12px; font-size:9px; letter-spacing:0.12em; text-transform:uppercase; color:rgba(245,243,238,0.85); background:rgba(10,10,10,0.6); padding:5px 12px; backdrop-filter:blur(6px); border-radius:2px; }
+  /* ---------- CTA ---------- */
+  .cta-sec { background:#070807; padding:130px 40px; text-align:center; position:relative; overflow:hidden; border-top:1px solid var(--line); }
+  .cta-sec::before { content:""; position:absolute; left:50%; top:50%; width:900px; height:560px; transform:translate(-50%,-50%);
+    background:radial-gradient(ellipse, rgba(120,200,60,0.12), transparent 68%); pointer-events:none; }
+  .cta-eyebrow { font-size:9px; letter-spacing:0.22em; text-transform:uppercase; color:rgba(245,243,238,0.32); margin-bottom:24px; position:relative; }
+  .cta-title { font-family:'Poppins',sans-serif; font-weight:500; font-size:clamp(40px,6vw,76px); color:var(--ink); line-height:1.04; margin-bottom:16px; position:relative; }
+  .cta-title em { font-style:normal; color:var(--green); }
+  .cta-sub { font-size:11px; color:rgba(245,243,238,0.4); letter-spacing:0.04em; margin-bottom:44px; position:relative; }
+  .cta-btn { display:inline-flex; align-items:center; gap:12px; background:var(--green); color:#0a0a0a; text-decoration:none; padding:18px 44px; border-radius:999px; font-family:'Poppins',sans-serif; font-size:12px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; transition:transform 0.2s; position:relative; }
+  .cta-btn:hover { transform:translateY(-2px); }
 
-  .how { padding:100px 40px; background:var(--black); color:var(--white); }
-  .how-header { display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-bottom:72px; align-items:end; }
-  .how-title { font-family:'Playfair Display',serif; font-size:clamp(36px,4vw,60px); font-weight:700; line-height:1.05; }
-  .how-title em { font-style:italic; color:var(--accent); }
-  .how-intro { font-size:11px; line-height:1.9; color:rgba(245,243,238,0.4); }
-  .steps { display:grid; grid-template-columns:repeat(3,1fr); background:rgba(245,243,238,0.06); gap:1px; }
-  .step { background:var(--black); padding:48px 36px; }
-  .step-num { font-family:'Playfair Display',serif; font-size:64px; font-weight:900; color:rgba(245,243,238,0.05); line-height:1; margin-bottom:20px; }
-  .step-icon { font-size:26px; margin-bottom:16px; display:block; }
-  .step-title { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--white); margin-bottom:10px; }
-  .step-desc { font-size:11px; line-height:1.8; color:rgba(245,243,238,0.4); }
+  /* ---------- FOOTER ---------- */
+  footer { background:#070807; border-top:1px solid var(--line); padding:28px 44px; display:flex; align-items:center; justify-content:space-between; }
+  .f-logo { font-family:'Poppins',sans-serif; font-size:13px; font-weight:600; letter-spacing:0.06em; color:var(--ink); text-decoration:none; }
+  .f-logo span { color:var(--green); }
+  .f-copy { font-size:9px; letter-spacing:0.08em; color:rgba(245,243,238,0.25); text-transform:uppercase; }
 
-  .styles-sec { padding:100px 40px; }
-  .styles-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); margin-top:48px; }
-  .s-card { background:var(--white); padding:36px 28px; transition:background 0.2s; cursor:default; }
-  .s-card:hover { background:var(--black); }
-  .s-card:hover .s-name { color:var(--white); }
-  .s-card:hover .s-desc { color:rgba(245,243,238,0.4); }
-  .s-card:hover .s-num { color:rgba(245,243,238,0.04); }
-  .s-num { font-family:'Playfair Display',serif; font-size:44px; font-weight:900; color:rgba(10,10,10,0.04); line-height:1; margin-bottom:12px; transition:color 0.2s; }
-  .s-emoji { font-size:22px; margin-bottom:10px; display:block; }
-  .s-name { font-family:'Syne',sans-serif; font-size:12px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--black); margin-bottom:8px; transition:color 0.2s; }
-  .s-desc { font-size:10px; line-height:1.7; color:var(--mid); transition:color 0.2s; }
+  /* ---------- fade-in ---------- */
+  .fi { opacity:0; transform:translateY(20px); transition:opacity 0.65s ease, transform 0.65s ease; }
+  .fi.vis { opacity:1; transform:none; }
 
-  .cta-sec { background:var(--black); padding:120px 40px; text-align:center; position:relative; overflow:hidden; }
-  .cta-bg { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-family:'Playfair Display',serif; font-size:clamp(80px,16vw,240px); font-weight:900; color:rgba(245,243,238,0.02); white-space:nowrap; font-style:italic; pointer-events:none; }
-  .cta-eyebrow { font-size:9px; letter-spacing:0.18em; text-transform:uppercase; color:rgba(245,243,238,0.28); margin-bottom:24px; }
-  .cta-title { font-family:'Playfair Display',serif; font-size:clamp(44px,6vw,80px); font-weight:900; color:var(--white); line-height:1.05; margin-bottom:16px; position:relative; }
-  .cta-title em { font-style:italic; color:var(--accent); }
-  .cta-sub { font-size:11px; color:rgba(245,243,238,0.35); letter-spacing:0.04em; margin-bottom:48px; position:relative; }
-  .cta-btn { display:inline-flex; align-items:center; gap:14px; background:var(--accent); color:var(--black); text-decoration:none; padding:20px 48px; font-family:'Syne',sans-serif; font-size:12px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; transition:all 0.2s; position:relative; }
-  .cta-btn:hover { background:#d4f570; transform:translateY(-2px); }
-
-  footer { background:var(--black); border-top:0.5px solid rgba(245,243,238,0.07); padding:28px 40px; display:flex; align-items:center; justify-content:space-between; }
-  .f-logo { font-family:'Syne',sans-serif; font-size:12px; font-weight:800; letter-spacing:0.16em; text-transform:uppercase; color:var(--white); text-decoration:none; }
-  .f-logo span { color:var(--accent); }
-  .f-copy { font-size:9px; letter-spacing:0.08em; color:rgba(245,243,238,0.2); text-transform:uppercase; }
-
-  .fi { opacity:0; transform:translateY(20px); transition:opacity 0.65s ease,transform 0.65s ease; }
-  .fi.vis { opacity:1; transform:translateY(0); }
-
-  @media(max-width:768px){
-    nav{padding:16px 20px;}
-    .hero{grid-template-columns:1fr;}
-    .hero-left{min-height:70vh;padding:80px 24px 40px;}
-    .hero-right{padding:40px 24px;}
-    .gallery{padding:60px 20px;}
-    .gallery .fi > div { grid-template-columns:1fr !important; }
-    .g-item{min-height:260px;}
-    .how{padding:60px 20px;}
-    .how-header{grid-template-columns:1fr;}
-    .steps{grid-template-columns:1fr;}
-    .styles-sec{padding:60px 20px;}
-    .styles-grid{grid-template-columns:1fr 1fr;}
-    .cta-sec{padding:80px 20px;}
-    footer{padding:24px 20px;flex-direction:column;gap:10px;text-align:center;}
+  /* ---------- RESPONSIVE ---------- */
+  @media(max-width:900px){
+    nav { padding:16px 20px; }
+    .headline { padding-top:96px; }
+    .proof { padding:70px 20px; }
+    .proof-grid { grid-template-columns:1fr; }
+    .input-col { min-height:360px; }
+    .input-col .arrow { display:none; }
+    .styles { padding:0 20px 80px; }
+    .browser { grid-template-columns:1fr; height:auto; }
+    .feature { min-height:420px; }
+    .list { max-height:320px; overflow-y:auto; }
+    .list .row { min-height:54px; }
+    .cta-sec { padding:80px 20px; }
+    footer { padding:22px 20px; flex-direction:column; gap:10px; text-align:center; }
   }
 </style>
 </head>
 <body>
 
 <nav>
-  <a href="/" class="nav-logo">Alter.Ego</a>
-  <a href="/app/" class="nav-cta">Sign In →</a>
+  <a href="/" class="nav-logo">ALTER<b>.</b>EGO</a>
+  <a href="/app/" class="nav-cta">Sign in →</a>
 </nav>
 
-<section class="hero">
-  <div class="hero-left">
-    <!-- Hero background image -->
-    <div style="position:absolute;inset:0;overflow:hidden">
-      <img src="/images/hero.png" alt="" style="width:100%;height:100%;object-fit:cover;opacity:0.35;filter:grayscale(20%);object-position:center top">
-      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,10,10,0.95) 0%,rgba(10,10,10,0.4) 60%,rgba(10,10,10,0.2) 100%)"></div>
-    </div>
-
-    <div class="fi">
-      <div class="hero-tag">AI Portrait Studio · alter-ego.photography</div>
-      <h1 class="hero-title">Become<br><em>Someone</em><br>Else.</h1>
-      <p class="hero-desc">Upload a selfie. Choose your aesthetic. Watch yourself transform into a cinematic, editorial, sci-fi, or fashion alter ego — in seconds.</p>
-      <a href="/app/" class="hero-btn">Create yours free <span>→</span></a>
-    </div>
+<!-- ============ HERO ============ -->
+<section class="stage">
+  <div class="headline fi">
+    <div class="eyebrow">AI Portrait Studio · Alter-ego.photo</div>
+    <h1>Main character<br>energy.</h1>
+    <p class="sub">One photo. Twenty-three worlds. Infinite versions of you.</p>
   </div>
-  <div class="hero-right">
-    <div class="hero-right-inner fi" style="transition-delay:0.15s">
-      <p class="hero-sub">Eight distinct style directions. One selfie. Infinite versions of you.</p>
-      <div class="pills">
-        <div class="pill on">✦ Campaign</div>
-        <div class="pill">🖼️ Cover</div>
-        <div class="pill">✨ Glamour</div>
-        <div class="pill">🎬 Cinematic</div>
-        <div class="pill">⚡ Cyberpunk</div>
-        <div class="pill">🚀 Sci-Fi</div>
-        <div class="pill">🔥 Streetwear</div>
-        <div class="pill">🌸 Anime</div>
-        <div class="pill">🎨 Painterly</div>
-        <div class="pill">💼 Headshot</div>
-        <div class="pill">🌿 Acotar</div>
-        <div class="pill">⚽ Athlete</div>
-        <div class="pill">🎨 Warhol</div>
-      </div>
-    </div>
+  <a href="/app/" class="cta fi" style="transition-delay:0.1s">Create yours now →</a>
+
+  <div class="carousel fi" style="transition-delay:0.2s">
+    <div class="strip" id="strip"></div>
   </div>
 </section>
 
-<div class="marquee-wrap">
-  <div class="marquee-track">
-    <span class="marquee-item">AI Portrait Generation</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Fashion Editorial</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Cyberpunk</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Cinematic Film</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Sci-Fi</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Streetwear</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Painterly</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">alter-ego.photography</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">AI Portrait Generation</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Fashion Editorial</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Cyberpunk</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Cinematic Film</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Sci-Fi</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Streetwear</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">Painterly</span><span class="marquee-item marquee-dot">✦</span>
-    <span class="marquee-item">alter-ego.photography</span><span class="marquee-item marquee-dot">✦</span>
-  </div>
-</div>
-
-<section class="gallery">
-  <div class="gallery-header fi">
-    <div>
-      <div class="section-eyebrow">The Work</div>
-      <h2 class="section-title">Your selfie.<br>Reimagined.</h2>
-    </div>
-    <a href="/app/" class="gallery-link">Try it free →</a>
+<!-- ============ SECTION 2 — PROOF ============ -->
+<section class="proof">
+  <div class="proof-head fi">
+    <h2>Same face.<br><span class="green">Another</span> dimension.</h2>
+    <p>Every frame on the right came from one photo. No editing. No photoshop. One upload, twenty-three dimensions of the same face.</p>
   </div>
 
-  <!-- Row 1: big left + 2 right -->
-  <div class="fi" style="transition-delay:0.1s">
-    <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:6px;margin-bottom:6px">
-
-      <!-- Hero — Fashion Editorial (tall, spans 2 rows) -->
-      <div class="g-item" style="min-height:580px;grid-row:span 2">
-        <img src="/images/fashion-3.png" alt="Fashion Editorial" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
-        <div class="g-label">Fashion</div>
-      </div>
-
-      <!-- Sci-Fi -->
-      <div class="g-item" style="min-height:280px">
-        <img src="/images/sci-fi.png" alt="Sci-Fi" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
-        <div class="g-label">Sci-Fi</div>
-      </div>
-
-      <!-- Male Fashion -->
-      <div class="g-item" style="min-height:280px">
-        <img src="/images/male-fashion.png" alt="Fashion" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
-        <div class="g-label">Fashion</div>
-      </div>
-
-    </div>
-
-    <!-- Row 2: 3 equal -->
-    <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:6px">
-
-      <!-- spacer for the tall hero -->
-      <div style="display:none"></div>
-
-      <!-- Cinematic -->
-      <div class="g-item" style="min-height:280px">
-        <img src="/images/cinematic.png" alt="Cinematic" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
-        <div class="g-label">Cinematic</div>
-      </div>
-
-      <!-- Anime -->
-      <div class="g-item" style="min-height:280px">
-        <img src="/images/anime.png" alt="Anime" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
-        <div class="g-label">Anime</div>
-      </div>
-
-    </div>
-
-    <!-- Row 3: cyberpunk full width + fashion-2 -->
-    <div style="margin-top:6px;display:grid;grid-template-columns:1.4fr 1fr;gap:6px">
-      <div class="g-item" style="min-height:360px">
-        <img src="/images/cyberpunk.jpg" alt="Cyberpunk" style="width:100%;height:100%;object-fit:cover;object-position:center 30%;display:block">
-        <div class="g-label">Cyberpunk</div>
-      </div>
-      <div class="g-item" style="min-height:360px">
-        <img src="/images/fashion-2.png" alt="Editorial" style="width:100%;height:100%;object-fit:cover;object-position:center 20%;display:block">
-        <div class="g-label">Editorial</div>
+  <div class="proof-grid fi" style="transition-delay:0.1s">
+    <div class="input-col" style="background-image:url('/images/mona/mona-input.jpg');background-position:center 22%">
+      <div class="shade"></div>
+      <div class="arrow">&rarr;</div>
+      <div class="tag">
+        <div class="k">The input</div>
+        <div class="v">One photo. Nothing more.</div>
       </div>
     </div>
+    <div class="out-grid">
+      <div class="out" style="background-image:url('/images/mona/mona-sovereign.jpg')"><div class="face" style="background-image:url('/images/mona/mona-input.jpg')"></div></div>
+      <div class="out" style="background-image:url('/images/mona/mona-scifi.jpg')"><div class="face" style="background-image:url('/images/mona/mona-input.jpg')"></div></div>
+      <div class="out" style="background-image:url('/images/mona/mona-stmoritz.jpg')"><div class="face" style="background-image:url('/images/mona/mona-input.jpg')"></div></div>
+      <div class="out" style="background-image:url('/images/mona/mona-cyberpunk.jpg')"><div class="face" style="background-image:url('/images/mona/mona-input.jpg')"></div></div>
+    </div>
+  </div>
+  <div class="proof-foot fi">+ Results in under 30 seconds · the same face, every world</div>
+</section>
 
+<!-- ============ SECTION 3 — STYLE BROWSER ============ -->
+<section class="styles">
+  <div class="styles-head fi">
+    <h2><span class="count">23</span> dimensions.<br>All yours.</h2>
+    <a href="/app/" class="all">Explore all styles &rarr;</a>
+  </div>
+
+  <div class="browser fi" style="transition-delay:0.1s">
+    <div class="feature" id="feature">
+      <div class="glow" id="featureGlow"></div>
+      <div class="wash"></div>
+      <div class="meta">
+        <div class="num" id="fNum">01 / 23</div>
+        <div class="name" id="fName">Cyborg</div>
+        <div class="desc" id="fDesc">Gilded chrome and palace light. Machine-born royalty.</div>
+        <a href="/app/" class="btn" id="fBtn" style="--accent:var(--amber)">Try Cyborg &rarr;</a>
+      </div>
+    </div>
+    <div class="list" id="list"></div>
   </div>
 </section>
 
-<section class="how">
-  <div class="how-header fi">
-    <h2 class="how-title">Three steps.<br><em>Infinite you.</em></h2>
-    <p class="how-intro">No design skills. No prompting expertise. Just a selfie and a vision for who you could be.</p>
-  </div>
-  <div class="steps fi" style="transition-delay:0.1s">
-    <div class="step">
-      <div class="step-num">01</div>
-      <span class="step-icon">📷</span>
-      <div class="step-title">Upload a Selfie</div>
-      <p class="step-desc">Clear, well-lit, facing forward. Our AI reads your face and anchors the generation to you specifically.</p>
-    </div>
-    <div class="step">
-      <div class="step-num">02</div>
-      <span class="step-icon">✦</span>
-      <div class="step-title">Pick Your Style</div>
-      <p class="step-desc">Choose from 8 curated aesthetic directions — each with 4 unique visual interpretations that rotate on every generation.</p>
-    </div>
-    <div class="step">
-      <div class="step-num">03</div>
-      <span class="step-icon">⚡</span>
-      <div class="step-title">Generate & Share</div>
-      <p class="step-desc">AI creates your cinematic portrait in seconds. Edit the prompt, regenerate, then share directly to Instagram.</p>
-    </div>
-  </div>
-</section>
-
-<section class="styles-sec">
-  <div class="fi">
-    <div class="section-eyebrow">Style Directions</div>
-    <h2 class="section-title" style="margin-top:8px">Eight worlds.<br>All yours.</h2>
-  </div>
-  <div class="styles-grid fi" style="transition-delay:0.1s">
-    <div class="s-card"><div class="s-num">01</div><span class="s-emoji">🎬</span><div class="s-name">Cinematic</div><p class="s-desc">35mm film. Golden hour. Anamorphic lens. Kodak grain.</p></div>
-    <div class="s-card"><div class="s-num">02</div><span class="s-emoji">📸</span><div class="s-name">Editorial</div><p class="s-desc">High-fashion magazine. Studio lighting. Graphic composition.</p></div>
-    <div class="s-card"><div class="s-num">03</div><span class="s-emoji">⚡</span><div class="s-name">Cyberpunk</div><p class="s-desc">Blade Runner nights. Neon reflections. Electric colour.</p></div>
-    <div class="s-card"><div class="s-num">04</div><span class="s-emoji">✦</span><div class="s-name">Fashion</div><p class="s-desc">Vogue campaigns. Architectural sets. Luxury power.</p></div>
-    <div class="s-card"><div class="s-num">05</div><span class="s-emoji">🚀</span><div class="s-name">Sci-Fi</div><p class="s-desc">Deep space. Holographic armour. Epic cosmic scale.</p></div>
-    <div class="s-card"><div class="s-num">06</div><span class="s-emoji">🔥</span><div class="s-name">Streetwear</div><p class="s-desc">Urban rooftops. Golden hour. Raw candid energy.</p></div>
-    <div class="s-card"><div class="s-num">07</div><span class="s-emoji">🌸</span><div class="s-name">Anime</div><p class="s-desc">Ghibli meets cyberpunk. Cel-shaded. Detailed linework.</p></div>
-    <div class="s-card"><div class="s-num">08</div><span class="s-emoji">🎨</span><div class="s-name">Painterly</div><p class="s-desc">Old Masters. Rembrandt light. Museum-quality texture.</p></div>
-  </div>
-</section>
-
+<!-- ============ CTA ============ -->
 <section class="cta-sec">
-  <div class="cta-bg">ALTER.EGO</div>
   <div class="cta-eyebrow fi">Free to try · No account needed</div>
   <h2 class="cta-title fi" style="transition-delay:0.08s">Who could<br><em>you</em> be?</h2>
-  <p class="cta-sub fi" style="transition-delay:0.14s">Upload a selfie. Results in under 30 seconds.</p>
+  <p class="cta-sub fi" style="transition-delay:0.14s">Upload a photo. Results in under 30 seconds.</p>
   <a href="/app/" class="cta-btn fi" style="transition-delay:0.2s">Create your alter ego →</a>
 </section>
 
 <footer>
   <a href="/" class="f-logo">Alter<span>.</span>Ego</a>
-  <div class="f-copy">© 2026 alter-ego.photography · Powered by Claude & Flux AI</div>
+  <div class="f-copy">© 2026 alter-ego.photo · Powered by Claude & Flux AI</div>
 </footer>
 
 <script>
-const obs = new IntersectionObserver(entries => {
-  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('vis'); });
-}, { threshold: 0.08 });
-document.querySelectorAll('.fi').forEach(el => obs.observe(el));
+  // ---- HERO carousel: 23 real portraits, edge-to-edge, lens-curved ----
+  const hero = [
+    "01-royal","02-sorceress","03-headshot","04-painterly","05-scifi","06-oldmoney",
+    "07-warrior","08-einstein","09-warhol","10-mustard","11-neonwoman","12-athlete",
+    "13-riviera","14-queen","15-cyborg","16-samurai","17-cowboy","18-fan",
+    "19-explorer","20-sovereign","21-countryroad","22-anime","23-cyberpunk"
+  ];
+  const strip = document.getElementById('strip');
+  hero.forEach(name => {
+    const c = document.createElement('div'); c.className = 'cell';
+    const img = document.createElement('img');
+    img.src = `/images/hero/${name}.jpg`; img.alt = ''; img.loading = 'lazy';
+    c.appendChild(img);
+    strip.appendChild(c);
+  });
 
-// Trigger hero elements immediately
-document.querySelectorAll('.hero .fi').forEach(el => {
-  setTimeout(() => el.classList.add('vis'), 100);
-});
+  // ---- SECTION 3 style browser ----
+  // Curated 14 of the app's 23 real styles, each matched to a real generation.
+  // "Explore all styles" links to the app for the full set.
+  // 5th value = vertical crop focus % (where the face sits, so the panel's
+  // landscape crop keeps it in frame). Lower = face nearer the top of the image.
+  const styles = [
+    ["Cyborg","/images/mona/mona-sovereign.jpg","#e8a24c","Gilded chrome and palace light. Machine-born royalty.",18],
+    ["Sci-Fi","/images/hero/s-scifi.jpg","#3fd8e0","Deep-sea tech and cold teal light. A frontier that never existed.",24],
+    ["St Moritz","/images/hero/s-stmoritz.jpg","#b9c0c8","Alpine light, shearling and champagne. Quiet luxury.",26],
+    ["Cyberpunk","/images/hero/11-neonwoman.jpg","#9b6cf0","Neon alleys and rain-slick chrome. Blade Runner, reborn.",22],
+    ["Painterly","/images/hero/04-painterly.jpg","#c8a06a","Oil on canvas, firelight, the weight of an old master.",20],
+    ["Cinematic","/images/hero/s-explorer2.jpg","#e8a24c","Golden-hour wide shot, long shadows, the look of a film still.",14],
+    ["Anime","/images/hero/02-sorceress.jpg","#f06c9b","Hand-drawn worlds, impossible hair, main-character framing.",14],
+    ["Acotar","/images/hero/07-warrior.jpg","#9b6cf0","Illyrian leathers and twin moons. Night Court made flesh.",16],
+    ["Athlete","/images/hero/12-athlete.jpg","#3fd8e0","Stadium lights, the decisive moment, built for the back page.",12],
+    ["Warhol","/images/hero/09-warhol.jpg","#f06c9b","Flat colour and hard pop. A silkscreen icon of you.",20],
+    ["Glamour","/images/hero/06-oldmoney.jpg","#e8a24c","Old Hollywood light, silk and smoulder. Red-carpet energy.",18],
+    ["Campaign","/images/hero/10-mustard.jpg","#e8a24c","Bold set, bolder tailoring. The brand campaign is you.",14],
+    ["Western","/images/hero/17-cowboy.jpg","#c8a06a","Dust, denim and golden-hour grit. Last light on the frontier.",18],
+    ["Headshot","/images/hero/03-headshot.jpg","#b9c0c8","Clean studio light, sharp and professional. The one for LinkedIn.",22],
+  ];
+  const total = 23;
+  const feature = document.getElementById('feature');
+  const fGlow = document.getElementById('featureGlow');
+  const fNum = document.getElementById('fNum');
+  const fName = document.getElementById('fName');
+  const fDesc = document.getElementById('fDesc');
+  const fBtn = document.getElementById('fBtn');
+  const list = document.getElementById('list');
+
+  function select(i){
+    const [name,img,hex,desc,focus=28] = styles[i];
+    feature.style.backgroundImage = `url('${img}')`;
+    feature.style.backgroundPosition = `center ${focus}%`;
+    fGlow.style.background = `radial-gradient(ellipse at 70% 40%, ${hex}, transparent 60%)`;
+    fNum.textContent = String(i+1).padStart(2,'0') + ' / ' + total;
+    fName.textContent = name;
+    fDesc.textContent = desc;
+    fBtn.textContent = 'Try ' + name + ' →';
+    fBtn.style.setProperty('--accent', hex);
+    [...list.children].forEach((r,idx)=>r.classList.toggle('active', idx===i));
+  }
+  styles.forEach(([name,img,hex,desc],i)=>{
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML = `<span class="idx">${String(i+1).padStart(2,'0')}</span>
+      <span class="nm">${name}</span>
+      <span class="dot" style="background:${hex}"></span>`;
+    row.addEventListener('mouseenter', ()=>select(i));
+    list.appendChild(row);
+  });
+  select(0);
+
+  // ---- fade-in ----
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('vis'); });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.fi').forEach(el => obs.observe(el));
+  document.querySelectorAll('.stage .fi').forEach(el => setTimeout(()=>el.classList.add('vis'), 100));
 </script>
 </body>
 </html>
