@@ -29,7 +29,12 @@
 
   /* ---------- HERO ---------- */
   .stage { position:relative; min-height:100vh; display:flex; flex-direction:column; align-items:center; overflow:hidden; }
-  .stage::before { content:""; position:absolute; left:50%; top:72%; width:1300px; height:820px; transform:translate(-50%,-50%);
+  /* full-bleed darkened portrait behind the hero, feathered into black top + bottom */
+  .stage::after { content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
+    background:url('/images/bg-hero.jpg') center 28% / cover no-repeat; opacity:0.5;
+    -webkit-mask:linear-gradient(to bottom, transparent, #000 18%, #000 64%, transparent);
+            mask:linear-gradient(to bottom, transparent, #000 18%, #000 64%, transparent); }
+  .stage::before { content:""; position:absolute; left:50%; top:72%; width:1300px; height:820px; transform:translate(-50%,-50%); z-index:1;
     background:radial-gradient(ellipse, rgba(120,200,60,0.18), rgba(120,200,60,0.04) 48%, transparent 70%); pointer-events:none; }
   .headline { position:relative; z-index:20; text-align:center; padding-top:120px; }
   h1 { font-weight:500; font-size:clamp(40px,6.2vw,82px); }
@@ -82,6 +87,12 @@
 
   /* ---------- SECTION 3 — STYLE BROWSER ---------- */
   .styles { position:relative; max-width:1340px; margin:0 auto; padding:40px 44px 130px; }
+  /* darkened portrait behind the style browser, feathered into black */
+  .styles::before { content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
+    background:url('/images/bg-styles.jpg') center 30% / cover no-repeat; opacity:0.4;
+    -webkit-mask:linear-gradient(to bottom, transparent, #000 20%, #000 70%, transparent);
+            mask:linear-gradient(to bottom, transparent, #000 20%, #000 70%, transparent); }
+  .styles > * { position:relative; z-index:1; }
   .styles-head { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:34px; gap:24px; flex-wrap:wrap; }
   .styles-head h2 { font-size:clamp(28px,3.6vw,48px); }
   .styles-head .count { color:var(--ink); }
