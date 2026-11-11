@@ -88,7 +88,7 @@
   /* ---------- SECTION 3 — STYLE BROWSER ---------- */
   .styles { position:relative; max-width:1340px; margin:0 auto; padding:40px 44px 130px; }
   /* darkened portrait behind the style browser, feathered into black */
-  .styles::before { content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
+  .styles::before { content:""; position:absolute; top:0; bottom:0; left:50%; width:100vw; transform:translateX(-50%); z-index:0; pointer-events:none;
     background:url('/images/bg-styles.jpg') center 42% / cover no-repeat; opacity:0.85;
     -webkit-mask:linear-gradient(to bottom, #000 0, #000 68%, transparent);
             mask:linear-gradient(to bottom, #000 0, #000 68%, transparent); }
